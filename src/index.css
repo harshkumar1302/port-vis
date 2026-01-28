@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@300;400;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* 🎨 PALETTE: Warm Ghibli (Strict) */
+  --ghibli-cream: #FFFDF5;
+  /* Warm off-white, NOT pure white */
+  --ghibli-paper: #F2E8D5;
+  /* Aged paper feel */
+  --ghibli-charcoal: #3A3532;
+  /* Warm dark gray/brown, NOT black */
+  --ghibli-navy: #1F2937;
+  /* Deep cozy night */
+
+  /* Dark Mode specific base */
+  --ghibli-dark-bg: #23211F;
+  /* Warm dark charcoal */
+  --ghibli-dark-card: #2D2A28;
+
+  /* Accents */
+  --ghibli-gold: #FACD60;
+  /* Firefly glow */
+  --ghibli-moss: #7C9473;
+  /* Forest spirit */
+  --ghibli-wood: #8B5E3C;
+  /* Tree bark */
+  --ghibli-salmon: #FF8E72;
+  /* Soft blush */
+
+  /* Global Cursor Vars */
+  --cursor-x: 50%;
+  --cursor-y: 50%;
+
+  /* Fonts */
+  --font-heading: 'Quicksand', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+}
+
+@theme {
+  --color-ghibli-cream: var(--ghibli-cream);
+  --color-ghibli-paper: var(--ghibli-paper);
+  --color-ghibli-charcoal: var(--ghibli-charcoal);
+  --color-ghibli-navy: var(--ghibli-navy);
+  --color-ghibli-dark-bg: var(--ghibli-dark-bg);
+  --color-ghibli-dark-card: var(--ghibli-dark-card);
+  --color-ghibli-gold: var(--ghibli-gold);
+  --color-ghibli-moss: var(--ghibli-moss);
+  --color-ghibli-wood: var(--ghibli-wood);
+  --color-ghibli-salmon: var(--ghibli-salmon);
+
+  --font-serif: var(--font-heading);
+  --font-sans: var(--font-body);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-in: fade-in 1s ease-out forwards;
+}
+
+/* 🌿 Reset & Base */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+  /* Offset for fixed navbar */
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--ghibli-cream);
+  color: var(--ghibli-charcoal);
+  line-height: 1.8;
+  overflow-x: hidden;
+  transition: background-color 0.8s ease-in-out, color 0.8s ease-in-out;
+  cursor: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Dark Mode Overrides */
+.dark body {
+  background-color: var(--ghibli-dark-bg);
+  color: #EAEAEA;
+  /* Soft white text */
+}
+
+/* 🌫️ Texture Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+.dark body::before {
+  opacity: 0.05;
+  filter: invert(1);
+  mix-blend-mode: overlay;
+}
+
+/* 🔥 Torch / Firefly Aesthetic */
+.torch-effect {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9990;
+  background: radial-gradient(circle 350px at var(--cursor-x) var(--cursor-y), rgba(250, 205, 96, 0.15), transparent 70%);
+  mix-blend-mode: hard-light;
+  transition: opacity 0.5s ease;
+}
+
+.dark .torch-effect {
+  background: radial-gradient(circle 450px at var(--cursor-x) var(--cursor-y), rgba(250, 205, 96, 0.1), transparent 60%);
+  mix-blend-mode: screen;
+}
+
+/* ✨ Firefly Cursor Effect */
+.firefly-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.firefly {
+  position: fixed;
+  background: var(--ghibli-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--ghibli-gold), 0 0 20px var(--ghibli-gold);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes twinkle {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+    box-shadow: 0 0 5px var(--ghibli-gold);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 20px var(--ghibli-gold), 0 0 30px var(--ghibli-gold);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+/* 🧼 Components */
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 24px;
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.dark .card-glass {
+  background: rgba(45, 42, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.card-glass:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes star-float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+
+  50% {
+    transform: translateY(-5px) rotate(15deg);
+  }
+}
+
+.animate-star {
+  display: inline-block;
+  animation: star-float 3s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ghibli-wood);
+  border-radius: 10px;
+  opacity: 0.5;
+}
