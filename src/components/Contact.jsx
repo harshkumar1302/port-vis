@@ -25,7 +25,7 @@ const Contact = () => {
                     <span className="text-ghibli-wood dark:text-ghibli-salmon italic">beautiful together.</span>
                 </h2>
 
-                <p className="text-lg text-ghibli-charcoal/70 dark:text-white/70 mb-16 font-sans leading-loose">
+                <p className="text-lg text-ghibli-charcoal/80 dark:text-white/80 mb-16 font-sans leading-loose">
                     Open for commissions, potential collaborations, or just a friendly chat about art and miniatures.
                 </p>
 
@@ -42,7 +42,7 @@ const Contact = () => {
                                 className="w-14 h-14 rounded-full bg-white dark:bg-ghibli-dark-card border border-ghibli-wood/10 dark:border-white/10 flex items-center justify-center text-2xl shadow-sm hover:shadow-lg hover:scale-110 transition-all group relative"
                             >
                                 {link.icon}
-                                <span className="absolute -bottom-8 px-2 py-1 bg-ghibli-charcoal text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-ghibli-charcoal dark:bg-ghibli-paper text-white dark:text-ghibli-charcoal text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50">
                                     {link.name}
                                 </span>
                             </a>
@@ -60,7 +60,7 @@ const Contact = () => {
             </div>
 
             {/* Footer Signature */}
-            <div className="absolute bottom-10 left-0 right-0 text-center opacity-40 select-none">
+            <div className="absolute bottom-10 left-0 right-0 text-center opacity-60 select-none">
                 <p className="font-serif italic text-xs text-ghibli-charcoal dark:text-white flex items-center justify-center gap-2 tracking-widest">
                     <span>Made with creativity</span>
                     <span className="text-sm animate-star translate-y-[-1px]">✨</span>

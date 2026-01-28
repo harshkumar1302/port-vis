@@ -1,9 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { artworks, categories } from '../data/artworks';
+import { supabase } from '../lib/supabaseClient';
 
 const ArtGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
+    const [artworks, setArtworks] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const categories = ['Mandala', 'Miniature', 'Canva', 'Calligraphy'];
+
+    useEffect(() => {
+        const fetchArtworks = async () => {
+            try {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from('artworks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setArtworks(data || []);
+            } catch (err) {
+                console.error('Error fetching gallery:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchArtworks();
+    }, []);
 
     return (
         <section id="gallery" className="section-container relative">
@@ -16,54 +41,87 @@ const ArtGallery = () => {
                 </h2>
             </div>
 
-            {/* Category Sections */}
-            <div className="space-y-24">
-                {categories.map((cat) => {
-                    const catArtworks = artworks.filter(art => art.category === cat);
-                    const previewArtworks = catArtworks.slice(0, 4);
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                    <span className="text-4xl animate-bounce">🎨</span>
+                    <p className="text-ghibli-moss font-medium animate-pulse">Curating the collections...</p>
+                </div>
+            ) : (
+                /* Category Sections */
+                <div className="space-y-24">
+                    {categories.map((cat) => {
+                        const catArtworks = artworks.filter(art => art.category === cat);
 
-                    return (
-                        <div key={cat} className="animate-fade-in">
-                            <div className="flex justify-between items-end mb-8 border-b border-ghibli-wood/10 pb-4">
-                                <div>
-                                    <h3 className="text-3xl font-serif font-bold text-ghibli-charcoal dark:text-white">{cat}</h3>
-                                    <p className="text-xs font-bold text-ghibli-wood tracking-widest uppercase mt-2">({catArtworks.length} Pieces)</p>
-                                </div>
-                                <Link
-                                    to={`/gallery/${cat.toLowerCase()}`}
-                                    className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy flex items-center gap-2 group transition-all"
-                                >
-                                    See All <span className="group-hover:translate-x-1 transition-transform">→</span>
-                                </Link>
-                            </div>
+                        // Create 4 slots for the preview grid (balanced for 4-col grid)
+                        const slots = Array.from({ length: 4 }).map((_, index) => {
+                            if (catArtworks[index]) {
+                                return { ...catArtworks[index], isPlaceholder: false };
+                            }
+                            return {
+                                id: `placeholder-${cat}-${index}`,
+                                title: `${cat} Piece ${index + 1}`,
+                                isPlaceholder: true
+                            };
+                        });
 
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-                                {previewArtworks.map((art) => (
-                                    <div
-                                        key={art.id}
-                                        className="group cursor-pointer"
-                                        onClick={() => setSelectedArt(art)}
+                        return (
+                            <div key={cat} className="animate-fade-in">
+                                <div className="flex justify-between items-end mb-8 border-b border-ghibli-wood/10 pb-4">
+                                    <div>
+                                        <h3 className="text-3xl font-serif font-bold text-ghibli-charcoal dark:text-white">{cat}</h3>
+                                        <p className="text-xs font-bold text-ghibli-wood/60 dark:text-ghibli-gold/50 tracking-widest uppercase mt-2">({catArtworks.length} Pieces)</p>
+                                    </div>
+                                    <Link
+                                        to={`/gallery/${cat.toLowerCase()}`}
+                                        className="text-sm font-bold text-ghibli-wood dark:text-ghibli-gold/80 hover:text-ghibli-navy dark:hover:text-ghibli-gold flex items-center gap-2 group transition-all"
                                     >
-                                        <div className="glossy-glass overflow-hidden group-hover:-translate-y-2">
-                                            <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
-                                                {art.image ? (
-                                                    <img src={art.image} alt={art.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                                ) : (
-                                                    <span className="text-7xl group-hover:scale-110 transition-transform">{art.icon || '✨'}</span>
-                                                )}
-                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-ghibli-wood/10 transition-colors duration-500"></div>
-                                            </div>
-                                            <div className="p-5">
-                                                <h4 className="text-base md:text-lg font-bold text-ghibli-charcoal dark:text-white font-serif line-clamp-1">{art.title}</h4>
+                                        See All <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                    </Link>
+                                </div>
+
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+                                    {slots.map((art) => (
+                                        <div
+                                            key={art.id}
+                                            className={`group ${art.isPlaceholder ? 'cursor-default' : 'cursor-pointer'}`}
+                                            onClick={() => !art.isPlaceholder && setSelectedArt(art)}
+                                        >
+                                            <div className="bg-white dark:bg-ghibli-dark-card rounded-2xl overflow-hidden shadow-lg border border-ghibli-wood/5 dark:border-white/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
+                                                <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
+                                                    {art.isPlaceholder ? (
+                                                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-moss/5 to-ghibli-wood/5 group-hover:from-ghibli-moss/10 transition-colors">
+                                                            <span className="text-4xl opacity-20 grayscale scale-90 group-hover:scale-100 group-hover:grayscale-0 transition-all duration-500">🎨</span>
+                                                            <span className="text-[9px] font-bold tracking-widest text-ghibli-charcoal/40 dark:text-ghibli-paper/20 uppercase mt-3">In Progress</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {(!art.image_url || art.image_url.trim() === '') ? (
+                                                                <span className="text-5xl group-hover:scale-110 transition-transform">✨</span>
+                                                            ) : (
+                                                                <img
+                                                                    src={art.image_url}
+                                                                    alt={art.title}
+                                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                                />
+                                                            )}
+                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-ghibli-wood/10 transition-colors duration-500"></div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="p-5">
+                                                    <h4 className={`text-base font-bold font-serif line-clamp-1 transition-colors ${art.isPlaceholder ? 'text-ghibli-charcoal/20 dark:text-ghibli-paper/10' : 'text-ghibli-charcoal dark:text-white group-hover:text-ghibli-moss'}`}>
+                                                        {art.title}
+                                                    </h4>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Modal */}
             {selectedArt && (
@@ -78,10 +136,10 @@ const ArtGallery = () => {
                         <button className="absolute top-6 right-8 text-3xl opacity-50 hover:opacity-100 transition-opacity" onClick={() => setSelectedArt(null)}>×</button>
 
                         <div className="w-full md:w-1/2 aspect-square bg-ghibli-paper/50 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner">
-                            {selectedArt.image ? (
-                                <img src={selectedArt.image} alt={selectedArt.title} className="w-full h-full object-cover" />
+                            {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                <span className="text-[8rem]">✨</span>
                             ) : (
-                                <span className="text-[8rem]">{selectedArt.icon || "✨"}</span>
+                                <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
                             )}
                         </div>
 
@@ -105,3 +163,4 @@ const ArtGallery = () => {
 };
 
 export default ArtGallery;
+

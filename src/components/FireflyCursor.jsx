@@ -29,8 +29,8 @@ const FireflyCursor = () => {
                 const dx = mousePos.current.x - f.x;
                 const dy = mousePos.current.y - f.y;
 
-                // Looser attraction for "swarming" feel
-                const attraction = 0.008;
+                // Tighter attraction for faster following
+                const attraction = 0.04;
 
                 return {
                     ...f,

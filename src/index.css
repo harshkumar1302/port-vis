@@ -86,8 +86,8 @@ h6 {
 /* Dark Mode Overrides */
 .dark body {
   background-color: var(--ghibli-dark-bg);
-  color: #EAEAEA;
-  /* Soft white text */
+  color: #F5F5F5;
+  /* Slightly brighter for better accessibility */
 }
 
 /* 🌫️ Texture Overlay */
@@ -96,14 +96,16 @@ body::before {
   position: fixed;
   inset: 0;
   background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
-  opacity: 0.4;
+  opacity: 0.3;
+  /* Subtle reduction for cleaner look */
   pointer-events: none;
   z-index: 9999;
   mix-blend-mode: multiply;
 }
 
 .dark body::before {
-  opacity: 0.05;
+  opacity: 0.03;
+  /* Very subtle in dark mode */
   filter: invert(1);
   mix-blend-mode: overlay;
 }
@@ -229,6 +231,44 @@ body::before {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes star-drift-right {
+  0% {
+    transform: translateX(-10vw) rotate(0);
+  }
+
+  100% {
+    transform: translateX(110vw) rotate(15deg);
+  }
+}
+
+@keyframes star-drift-left {
+  0% {
+    transform: translateX(110vw) rotate(0);
+  }
+
+  100% {
+    transform: translateX(-10vw) rotate(-15deg);
+  }
+}
+
+.animate-drift-right {
+  animation: star-drift-right var(--drift-duration, 60s) linear infinite;
+}
+
+.animate-drift-left {
+  animation: star-drift-left var(--drift-duration, 80s) linear infinite;
+}
+
+.hover-word {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+}
+
+.hover-word:hover {
+  transform: translateY(-5px) scale(1.1);
+  color: var(--ghibli-gold);
 }
 
 /* Scrollbar */

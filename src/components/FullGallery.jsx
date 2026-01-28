@@ -1,19 +1,44 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { artworks } from '../data/artworks';
+import { supabase } from '../lib/supabaseClient';
 
 const FullGallery = () => {
     const { category } = useParams();
     const [selectedArt, setSelectedArt] = useState(null);
+    const [artworks, setArtworks] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    const filteredArtworks = category === 'all'
-        ? artworks
-        : artworks.filter(art => art.category.toLowerCase() === category.toLowerCase());
+    useEffect(() => {
+        const fetchArtworks = async () => {
+            try {
+                setLoading(true);
+                let query = supabase
+                    .from('artworks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (category !== 'all') {
+                    // Match category (case-insensitive-ish as we store capitalized)
+                    query = query.ilike('category', category);
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+                setArtworks(data || []);
+            } catch (err) {
+                console.error('Error fetching full gallery:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchArtworks();
+    }, [category]);
 
     const categoryTitle = category === 'all' ? 'All Works' : `${category} Collection`;
 
@@ -33,34 +58,61 @@ const FullGallery = () => {
                     </p>
                 </div>
 
-                {/* Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
-                    {filteredArtworks.map((art) => (
-                        <div
-                            key={art.id}
-                            className="group cursor-pointer animate-fade-in"
-                            onClick={() => setSelectedArt(art)}
-                        >
-                            <div className="bg-white dark:bg-ghibli-dark-card rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/5 dark:border-white/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
-                                <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
-                                    {art.image ? (
-                                        <img src={art.image} alt={art.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                    ) : (
-                                        <span className="text-7xl group-hover:scale-110 transition-transform">{art.icon || '✨'}</span>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-ghibli-wood/10 transition-colors duration-500"></div>
+                {/* Grid Content */}
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                        <span className="text-4xl animate-bounce">🎨</span>
+                        <p className="text-ghibli-moss font-medium animate-pulse">Gathering the collection...</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+                        {Array.from({ length: Math.max(8, artworks.length) }).map((_, index) => {
+                            const art = artworks[index];
+                            const isPlaceholder = !art;
+                            const id = isPlaceholder ? `placeholder-${index}` : art.id;
+                            const title = isPlaceholder ? `Piece ${index + 1}` : art.title;
+
+                            return (
+                                <div
+                                    key={id}
+                                    className={`group animate-fade-in ${isPlaceholder ? 'cursor-default' : 'cursor-pointer'}`}
+                                    onClick={() => !isPlaceholder && setSelectedArt(art)}
+                                >
+                                    <div className="bg-white dark:bg-ghibli-dark-card rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/5 dark:border-white/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
+                                        <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
+                                            {isPlaceholder ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-moss/5 to-ghibli-wood/5 group-hover:from-ghibli-moss/10 transition-colors">
+                                                    <span className="text-5xl opacity-20 grayscale scale-90 group-hover:scale-100 group-hover:grayscale-0 transition-all duration-500">📜</span>
+                                                    <span className="text-[10px] font-bold tracking-widest text-ghibli-wood/30 uppercase mt-4">In Progress</span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {(!art.image_url || art.image_url.trim() === '') ? (
+                                                        <span className="text-7xl group-hover:scale-110 transition-transform">✨</span>
+                                                    ) : (
+                                                        <img src={art.image_url} alt={art.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-ghibli-wood/10 transition-colors duration-500"></div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="p-6">
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isPlaceholder ? 'text-ghibli-charcoal/40 dark:text-ghibli-paper/20' : 'text-ghibli-wood dark:text-ghibli-gold'}`}>
+                                                {isPlaceholder ? 'Gallery Slot' : art.category}
+                                            </span>
+                                            <h3 className={`text-lg font-bold mt-1 font-serif line-clamp-1 transition-colors ${isPlaceholder ? 'text-ghibli-charcoal/20 dark:text-ghibli-paper/10' : 'text-ghibli-charcoal dark:text-white group-hover:text-ghibli-moss'}`}>
+                                                {title}
+                                            </h3>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="p-6">
-                                    <span className="text-[10px] font-bold text-ghibli-wood dark:text-ghibli-gold uppercase tracking-widest">{art.category}</span>
-                                    <h3 className="text-lg font-bold text-ghibli-charcoal dark:text-white mt-1 font-serif line-clamp-1">{art.title}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
-            {/* Modal - Reusing same style */}
+            {/* Modal */}
             {selectedArt && (
                 <div
                     className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-ghibli-charcoal/80 backdrop-blur-md animate-fade-in"
@@ -73,10 +125,10 @@ const FullGallery = () => {
                         <button className="absolute top-6 right-8 text-3xl opacity-50 hover:opacity-100 transition-opacity" onClick={() => setSelectedArt(null)}>×</button>
 
                         <div className="w-full md:w-1/2 aspect-square bg-ghibli-paper/50 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner">
-                            {selectedArt.image ? (
-                                <img src={selectedArt.image} alt={selectedArt.title} className="w-full h-full object-cover" />
+                            {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                <span className="text-[8rem]">✨</span>
                             ) : (
-                                <span className="text-[8rem]">{selectedArt.icon || "✨"}</span>
+                                <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
                             )}
                         </div>
 
@@ -100,3 +152,4 @@ const FullGallery = () => {
 };
 
 export default FullGallery;
+
