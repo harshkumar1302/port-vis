@@ -33,10 +33,10 @@ const ArtGallery = () => {
     return (
         <section id="gallery" className="section-container relative">
             <div className="text-center mb-16">
-                <span className="text-ghibli-wood dark:text-ghibli-gold font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
+                <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
                     The Collection
                 </span>
-                <h2 className="text-4xl md:text-5xl font-bold text-ghibli-charcoal dark:text-white font-serif mb-8 text-shadow-sm">
+                <h2 className="text-4xl md:text-5xl font-bold text-ghibli-charcoal font-serif mb-8 text-shadow-sm">
                     Museum of <span className="italic text-ghibli-wood">Small Things</span>
                 </h2>
             </div>
@@ -68,12 +68,12 @@ const ArtGallery = () => {
                             <div key={cat} className="animate-fade-in">
                                 <div className="flex justify-between items-end mb-8 border-b border-ghibli-wood/10 pb-4">
                                     <div>
-                                        <h3 className="text-3xl font-serif font-bold text-ghibli-charcoal dark:text-white">{cat}</h3>
-                                        <p className="text-xs font-bold text-ghibli-wood/60 dark:text-ghibli-gold/50 tracking-widest uppercase mt-2">({catArtworks.length} Pieces)</p>
+                                        <h3 className="text-3xl font-serif font-bold text-ghibli-charcoal">{cat}</h3>
+                                        <p className="text-xs font-bold text-ghibli-wood/60 tracking-widest uppercase mt-2">({catArtworks.length} Pieces)</p>
                                     </div>
                                     <Link
                                         to={`/gallery/${cat.toLowerCase()}`}
-                                        className="text-sm font-bold text-ghibli-wood dark:text-ghibli-gold/80 hover:text-ghibli-navy dark:hover:text-ghibli-gold flex items-center gap-2 group transition-all"
+                                        className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy flex items-center gap-2 group transition-all"
                                     >
                                         See All <span className="group-hover:translate-x-1 transition-transform">→</span>
                                     </Link>
@@ -86,12 +86,12 @@ const ArtGallery = () => {
                                             className={`group ${art.isPlaceholder ? 'cursor-default' : 'cursor-pointer'}`}
                                             onClick={() => !art.isPlaceholder && setSelectedArt(art)}
                                         >
-                                            <div className="bg-white dark:bg-ghibli-dark-card rounded-2xl overflow-hidden shadow-lg border border-ghibli-wood/5 dark:border-white/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
+                                            <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-ghibli-wood/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
                                                 <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
                                                     {art.isPlaceholder ? (
                                                         <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-moss/5 to-ghibli-wood/5 group-hover:from-ghibli-moss/10 transition-colors">
                                                             <span className="text-4xl opacity-20 grayscale scale-90 group-hover:scale-100 group-hover:grayscale-0 transition-all duration-500">🎨</span>
-                                                            <span className="text-[9px] font-bold tracking-widest text-ghibli-charcoal/40 dark:text-ghibli-paper/20 uppercase mt-3">In Progress</span>
+                                                            <span className="text-[9px] font-bold tracking-widest text-ghibli-charcoal/40 uppercase mt-3">In Progress</span>
                                                         </div>
                                                     ) : (
                                                         <>
@@ -109,7 +109,7 @@ const ArtGallery = () => {
                                                     )}
                                                 </div>
                                                 <div className="p-5">
-                                                    <h4 className={`text-base font-bold font-serif line-clamp-1 transition-colors ${art.isPlaceholder ? 'text-ghibli-charcoal/20 dark:text-ghibli-paper/10' : 'text-ghibli-charcoal dark:text-white group-hover:text-ghibli-moss'}`}>
+                                                    <h4 className={`text-base font-bold font-serif line-clamp-1 transition-colors ${art.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal group-hover:text-ghibli-moss'}`}>
                                                         {art.title}
                                                     </h4>
                                                 </div>
@@ -130,7 +130,7 @@ const ArtGallery = () => {
                     onClick={() => setSelectedArt(null)}
                 >
                     <div
-                        className="bg-ghibli-cream dark:bg-ghibli-dark-bg p-8 md:p-12 rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row gap-8 shadow-2xl relative"
+                        className="bg-ghibli-cream p-8 md:p-12 rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row gap-8 shadow-2xl relative"
                         onClick={e => e.stopPropagation()}
                     >
                         <button className="absolute top-6 right-8 text-3xl opacity-50 hover:opacity-100 transition-opacity" onClick={() => setSelectedArt(null)}>×</button>
@@ -144,11 +144,11 @@ const ArtGallery = () => {
                         </div>
 
                         <div className="w-full md:w-1/2 flex flex-col justify-center text-left">
-                            <span className="text-ghibli-wood dark:text-ghibli-gold font-bold uppercase tracking-widest text-xs mb-4">{selectedArt.category}</span>
-                            <h3 className="text-4xl font-serif font-bold text-ghibli-charcoal dark:text-white mb-6 underline decoration-ghibli-gold/30 decoration-wavy underline-offset-8">
+                            <span className="text-ghibli-wood font-bold uppercase tracking-widest text-xs mb-4">{selectedArt.category}</span>
+                            <h3 className="text-4xl font-serif font-bold text-ghibli-charcoal mb-6 underline decoration-ghibli-gold/30 decoration-wavy underline-offset-8">
                                 {selectedArt.title}
                             </h3>
-                            <p className="text-ghibli-charcoal/80 dark:text-white/80 leading-loose font-sans text-lg mb-8">
+                            <p className="text-ghibli-charcoal/80 leading-loose font-sans text-lg mb-8">
                                 {selectedArt.description}
                             </p>
                             <a href="#contact" onClick={() => setSelectedArt(null)} className="px-8 py-3 bg-ghibli-wood text-ghibli-cream rounded-full font-bold tracking-widest text-sm hover:bg-ghibli-navy transition-all self-start shadow-lg hover:-translate-y-1">

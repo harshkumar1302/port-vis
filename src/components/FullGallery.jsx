@@ -43,17 +43,17 @@ const FullGallery = () => {
     const categoryTitle = category === 'all' ? 'All Works' : `${category} Collection`;
 
     return (
-        <div className="min-h-screen pt-32 pb-20 bg-ghibli-cream dark:bg-ghibli-dark-bg">
+        <div className="min-h-screen pt-32 pb-20 bg-ghibli-cream">
             <div className="section-container">
                 {/* Header */}
                 <div className="mb-12">
                     <Link to="/" className="inline-flex items-center gap-2 text-ghibli-wood hover:text-ghibli-navy mb-6 font-bold transition-all group">
                         <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Studio
                     </Link>
-                    <h1 className="text-5xl font-serif font-bold text-ghibli-charcoal dark:text-white mb-4 capitalize">
+                    <h1 className="text-5xl font-serif font-bold text-ghibli-charcoal mb-4 capitalize">
                         {categoryTitle}
                     </h1>
-                    <p className="text-ghibli-charcoal/60 dark:text-white/60 max-w-2xl">
+                    <p className="text-ghibli-charcoal/60 max-w-2xl">
                         Exploring the depths of {category === 'all' ? 'my creative journey' : category.toLowerCase()} through patience, color, and soul.
                     </p>
                 </div>
@@ -78,7 +78,7 @@ const FullGallery = () => {
                                     className={`group animate-fade-in ${isPlaceholder ? 'cursor-default' : 'cursor-pointer'}`}
                                     onClick={() => !isPlaceholder && setSelectedArt(art)}
                                 >
-                                    <div className="bg-white dark:bg-ghibli-dark-card rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/5 dark:border-white/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
+                                    <div className="bg-white rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
                                         <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
                                             {isPlaceholder ? (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-moss/5 to-ghibli-wood/5 group-hover:from-ghibli-moss/10 transition-colors">
@@ -97,10 +97,10 @@ const FullGallery = () => {
                                             )}
                                         </div>
                                         <div className="p-6">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isPlaceholder ? 'text-ghibli-charcoal/40 dark:text-ghibli-paper/20' : 'text-ghibli-wood dark:text-ghibli-gold'}`}>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isPlaceholder ? 'text-ghibli-charcoal/40' : 'text-ghibli-wood'}`}>
                                                 {isPlaceholder ? 'Gallery Slot' : art.category}
                                             </span>
-                                            <h3 className={`text-lg font-bold mt-1 font-serif line-clamp-1 transition-colors ${isPlaceholder ? 'text-ghibli-charcoal/20 dark:text-ghibli-paper/10' : 'text-ghibli-charcoal dark:text-white group-hover:text-ghibli-moss'}`}>
+                                            <h3 className={`text-lg font-bold mt-1 font-serif line-clamp-1 transition-colors ${isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal group-hover:text-ghibli-moss'}`}>
                                                 {title}
                                             </h3>
                                         </div>
@@ -119,7 +119,7 @@ const FullGallery = () => {
                     onClick={() => setSelectedArt(null)}
                 >
                     <div
-                        className="bg-ghibli-cream dark:bg-ghibli-dark-bg p-8 md:p-12 rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row gap-8 shadow-2xl relative"
+                        className="bg-ghibli-cream p-8 md:p-12 rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row gap-8 shadow-2xl relative"
                         onClick={e => e.stopPropagation()}
                     >
                         <button className="absolute top-6 right-8 text-3xl opacity-50 hover:opacity-100 transition-opacity" onClick={() => setSelectedArt(null)}>×</button>
@@ -133,11 +133,11 @@ const FullGallery = () => {
                         </div>
 
                         <div className="w-full md:w-1/2 flex flex-col justify-center text-left">
-                            <span className="text-ghibli-wood dark:text-ghibli-gold font-bold uppercase tracking-widest text-xs mb-4">{selectedArt.category}</span>
-                            <h3 className="text-4xl font-serif font-bold text-ghibli-charcoal dark:text-white mb-6 underline decoration-ghibli-gold/30 decoration-wavy underline-offset-8">
+                            <span className="text-ghibli-wood font-bold uppercase tracking-widest text-xs mb-4">{selectedArt.category}</span>
+                            <h3 className="text-4xl font-serif font-bold text-ghibli-charcoal mb-6 underline decoration-ghibli-gold/30 decoration-wavy underline-offset-8">
                                 {selectedArt.title}
                             </h3>
-                            <p className="text-ghibli-charcoal/80 dark:text-white/80 leading-loose font-sans text-lg mb-8">
+                            <p className="text-ghibli-charcoal/80 leading-loose font-sans text-lg mb-8">
                                 {selectedArt.description}
                             </p>
                             <a href="#contact" onClick={() => setSelectedArt(null)} className="px-8 py-3 bg-ghibli-wood text-ghibli-cream rounded-full font-bold tracking-widest text-sm hover:bg-ghibli-navy transition-all self-start shadow-lg">

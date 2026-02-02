@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vishakhagarg.vercel.app/sitemap.xml

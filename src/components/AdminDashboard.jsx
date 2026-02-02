@@ -169,36 +169,36 @@ const AdminDashboard = () => {
     // Login UI remains same
     if (!session) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-ghibli-cream dark:bg-ghibli-dark-bg p-4 sm:p-6">
+            <div className="min-h-screen flex items-center justify-center bg-ghibli-cream p-4 sm:p-6">
                 <div className="max-w-md w-full">
                     <a href="/" className="inline-flex items-center gap-2 text-ghibli-wood hover:text-ghibli-navy mb-8 font-bold transition-all group">
                         <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Studio
                     </a>
 
-                    <div className="card-ghibli p-10 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/20 text-center shadow-2xl rounded-[2rem]">
+                    <div className="card-ghibli p-10 bg-white/40 backdrop-blur-xl border border-white/20 text-center shadow-2xl rounded-[2rem]">
                         <div className="flex flex-col items-center mb-8">
-                            <h1 className="text-3xl font-bold text-ghibli-navy dark:text-ghibli-gold font-serif">Admin Login</h1>
+                            <h1 className="text-3xl font-bold text-ghibli-navy font-serif">Admin Login</h1>
                             <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-wood/60 uppercase mt-2">🔒 Secure Authentication System</span>
                         </div>
                         <form onSubmit={handleLogin} className="space-y-6 text-left">
                             <div>
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70">Email</label>
+                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Email</label>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood dark:text-ghibli-charcoal font-bold"
+                                    className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
                                     placeholder="Email"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70">Password</label>
+                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Password</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood dark:text-ghibli-charcoal font-bold"
+                                    className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
                                     placeholder="Password"
                                     required
                                 />
@@ -218,14 +218,14 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream dark:bg-ghibli-dark-bg transition-colors duration-500">
+        <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream transition-colors duration-500">
             <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 sm:gap-0">
                     <div className="flex flex-col">
                         <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group">
                             <span className="group-hover:-translate-x-1 transition-transform">←</span> Exit to Site
                         </a>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood dark:text-ghibli-paper font-serif">Artist Dashboard</h1>
+                        <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
                     </div>
                     <button
                         onClick={handleSignOut}
@@ -238,25 +238,25 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
                     {/* Left Side: Upload Form */}
                     <div className="lg:col-span-1">
-                        <div className="card-ghibli p-6 sm:p-8 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/20 rounded-[2rem] lg:sticky lg:top-32">
-                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy dark:text-ghibli-gold">New Creation</h2>
+                        <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] lg:sticky lg:top-32">
+                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">New Creation</h2>
                             <form onSubmit={handleUpload} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70">Title</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Title</label>
                                     <input
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood dark:text-ghibli-charcoal font-bold"
+                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70">Category</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Category</label>
                                     <select
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood dark:text-ghibli-charcoal font-bold cursor-pointer"
+                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer"
                                     >
                                         <option>Mandala</option>
                                         <option>Miniature</option>
@@ -265,15 +265,15 @@ const AdminDashboard = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70">Story</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Story</label>
                                     <textarea
                                         value={desc}
                                         onChange={(e) => setDesc(e.target.value)}
-                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood dark:text-ghibli-charcoal h-24"
+                                        className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood h-24"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 dark:text-white/70 text-left">Reference Image</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Reference Image</label>
                                     <div className="relative group">
                                         <input
                                             type="file"
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
                                         />
                                         <label
                                             htmlFor="file-upload"
-                                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-ghibli-wood/20 rounded-2xl bg-white/30 dark:bg-white/5 hover:bg-white/50 dark:hover:bg-white/10 transition-all cursor-pointer overflow-hidden group-hover:border-ghibli-wood/40"
+                                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-ghibli-wood/20 rounded-2xl bg-white/30 hover:bg-white/50 transition-all cursor-pointer overflow-hidden group-hover:border-ghibli-wood/40"
                                         >
                                             {previewUrl ? (
                                                 <div className="relative w-full h-full">
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
                                             ) : (
                                                 <div className="text-center p-6">
                                                     <span className="text-3xl block mb-2 opacity-50">📸</span>
-                                                    <span className="text-[10px] font-bold text-ghibli-wood/60 dark:text-white/40 uppercase tracking-widest">Select Artwork File</span>
+                                                    <span className="text-[10px] font-bold text-ghibli-wood/60 uppercase tracking-widest">Select Artwork File</span>
                                                 </div>
                                             )}
                                         </label>
@@ -315,22 +315,22 @@ const AdminDashboard = () => {
 
                     {/* Right Side: Management List */}
                     <div className="lg:col-span-2">
-                        <div className="card-ghibli p-8 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/20 rounded-[2rem]">
-                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy dark:text-ghibli-gold">Manage Collection ({artworks.length})</h2>
+                        <div className="card-ghibli p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
+                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">Manage Collection ({artworks.length})</h2>
                             <div className="space-y-4">
                                 {artworks.length === 0 ? (
-                                    <div className="text-center py-20 bg-white/10 dark:bg-white/5 rounded-3xl border border-dashed border-ghibli-wood/10">
+                                    <div className="text-center py-20 bg-white/10 rounded-3xl border border-dashed border-ghibli-wood/10">
                                         <span className="text-6xl block mb-6 animate-pulse opacity-40">🌙</span>
-                                        <p className="font-bold tracking-[0.3em] text-sm uppercase text-ghibli-wood/80 dark:text-ghibli-paper font-serif">
+                                        <p className="font-bold tracking-[0.3em] text-sm uppercase text-ghibli-wood/80 font-serif">
                                             The gallery is empty
                                         </p>
-                                        <p className="text-[10px] text-ghibli-wood/40 dark:text-white/30 mt-4 uppercase tracking-widest font-bold">
+                                        <p className="text-[10px] text-ghibli-wood/40 mt-4 uppercase tracking-widest font-bold">
                                             Waiting for your first masterpiece
                                         </p>
                                     </div>
                                 ) : (
                                     artworks.map((art) => (
-                                        <div key={art.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl bg-white/20 dark:bg-white/5 hover:bg-white/40 dark:hover:bg-white/10 transition-all border border-transparent hover:border-ghibli-wood/10 group">
+                                        <div key={art.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl bg-white/20 hover:bg-white/40 transition-all border border-transparent hover:border-ghibli-wood/10 group">
                                             <div className="w-full sm:w-20 h-40 sm:h-20 rounded-xl overflow-hidden bg-ghibli-paper/20 flex-shrink-0">
                                                 {art.image_url ? (
                                                     <img src={art.image_url} alt={art.title} className="w-full h-full object-cover" />
@@ -344,8 +344,8 @@ const AdminDashboard = () => {
                                                         {art.category}
                                                     </span>
                                                 </div>
-                                                <h3 className="font-bold text-ghibli-charcoal dark:text-white truncate text-lg sm:text-base">{art.title}</h3>
-                                                <p className="text-xs text-ghibli-charcoal/50 dark:text-white/40 line-clamp-2 sm:line-clamp-1">{art.description}</p>
+                                                <h3 className="font-bold text-ghibli-charcoal truncate text-lg sm:text-base">{art.title}</h3>
+                                                <p className="text-xs text-ghibli-charcoal/50 line-clamp-2 sm:line-clamp-1">{art.description}</p>
                                             </div>
                                             <button
                                                 onClick={() => handleDelete(art)}

@@ -36,11 +36,11 @@ const CreativeWork = () => {
                     <span className="text-ghibli-moss font-bold tracking-[0.2em] uppercase text-xs">
                         Creative Portfolio
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal dark:text-white leading-tight">
+                    <h2 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal leading-tight">
                         Handmade with <br />
                         <span className="text-ghibli-moss italic font-serif">patience & love</span>
                     </h2>
-                    <p className="text-ghibli-charcoal/70 dark:text-white/70 font-sans leading-relaxed">
+                    <p className="text-ghibli-charcoal/70 font-sans leading-relaxed">
                         Beyond the digital screen, I run a small creative shop where I craft physical mandalas and miniature sets.
                         Each piece is a labor of love, designed to bring magic into your home.
                     </p>
@@ -57,7 +57,7 @@ const CreativeWork = () => {
                         {artworks.map((art) => (
                             <div key={art.id} className="group relative">
                                 <div className="absolute inset-0 bg-ghibli-moss/10 rounded-[2rem] transform rotate-1 group-hover:rotate-3 transition-transform duration-500"></div>
-                                <div className="relative bg-white dark:bg-ghibli-dark-card rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/10 card-glass transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+                                <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/10 card-glass transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
                                     <div className="aspect-square relative overflow-hidden bg-ghibli-paper/20">
                                         {(!art.image_url || art.image_url.trim() === '') ? (
                                             /* Placeholder when NO image is provided or empty string */
@@ -91,10 +91,10 @@ const CreativeWork = () => {
                                         </div>
                                     </div>
                                     <div className="p-6 space-y-2">
-                                        <h3 className="text-xl font-bold text-ghibli-charcoal dark:text-white group-hover:text-ghibli-moss transition-colors">
+                                        <h3 className="text-xl font-bold text-ghibli-charcoal group-hover:text-ghibli-moss transition-colors">
                                             {art.title}
                                         </h3>
-                                        <p className="text-sm text-ghibli-charcoal/70 dark:text-white/70 line-clamp-2">
+                                        <p className="text-sm text-ghibli-charcoal/70 line-clamp-2">
                                             {art.description}
                                         </p>
                                     </div>
@@ -108,17 +108,17 @@ const CreativeWork = () => {
                         {/* Visual Side */}
                         <div className="w-full md:w-1/2 relative group">
                             <div className="absolute inset-0 bg-ghibli-moss/20 rounded-[2rem] transform rotate-3 transition-transform group-hover:rotate-6"></div>
-                            <div className="relative bg-white dark:bg-ghibli-dark-card p-6 rounded-[2rem] shadow-xl border border-ghibli-wood/10 card-glass aspect-square flex items-center justify-center">
+                            <div className="relative bg-white p-6 rounded-[2rem] shadow-xl border border-ghibli-wood/10 card-glass aspect-square flex items-center justify-center">
                                 <span className="text-6xl animate-float">🌱</span>
                             </div>
                         </div>
 
                         {/* Text Side */}
                         <div className="w-full md:w-1/2 text-left space-y-6">
-                            <h3 className="text-2xl font-bold text-ghibli-charcoal dark:text-white">
+                            <h3 className="text-2xl font-bold text-ghibli-charcoal">
                                 The garden is being planted!
                             </h3>
-                            <p className="text-ghibli-charcoal/70 dark:text-white/70 font-sans leading-relaxed">
+                            <p className="text-ghibli-charcoal/70 font-sans leading-relaxed">
                                 I'm currently preparing new artworks to share with you. Small business pieces, mandalas, and miniatures are on their way.
                             </p>
                             <div className="pt-4">

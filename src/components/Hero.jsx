@@ -3,23 +3,23 @@ import { useEffect, useState } from 'react';
 const Hero = () => {
     const [stars, setStars] = useState([]);
 
-    useEffect(() => {
-        // Generate 100 stars with bi-directional movement
-        const initialStars = Array.from({ length: 100 }).map((_, i) => {
-            const direction = i < 40 ? 'right' : 'left'; // 40 move right, 60 move left
-            return {
-                id: i,
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                size: Math.random() * 3 + 2, // Bigger stars (2px to 5px)
-                delay: Math.random() * 10,
-                duration: Math.random() * 3 + 2,
-                driftDuration: Math.random() * 40 + 40, // Varied speeds
-                direction
-            };
-        });
-        setStars(initialStars);
-    }, []);
+    // useEffect(() => {
+    //     // Generate 100 stars with bi-directional movement
+    //     const initialStars = Array.from({ length: 100 }).map((_, i) => {
+    //         const direction = i < 40 ? 'right' : 'left'; // 40 move right, 60 move left
+    //         return {
+    //             id: i,
+    //             top: `${Math.random() * 100}%`,
+    //             left: `${Math.random() * 100}%`,
+    //             size: Math.random() * 3 + 2, // Bigger stars (2px to 5px)
+    //             delay: Math.random() * 10,
+    //             duration: Math.random() * 3 + 2,
+    //             driftDuration: Math.random() * 40 + 40, // Varied speeds
+    //             direction
+    //         };
+    //     });
+    //     setStars(initialStars);
+    // }, []);
 
     const wordWrap = (text) => {
         return text.split(' ').map((word, i) => (
@@ -34,7 +34,7 @@ const Hero = () => {
             {/* 🌌 Starry Night Background */}
             <div className="absolute inset-0 pointer-events-none z-0">
                 {/* Night Sky Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-b from-ghibli-navy/5 to-transparent dark:from-ghibli-navy/20"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-ghibli-navy/5 to-transparent"></div>
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_40%,rgba(250,205,96,0.05),transparent_60%)]"></div>
 
                 {/* Individual Stars with Bi-directional Drift */}
@@ -42,7 +42,7 @@ const Hero = () => {
                     {stars.map(star => (
                         <div
                             key={star.id}
-                            className={`absolute bg-white dark:bg-ghibli-gold rounded-full animate-twinkle shadow-[0_0_10px_rgba(255,255,255,0.8)] ${star.direction === 'right' ? 'animate-drift-right' : 'animate-drift-left'}`}
+                            className={`absolute bg-white rounded-full animate-twinkle shadow-[0_0_10px_rgba(255,255,255,0.8)] ${star.direction === 'right' ? 'animate-drift-right' : 'animate-drift-left'}`}
                             style={{
                                 top: star.top,
                                 left: star.left,
@@ -71,22 +71,22 @@ const Hero = () => {
                         <img
                             src="/ghibli-avatar.png"
                             alt="Vishakha"
-                            className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[6px] border-white/40 dark:border-white/10 shadow-2xl object-cover animate-float relative z-10"
+                            className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[6px] border-white/40 shadow-2xl object-cover animate-float relative z-10"
                         />
                         {/* Little sparkle decoration */}
                         <span className="absolute -top-2 -right-2 text-4xl animate-bounce delay-700 select-none">✨</span>
                     </div>
 
                     {/* Poetic Headline */}
-                    <h1 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal dark:text-white leading-tight drop-shadow-sm select-none">
+                    <h1 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal leading-tight drop-shadow-sm select-none">
                         {wordWrap("weaving silence into")} <br />
-                        <span className="text-ghibli-wood dark:text-ghibli-gold italic font-serif">
+                        <span className="text-ghibli-wood italic font-serif">
                             {wordWrap("stories of ink & clay")}
                         </span>
                     </h1>
 
                     {/* Soft Description */}
-                    <p className="text-lg md:text-xl text-ghibli-charcoal/80 dark:text-white/80 font-sans leading-relaxed select-none">
+                    <p className="text-lg md:text-xl text-ghibli-charcoal/80 font-sans leading-relaxed select-none">
                         {wordWrap("A quiet corner of the internet where mandalas bloom and miniatures come to life.")}
                         <br />
                         {wordWrap("Welcome to my studio of small wonders.")}
@@ -107,7 +107,7 @@ const Hero = () => {
             </div>
 
             {/* Foreground Elements (Parallax feel) */}
-            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-ghibli-cream to-transparent dark:from-ghibli-dark-bg pointer-events-none z-20"></div>
+            <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-ghibli-cream to-transparent pointer-events-none z-20"></div>
         </section>
     );
 };

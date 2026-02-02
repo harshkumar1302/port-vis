@@ -10,6 +10,7 @@ import Contact from './components/Contact';
 import FireflyCursor from './components/FireflyCursor';
 import AdminDashboard from './components/AdminDashboard';
 import FullGallery from './components/FullGallery';
+import Loader from './components/Loader';
 
 const Home = () => (
   <>
@@ -27,7 +28,7 @@ const Layout = ({ children }) => {
   const isAdmin = location.pathname === '/admin';
 
   return (
-    <div className="relative min-h-screen bg-ghibli-cream dark:bg-ghibli-dark-bg text-ghibli-charcoal transition-colors duration-500 overflow-x-hidden selection:bg-ghibli-gold/30">
+    <div className="relative min-h-screen bg-ghibli-cream text-ghibli-charcoal transition-colors duration-500 overflow-x-hidden selection:bg-ghibli-gold/30">
       <FireflyCursor />
       {!isAdmin && <Navbar />}
 
@@ -37,7 +38,7 @@ const Layout = ({ children }) => {
       {children}
 
       {!isAdmin && (
-        <footer className="py-16 text-center text-ghibli-wood/40 dark:text-ghibli-paper/20 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none">
+        <footer className="py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none">
           <div className="flex items-center justify-center gap-2">
             <span>© 2026</span>
             <span className="text-base animate-star translate-y-[-1px]">✨</span>
@@ -53,16 +54,21 @@ const Layout = ({ children }) => {
 };
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/gallery/:category" element={<FullGallery />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <>
+      {isLoading && <Loader onFinished={() => setIsLoading(false)} />}
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/gallery/:category" element={<FullGallery />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </>
   );
 };
 
