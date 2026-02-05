@@ -27,9 +27,7 @@
   --ghibli-salmon: #FF8E72;
   /* Soft blush */
 
-  /* Global Cursor Vars */
-  --cursor-x: 50%;
-  --cursor-y: 50%;
+
 
   /* Fonts */
   --font-heading: 'Quicksand', sans-serif;
@@ -99,54 +97,7 @@ body::before {
 }
 
 
-/* 🔥 Torch / Firefly Aesthetic */
-.torch-effect {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9990;
-  background: radial-gradient(circle 350px at var(--cursor-x) var(--cursor-y), rgba(250, 205, 96, 0.15), transparent 70%);
-  mix-blend-mode: hard-light;
-  transition: opacity 0.5s ease;
-}
 
-
-/* ✨ Firefly Cursor Effect */
-.firefly-wrapper {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-}
-
-.firefly {
-  position: fixed;
-  background: var(--ghibli-gold);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--ghibli-gold), 0 0 20px var(--ghibli-gold);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-@keyframes twinkle {
-
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-    box-shadow: 0 0 5px var(--ghibli-gold);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-    box-shadow: 0 0 20px var(--ghibli-gold), 0 0 30px var(--ghibli-gold);
-  }
-}
-
-.animate-twinkle {
-  animation: twinkle 4s ease-in-out infinite;
-}
 
 /* 🧼 Components */
 .section-container {

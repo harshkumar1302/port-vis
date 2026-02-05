@@ -7,7 +7,7 @@ import Skills from './components/Skills';
 import ArtGallery from './components/ArtGallery';
 import CreativeWork from './components/CreativeWork';
 import Contact from './components/Contact';
-import FireflyCursor from './components/FireflyCursor';
+
 import AdminDashboard from './components/AdminDashboard';
 import FullGallery from './components/FullGallery';
 import Loader from './components/Loader';
@@ -29,11 +29,10 @@ const Layout = ({ children }) => {
 
   return (
     <div className="relative min-h-screen bg-ghibli-cream text-ghibli-charcoal transition-colors duration-500 overflow-x-hidden selection:bg-ghibli-gold/30">
-      <FireflyCursor />
+
       {!isAdmin && <Navbar />}
 
-      {/* Global Torch Light Effect */}
-      <div className="torch-effect" />
+
 
       {children}
 
