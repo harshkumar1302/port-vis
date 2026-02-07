@@ -1,23 +1,24 @@
-import MandalaBackground from './MandalaBackground';
+
 
 const About = () => {
     return (
         <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20">
-            {/* Artistic Background glow */}
-            <div className="absolute top-[10%] right-[-5%] w-[50%] h-[50%] bg-ghibli-sunset/5 blur-[150px] pointer-events-none"></div>
+            {/* --- Organic Flow Backdrop --- */}
+            <div className="absolute inset-0 pointer-events-none">
+                {/* 1. Base Gradient - Soft Creamy White */}
+                <div className="absolute inset-0 bg-gradient-to-b from-ghibli-cream via-white to-ghibli-cream/20"></div>
 
-            {/* Artistic Background glow */}
-            <div className="absolute top-[10%] right-[-5%] w-[50%] h-[50%] bg-ghibli-sunset/5 blur-[150px] pointer-events-none"></div>
+                {/* 2. Fluid Wave - Top Right */}
+                <div className="absolute top-[-10%] right-[-10%] w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,rgba(255,220,180,0.15)_0%,transparent_70%)] blur-[80px] rounded-full opacity-60"></div>
 
-            {/* Side Filler - Right Side Balance */}
-            <div className="absolute top-1/3 right-0 w-48 h-96 bg-gradient-to-l from-ghibli-wood/5 to-transparent blur-3xl pointer-events-none"></div>
+                {/* 3. Soft Glow - Bottom Left */}
+                <div className="absolute bottom-0 left-[-10%] w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(138,154,91,0.08)_0%,transparent_70%)] blur-[100px] rounded-full"></div>
 
-            {/* Zig-Zag Pattern: 2. About -> Left */}
-            <MandalaBackground
-                className="top-[10%] left-[-30%] md:top-[15%] md:left-[-15%] w-[160%] md:w-[800px] md:h-[800px]"
-                opacity={0.08}
-                color="#8A9A5B" // Moss Green
-            />
+                {/* 4. Subtle Noise Overlay for Texture */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+            </div>
+
+
 
             <div className="max-w-4xl mx-auto relative z-10 px-6">
                 <h2 className="text-4xl md:text-6xl font-bold text-center mb-16 text-ghibli-charcoal drop-shadow-sm">

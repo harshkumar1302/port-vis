@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import MandalaBackground from './MandalaBackground';
+
 
 const Hero = () => {
     const [stars, setStars] = useState([]);
@@ -60,25 +60,14 @@ const Hero = () => {
 
                 {/* Atmospheric Glows */}
                 {/* Atmospheric Glows & Side Fillers */}
-                {/* Desktop Mandala - Grand & Expansive */}
-                <div className="absolute top-[10%] right-[-10%] w-[900px] h-[900px] hidden md:block opacity-10 pointer-events-none">
-                    <MandalaBackground color="#D4A74A" />
-                </div>
 
-                {/* Mobile Mandala - Optimized & Tucked */}
-                <div className="absolute top-[-10%] right-[-30%] w-[120%] h-[120%] block md:hidden opacity-10 pointer-events-none">
-                    <MandalaBackground color="#D4A74A" />
-                </div>
+
+
 
                 {/* Side Gradient Fillers for "Empty Space" */}
                 <div className="absolute top-1/2 left-0 -translate-y-1/2 w-32 h-[80%] bg-gradient-to-r from-ghibli-cream/20 to-transparent blur-3xl pointer-events-none"></div>
 
-                {/* Zig-Zag Pattern: 1. Hero -> Top Right */}
-                <MandalaBackground
-                    className="top-[-15%] right-[-25%] md:top-[-20%] md:right-[-10%] w-[130%] md:w-[900px] md:h-[900px]"
-                    color="#F5E6CA"
-                    opacity={0.3}
-                />
+
             </div>
 
             <div className="section-container relative z-10 text-center">
@@ -100,13 +89,13 @@ const Hero = () => {
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-medium tracking-tight text-ghibli-charcoal leading-tight drop-shadow-sm select-none">
                         {wordWrap("Visheshkala")} <br />
                         <span className="text-ghibli-wood italic font-serif mt-2 block tracking-normal text-3xl md:text-4xl">
-                            {wordWrap("Where Soul Meets Craft")}
+                            {wordWrap("Matchless offerings, from us to you.")}
                         </span>
                     </h1>
 
                     {/* Soft Description */}
                     <p className="text-lg md:text-xl text-ghibli-charcoal/80 font-sans leading-relaxed select-none">
-                        {wordWrap("Quiet, meaningful art shaped into heartfelt gifts and lasting memories.")}
+                        {wordWrap("Where meaninful art is shaped into heartfelt gifts.")}
                     </p>
 
                     {/* Action */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useEmblaCarousel from 'embla-carousel-react';
-import MandalaBackground from './MandalaBackground';
+
 import { supabase } from '../lib/supabaseClient';
 
 // --- Constants ---
@@ -75,26 +75,18 @@ const ArtGallery = () => {
 
     return (
         <section id="gallery" className="section-container relative min-h-screen py-24 bg-ghibli-cream/20">
-            {/* Desktop Mandala */}
-            <MandalaBackground
-                className="hidden md:block top-0 right-0 w-[800px] h-[800px] animate-spin-slow opacity-10 pointer-events-none"
-                color="#8D6E63"
-            />
-            {/* Mobile Mandala */}
-            <MandalaBackground
-                className="block md:hidden top-0 right-[-30%] w-[150%] opacity-10 pointer-events-none"
-                color="#8D6E63"
-            />
+
+
 
             <div className="max-w-7xl mx-auto px-4 relative z-10">
 
                 {/* 1. Header */}
                 <div className="text-center mb-16 space-y-4">
                     <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
-                        The Collection
+                        Art  <span className="text-ghibli-wood italic font-serif">&</span> Craft
                     </span>
                     <h2 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif">
-                        Museum of Small Things
+                        An Evolving Collection
                     </h2>
                     <p className="text-ghibli-charcoal/60 max-w-xl mx-auto">
                         Curated artifacts of patience and love. Swipe to explore the highlights, or dive deep into the specific collections below.
@@ -166,7 +158,7 @@ const ArtGallery = () => {
                 </div>
 
             </div>
-        </section>
+        </section >
     );
 };
 

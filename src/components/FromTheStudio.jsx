@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import MandalaBackground from './MandalaBackground';
+
 import { supabase } from '../lib/supabaseClient';
 
-const CreativeWork = () => {
+const FromTheStudio = () => {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,20 +30,9 @@ const CreativeWork = () => {
     }, []);
 
     return (
-        <section id="creative-work" className="section-container relative overflow-hidden">
-            {/* Desktop Mandala */}
-            <MandalaBackground
-                className="hidden md:block bottom-[-15%] right-[-10%] w-[900px] h-[900px] animate-spin-slow"
-                opacity={0.08}
-                color="#8D6E63"
-            />
+        <section id="fromthestudio" className="section-container relative overflow-hidden">
 
-            {/* Mobile Mandala - Adjusted */}
-            <MandalaBackground
-                className="block md:hidden bottom-[-5%] right-[-30%] w-[150%] animate-spin-slow"
-                opacity={0.06}
-                color="#8D6E63"
-            />
+
 
             {/* Left Side Balance - Vertical Pattern Strip - REMOVED for Continuity */}
             {/* <div className="absolute top-0 left-0 h-full w-[100px] pointer-events-none hidden md:flex flex-col justify-center items-center opacity-10">
@@ -57,7 +46,7 @@ const CreativeWork = () => {
                 {/* Header Section */}
                 <div className="text-center space-y-4 max-w-2xl mx-auto">
                     <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
-                        Creative Portfolio
+                        From the Studio
                     </span>
                     <h2 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal leading-tight">
                         Handmade with <br />
@@ -159,5 +148,5 @@ const CreativeWork = () => {
     );
 };
 
-export default CreativeWork;
+export default FromTheStudio;
 

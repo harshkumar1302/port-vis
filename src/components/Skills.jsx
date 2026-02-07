@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import MandalaBackground from './MandalaBackground';
+
 
 const Skills = () => {
     const tools = [
@@ -46,21 +46,31 @@ const Skills = () => {
         <section id="skills" className="relative py-32 overflow-hidden bg-gradient-to-b from-transparent via-ghibli-cream/30 to-transparent">
             {/* Zig-Zag Pattern: 3. Skills -> Right */}
             {/* Desktop Mandala */}
-            <MandalaBackground
-                className="hidden md:block absolute top-[-20%] right-[-10%] w-[900px] h-[900px] animate-spin-slow"
-                opacity={0.08}
-                color="#A1887F"
-            />
+
 
             {/* Mobile Mandala - Smaller & Tucked */}
-            <MandalaBackground
-                className="block md:hidden absolute top-0 right-[-40%] w-[150%] animate-spin-slow"
-                opacity={0.06}
-                color="#A1887F"
-            />
 
-            {/* Left Side Decorative Filler */}
-            <div className="absolute top-1/4 left-0 w-64 h-full bg-gradient-to-r from-ghibli-blue/5 to-transparent blur-3xl pointer-events-none"></div>
+
+            {/* --- Creative Scattered Backdrop --- */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {/* 1. Base Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ghibli-cream/40 to-transparent"></div>
+
+                {/* 2. Floating Shapes - Pastels */}
+                {/* Top Left Circle */}
+                <div className="absolute top-[10%] left-[5%] w-64 h-64 rounded-full bg-blue-100/30 blur-[60px] animate-float"></div>
+
+                {/* Bottom Right Square (Rotated) */}
+                <div className="absolute bottom-[15%] right-[5%] w-80 h-80 bg-amber-100/20 blur-[80px] rotate-12 animate-float" style={{ animationDelay: '1.5s' }}></div>
+
+                {/* Center Accent */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(255,255,255,0.8)_0%,transparent_70%)] opacity-60"></div>
+
+                {/* 3. Tiny Decorative Dots (Static) */}
+                <div className="absolute top-[20%] right-[15%] w-2 h-2 rounded-full bg-ghibli-wood/10"></div>
+                <div className="absolute bottom-[30%] left-[10%] w-3 h-3 rounded-full bg-ghibli-wood/10"></div>
+                <div className="absolute top-[15%] left-[25%] w-1.5 h-1.5 rounded-full bg-ghibli-wood/10"></div>
+            </div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="text-center mb-24">

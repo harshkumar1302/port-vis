@@ -5,7 +5,7 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Skills from './components/Skills';
 import ArtGallery from './components/ArtGallery';
-import CreativeWork from './components/CreativeWork';
+import FromTheStudio from './components/FromTheStudio';
 import Contact from './components/Contact';
 
 import AdminDashboard from './components/AdminDashboard';
@@ -16,9 +16,9 @@ const Home = () => (
   <>
     <Hero />
     <About />
-    <Skills />
+    {/* <Skills /> */}
     <ArtGallery />
-    <CreativeWork />
+    <FromTheStudio />
     <Contact />
   </>
 );
@@ -39,9 +39,12 @@ const Layout = ({ children }) => {
       {!isAdmin && (
         <footer className="py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none">
           <div className="flex items-center justify-center gap-2">
-            <span>© 2026</span>
-            <span className="text-base animate-star translate-y-[-1px]">✨</span>
-            <span>CRAFTED IN THE GARDEN OF SMALL THINGS</span>
+
+
+            <span>Where devotion meets detail.
+
+              VisheshKala
+              © 2026 — Crafted in the garden of small things.</span>
           </div>
           <a href="/admin" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500" title="Admin Gate">
             🗝️
