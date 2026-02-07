@@ -52,6 +52,49 @@ const Layout = ({ children }) => {
   );
 };
 
+const ScrollToHash = () => {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const element = document.getElementById(hash.replace('#', ''));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [hash]);
+
+  return null;
+};
+
+// 🌊 Smooth Scroll implementation using Lenis
+import Lenis from 'lenis';
+
+const SmoothScroll = () => {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+  return null;
+};
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,6 +102,8 @@ const App = () => {
     <>
       {isLoading && <Loader onFinished={() => setIsLoading(false)} />}
       <Router>
+        <SmoothScroll />
+        <ScrollToHash />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />

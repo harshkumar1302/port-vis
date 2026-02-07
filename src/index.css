@@ -204,17 +204,22 @@ body::before {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(242, 232, 213, 0.3); /* ghibli-paper with low opacity */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ghibli-wood);
+  background: rgba(139, 94, 60, 0.4); /* ghibli-wood */
   border-radius: 10px;
-  opacity: 0.5;
+  border: 2px solid rgba(255, 253, 245, 0.5); /* border to create padding effect */
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 94, 60, 0.7);
 }
 
 @keyframes heartbeat {

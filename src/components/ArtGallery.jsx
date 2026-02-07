@@ -1,166 +1,247 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
+import MandalaBackground from './MandalaBackground';
 import { supabase } from '../lib/supabaseClient';
 
+// --- Constants ---
+const MAIN_CATEGORIES = [
+    { id: 'mandala', label: 'Mandala Art' },
+    { id: 'miniature', label: 'Miniatures' },
+    { id: 'gift', label: 'Gift Material' },
+    { id: 'diy', label: 'DIY Art' },
+];
+
 const ArtGallery = () => {
-    const [selectedArt, setSelectedArt] = useState(null);
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const categories = ['Mandala', 'Miniature', 'Canva', 'Calligraphy'];
+    // Embla Carousels
+    const [featuredEmblaRef] = useEmblaCarousel({
+        loop: true,
+        align: 'center',
+        containScroll: 'trimSnaps',
+        dragFree: true
+    });
 
     useEffect(() => {
-        const fetchArtworks = async () => {
-            try {
-                setLoading(true);
-                const { data, error } = await supabase
-                    .from('artworks')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                setArtworks(data || []);
-            } catch (err) {
-                console.error('Error fetching gallery:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchArtworks();
     }, []);
 
+    const fetchArtworks = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('artworks')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setArtworks(data || []);
+        } catch (error) {
+            console.error('Error fetching artworks:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Helper to get items for a category
+    const getCategoryItems = (catId) => {
+        return artworks.filter(art => art.category?.toLowerCase().includes(catId));
+    };
+
+    // Helper to get Featured items
+    const getFeaturedItems = () => {
+        return artworks.filter(art =>
+            art.description?.includes('[FEATURED]') ||
+            art.title?.includes('[FEATURED]') ||
+            art.tags?.includes('[FEATURED]')
+        );
+    };
+
+    const getDisplayItems = (items, minCount = 8) => {
+        const result = [...items];
+        if (result.length < minCount) {
+            const placeholdersNeeded = minCount - result.length;
+            for (let i = 0; i < placeholdersNeeded; i++) {
+                result.push({ id: `placeholder-${i}`, isPlaceholder: true });
+            }
+        }
+        return result;
+    };
+
+    const featuredItems = getFeaturedItems();
+    const displayFeatured = getDisplayItems(featuredItems);
+
     return (
-        <section id="gallery" className="section-container relative">
-            <div className="text-center mb-16">
-                <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
-                    The Collection
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold text-ghibli-charcoal font-serif mb-8 text-shadow-sm">
-                    Museum of <span className="italic text-ghibli-wood">Small Things</span>
-                </h2>
-            </div>
+        <section id="gallery" className="section-container relative min-h-screen py-24 bg-ghibli-cream/20">
+            {/* Desktop Mandala */}
+            <MandalaBackground
+                className="hidden md:block top-0 right-0 w-[800px] h-[800px] animate-spin-slow opacity-10 pointer-events-none"
+                color="#8D6E63"
+            />
+            {/* Mobile Mandala */}
+            <MandalaBackground
+                className="block md:hidden top-0 right-[-30%] w-[150%] opacity-10 pointer-events-none"
+                color="#8D6E63"
+            />
 
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                    <span className="text-4xl animate-bounce">🎨</span>
-                    <p className="text-ghibli-moss font-medium animate-pulse">Curating the collections...</p>
+            <div className="max-w-7xl mx-auto px-4 relative z-10">
+
+                {/* 1. Header */}
+                <div className="text-center mb-16 space-y-4">
+                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
+                        The Collection
+                    </span>
+                    <h2 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif">
+                        Museum of Small Things
+                    </h2>
+                    <p className="text-ghibli-charcoal/60 max-w-xl mx-auto">
+                        Curated artifacts of patience and love. Swipe to explore the highlights, or dive deep into the specific collections below.
+                    </p>
                 </div>
-            ) : (
-                /* Category Sections */
-                <div className="space-y-24">
-                    {categories.map((cat) => {
-                        const catArtworks = artworks.filter(art => art.category === cat);
 
-                        // Create 4 slots for the preview grid (balanced for 4-col grid)
-                        const slots = Array.from({ length: 4 }).map((_, index) => {
-                            if (catArtworks[index]) {
-                                return { ...catArtworks[index], isPlaceholder: false };
-                            }
-                            return {
-                                id: `placeholder-${cat}-${index}`,
-                                title: `${cat} Piece ${index + 1}`,
-                                isPlaceholder: true
-                            };
-                        });
+                {/* 2. Best Work Carousel (Embla) - Dynamic */}
+                <div className="mb-24">
+                    <div className="flex items-center gap-2 mb-6 opacity-60">
+                        <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
+                        <span className="text-xs uppercase tracking-widest font-bold">Featured Highlights</span>
+                    </div>
 
-                        return (
-                            <div key={cat} className="animate-fade-in">
-                                <div className="flex justify-between items-end mb-8 border-b border-ghibli-wood/10 pb-4">
-                                    <div>
-                                        <h3 className="text-3xl font-serif font-bold text-ghibli-charcoal">{cat}</h3>
-                                        <p className="text-xs font-bold text-ghibli-wood/60 tracking-widest uppercase mt-2">({catArtworks.length} Pieces)</p>
-                                    </div>
-                                    <Link
-                                        to={`/gallery/${cat.toLowerCase()}`}
-                                        className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy flex items-center gap-2 group transition-all"
-                                    >
-                                        See All <span className="group-hover:translate-x-1 transition-transform">→</span>
-                                    </Link>
-                                </div>
+                    {/* Embla Viewport */}
+                    <div className="overflow-hidden" ref={featuredEmblaRef}>
+                        <div className="flex gap-6 select-none touch-pan-y"> {/* Embla Container */}
+                            {displayFeatured.map((work, index) => (
+                                <div
+                                    key={`${work.id || 'feat'}-${index}`}
+                                    className="relative flex-[0_0_260px] md:flex-[0_0_320px] aspect-[3/4] rounded-[1.5rem] overflow-hidden group shadow-md hover:shadow-lg transition-all mx-2"
+                                >
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 z-10"></div>
 
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-                                    {slots.map((art) => (
-                                        <div
-                                            key={art.id}
-                                            className={`group ${art.isPlaceholder ? 'cursor-default' : 'cursor-pointer'}`}
-                                            onClick={() => !art.isPlaceholder && setSelectedArt(art)}
-                                        >
-                                            <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-ghibli-wood/5 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-2xl">
-                                                <div className="aspect-[4/5] bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
-                                                    {art.isPlaceholder ? (
-                                                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-moss/5 to-ghibli-wood/5 group-hover:from-ghibli-moss/10 transition-colors">
-                                                            <span className="text-4xl opacity-20 grayscale scale-90 group-hover:scale-100 group-hover:grayscale-0 transition-all duration-500">🎨</span>
-                                                            <span className="text-[9px] font-bold tracking-widest text-ghibli-charcoal/40 uppercase mt-3">In Progress</span>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            {(!art.image_url || art.image_url.trim() === '') ? (
-                                                                <span className="text-5xl group-hover:scale-110 transition-transform">✨</span>
-                                                            ) : (
-                                                                <img
-                                                                    src={art.image_url}
-                                                                    alt={art.title}
-                                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                                />
-                                                            )}
-                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-ghibli-wood/10 transition-colors duration-500"></div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                <div className="p-5">
-                                                    <h4 className={`text-base font-bold font-serif line-clamp-1 transition-colors ${art.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal group-hover:text-ghibli-moss'}`}>
-                                                        {art.title}
-                                                    </h4>
-                                                </div>
-                                            </div>
+                                    {work.isPlaceholder ? (
+                                        <div className="w-full h-full bg-ghibli-paper/40 flex flex-col items-center justify-center gap-3">
+                                            <span className="text-4xl opacity-30">✨</span>
+                                            <span className="text-xs font-bold tracking-widest opacity-30 uppercase text-ghibli-wood">Coming Soon</span>
                                         </div>
-                                    ))}
+                                    ) : (
+                                        (!work.image_url || work.image_url.trim() === '') ? (
+                                            <div className="w-full h-full bg-ghibli-paper/20 flex items-center justify-center">
+                                                <span className="text-2xl opacity-20">🎨</span>
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={work.image_url}
+                                                alt={work.title}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                        )
+                                    )}
+
+                                    {!work.isPlaceholder && (
+                                        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <h3 className="text-white font-serif font-bold text-lg">{work.title}</h3>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* Modal */}
-            {selectedArt && (
-                <div
-                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-ghibli-charcoal/80 backdrop-blur-md animate-fade-in"
-                    onClick={() => setSelectedArt(null)}
-                >
-                    <div
-                        className="bg-ghibli-cream p-8 md:p-12 rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row gap-8 shadow-2xl relative"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <button className="absolute top-6 right-8 text-3xl opacity-50 hover:opacity-100 transition-opacity" onClick={() => setSelectedArt(null)}>×</button>
-
-                        <div className="w-full md:w-1/2 aspect-square bg-ghibli-paper/50 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner">
-                            {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
-                                <span className="text-[8rem]">✨</span>
-                            ) : (
-                                <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
-                            )}
-                        </div>
-
-                        <div className="w-full md:w-1/2 flex flex-col justify-center text-left">
-                            <span className="text-ghibli-wood font-bold uppercase tracking-widest text-xs mb-4">{selectedArt.category}</span>
-                            <h3 className="text-4xl font-serif font-bold text-ghibli-charcoal mb-6 underline decoration-ghibli-gold/30 decoration-wavy underline-offset-8">
-                                {selectedArt.title}
-                            </h3>
-                            <p className="text-ghibli-charcoal/80 leading-loose font-sans text-lg mb-8">
-                                {selectedArt.description}
-                            </p>
-                            <a href="#contact" onClick={() => setSelectedArt(null)} className="px-8 py-3 bg-ghibli-wood text-ghibli-cream rounded-full font-bold tracking-widest text-sm hover:bg-ghibli-navy transition-all self-start shadow-lg hover:-translate-y-1">
-                                INQUIRE
-                            </a>
+                            ))}
                         </div>
                     </div>
                 </div>
-            )}
+
+                {/* 3. Category Sections - Embla Carousels */}
+                <div className="space-y-20">
+                    {MAIN_CATEGORIES.map((cat) => {
+                        const items = getCategoryItems(cat.id);
+                        const displayItems = getDisplayItems(items, 8); // Force 8 items minimum
+
+                        return (
+                            <CategorySlider
+                                key={cat.id}
+                                cat={cat}
+                                items={displayItems}
+                                isEmpty={items.length === 0}
+                            />
+                        );
+                    })}
+                </div>
+
+            </div>
         </section>
     );
 };
 
-export default ArtGallery;
+// Sub-component for Category Slider
+const CategorySlider = ({ cat, items, isEmpty }) => {
+    const [emblaRef] = useEmblaCarousel({
+        align: 'start',
+        containScroll: 'trimSnaps',
+        dragFree: true
+    });
 
+    return (
+        <div className="animate-fade-in-up">
+            {/* Section Header */}
+            <div className="flex items-end justify-between mb-8 px-2">
+                <div>
+                    <h3 className="text-2xl md:text-3xl font-bold text-ghibli-charcoal font-serif mb-2">
+                        {cat.label}
+                    </h3>
+                    <span className="text-xs font-bold tracking-widest text-ghibli-wood/40 uppercase">
+                        ({isEmpty ? 0 : items.filter(i => !i.isPlaceholder).length} Pieces)
+                    </span>
+                </div>
+                <Link
+                    to={`/gallery/${cat.id}`}
+                    className="text-ghibli-wood/80 font-bold text-xs uppercase tracking-widest hover:text-ghibli-wood transition-colors group flex items-center gap-2"
+                >
+                    See All
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </Link>
+            </div>
+
+            {/* Embla Viewport */}
+            <div className="overflow-hidden -mx-4 px-4" ref={emblaRef}>
+                <div className="flex gap-4 select-none touch-pan-y">
+                    {items.map((item, index) => (
+                        <div
+                            key={`${item.id || 'cat'}-${index}`}
+                            className="flex-[0_0_200px] sm:flex-[0_0_240px] rounded-[1.5rem] flex flex-col groupcursor-pointer"
+                        >
+                            {/* Card Image Area */}
+                            <div className="aspect-[4/5] bg-ghibli-paper/40 rounded-[1.5rem] mb-3 flex items-center justify-center relative overflow-hidden transition-transform duration-500 group-hover:-translate-y-1">
+                                {item.isPlaceholder ? (
+                                    <div className="flex flex-col items-center gap-2 opacity-20">
+                                        <span className="text-3xl">🎨</span>
+                                        <span className="text-[9px] font-bold tracking-widest uppercase">In Progress</span>
+                                    </div>
+                                ) : (
+                                    (item && item.image_url) ? (
+                                        <img
+                                            src={item.image_url}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2 opacity-20">
+                                            <span className="text-3xl">🎨</span>
+                                            <span className="text-[9px] font-bold tracking-widest uppercase">In Progress</span>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            {/* Card Footer - Minimal */}
+                            <div className="px-1">
+                                <h4 className={`font-bold text-sm font-serif truncate transition-colors ${item.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal/70 group-hover:text-ghibli-charcoal'}`}>
+                                    {item.isPlaceholder ? 'Gallery Slot' : (item?.title || `${cat.label} ${index + 1}`)}
+                                </h4>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ArtGallery;
