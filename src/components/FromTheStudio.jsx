@@ -30,7 +30,7 @@ const FromTheStudio = () => {
     }, []);
 
     return (
-        <section id="fromthestudio" className="section-container relative overflow-hidden">
+        <section id="fromthestudio" className="section-container relative overflow-hidden py-12">
 
 
 
@@ -135,7 +135,7 @@ const FromTheStudio = () => {
                             <p className="text-ghibli-charcoal/70 font-sans leading-relaxed">
                                 I'm currently preparing new artworks to share with you. Small business pieces, mandalas, and miniatures are on their way.
                             </p>
-                            <div className="pt-4">
+                            <div className="pt-4 flex justify-center md:justify-start">
                                 <a href="#contact" className="inline-block px-6 py-2.5 md:px-10 md:py-3 rounded-full bg-ghibli-wood text-ghibli-cream font-bold tracking-widest text-xs hover:scale-110 active:scale-95 hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl ring-4 ring-transparent hover:ring-ghibli-wood/20">
                                     NOTIFY ME
                                 </a>

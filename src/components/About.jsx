@@ -2,7 +2,7 @@
 
 const About = () => {
     return (
-        <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20">
+        <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20 py-12 -mt-12">
             {/* --- Organic Flow Backdrop --- */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* 1. Base Gradient - Soft Creamy White */}

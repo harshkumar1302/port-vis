@@ -70,7 +70,7 @@ const Hero = () => {
 
             </div>
 
-            <div className="section-container relative z-10 text-center">
+            <div className="section-container relative z-10 text-center pt-64">
                 <div className="animate-fade-in space-y-8 max-w-2xl mx-auto">
 
                     {/* Avatar Element */}
@@ -99,7 +99,7 @@ const Hero = () => {
                     </p>
 
                     {/* Action */}
-                    <div className="pt-8 relative z-30">
+                    <div className="pt-8 relative z-30 flex justify-center">
                         <a
                             href="#gallery"
                             className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F] hover:scale-105 active:scale-95 transition-all duration-300 font-bold tracking-widest text-xs md:text-sm shadow-lg hover:shadow-xl ring-4 ring-transparent hover:ring-ghibli-gold/20 cursor-pointer"

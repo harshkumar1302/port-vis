@@ -74,7 +74,7 @@ const ArtGallery = () => {
     const displayFeatured = getDisplayItems(featuredItems);
 
     return (
-        <section id="gallery" className="section-container relative min-h-screen py-24 bg-ghibli-cream/20">
+        <section id="gallery" className="section-container relative min-h-screen py-12 bg-ghibli-cream/20">
 
 
 
