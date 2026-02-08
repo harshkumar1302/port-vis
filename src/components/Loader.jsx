@@ -144,7 +144,7 @@ const Loader = ({ onFinished }) => {
 
             {/* Progress Indicator - Absolute Bottom Position */}
             <div
-                className={`absolute bottom-[15%] left-0 right-0 flex flex-col items-center gap-4 transition-all duration-500 ${progress >= 100 ? 'opacity-0 translate-y-4' : 'opacity-100'
+                className={`absolute bottom-[35%] left-0 right-0 flex flex-col items-center gap-4 transition-all duration-500 ${progress >= 100 ? 'opacity-0 translate-y-4' : 'opacity-100'
                     }`}
             >
                 <div className="w-64 h-1 bg-gray-200 rounded-full overflow-hidden shrink-0">

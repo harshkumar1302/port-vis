@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
+import FontSwitcher from './components/FontSwitcher';
 import Skills from './components/Skills';
 import ArtGallery from './components/ArtGallery';
 import FromTheStudio from './components/FromTheStudio';
@@ -44,11 +45,12 @@ const Layout = ({ children }) => {
             <span>Where devotion meets detail.
 
               VisheshKala
-              © 2026 — Crafted in the garden of small things.</span>
+              © 2026 </span>
           </div>
           <a href="/admin" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500" title="Admin Gate">
             🗝️
           </a>
+          <FontSwitcher />
         </footer>
       )}
     </div>
