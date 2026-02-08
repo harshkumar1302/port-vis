@@ -47,7 +47,7 @@ const Contact = () => {
     ];
 
     return (
-        <section id="contact" className="section-container relative overflow-hidden py-16">
+        <section id="contact" className="section-container relative overflow-hidden py-16 -mt-12 md:mt-0 scroll-mt-24">
             {/* --- Message / Connection Backdrop --- */}
             {false && (
                 <div className="absolute inset-0 pointer-events-none">

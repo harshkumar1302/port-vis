@@ -106,8 +106,8 @@ const FullGallery = () => {
                                 key={sub}
                                 onClick={() => setSelectedSubCategory(sub)}
                                 className={`px-6 py-2.5 rounded-full text-xs font-bold tracking-[0.1em] uppercase whitespace-nowrap transition-all border ${selectedSubCategory === sub
-                                        ? 'bg-ghibli-wood text-ghibli-cream border-ghibli-wood'
-                                        : 'bg-white text-ghibli-charcoal/60 border-ghibli-wood/10 hover:border-ghibli-wood/30'
+                                    ? 'bg-ghibli-wood text-ghibli-cream border-ghibli-wood'
+                                    : 'bg-white text-ghibli-charcoal/60 border-ghibli-wood/10 hover:border-ghibli-wood/30'
                                     }`}
                             >
                                 {sub}
@@ -216,13 +216,22 @@ const FullGallery = () => {
 
                             {/* Details Section */}
                             <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
-                                <span className="text-ghibli-wood font-bold tracking-[0.25em] uppercase text-[10px] mb-4">
-                                    {category?.toUpperCase() || 'COLLECTION'}
-                                </span>
-
-                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4">
+                                {/* 1. TITLE */}
+                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
                                     {selectedArt.title}
                                 </h3>
+
+                                {/* 2. NAME (Category + Subcategory) */}
+                                <div className="flex items-center gap-3 mb-6">
+                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[11px] bg-ghibli-paper/30 px-3 py-1 rounded-full">
+                                        {category?.toUpperCase() || 'COLLECTION'}
+                                    </span>
+                                    {selectedArt.description?.includes('[SubCategory:') && (
+                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px]">
+                                            • {selectedArt.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1] || ''}
+                                        </span>
+                                    )}
+                                </div>
 
                                 <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
                                     <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
@@ -230,8 +239,16 @@ const FullGallery = () => {
                                     </svg>
                                 </div>
 
+                                {/* 3. STORY */}
                                 <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
-                                    <p>{selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things. This artwork fits perfectly in cozy corners or as a thoughtful gift."}</p>
+                                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
+                                    <p>
+                                        {(selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things.")
+                                            .replace(/\[FEATURED\]/g, '')
+                                            .replace(/\[SubCategory:.*?\]/g, '')
+                                            .trim()
+                                        }
+                                    </p>
                                 </div>
 
                                 <a

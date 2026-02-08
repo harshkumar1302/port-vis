@@ -70,7 +70,7 @@ const Hero = () => {
 
             </div>
 
-            <div className="section-container relative z-10 text-center pt-64">
+            <div className="section-container relative z-10 text-center pt-24 md:pt-64">
                 <div className="animate-fade-in space-y-8 max-w-2xl mx-auto">
 
                     {/* Avatar Element */}
@@ -95,7 +95,7 @@ const Hero = () => {
 
                     {/* Soft Description */}
                     <p className="text-lg md:text-xl text-ghibli-charcoal/80 font-sans leading-relaxed select-none">
-                        {wordWrap("Where meaninful art is shaped into heartfelt gifts.")}
+                        {wordWrap("Thoughtfully created to celebrate emotions, memories, and moments that matter. Every artwork is carefully envisioned and lovingly brought to life. Visheshkala is not just art; it is a feeling you can hold.")}
                     </p>
 
                     {/* Action */}

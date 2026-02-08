@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 
 import { supabase } from '../lib/supabaseClient';
@@ -15,14 +16,19 @@ const MAIN_CATEGORIES = [
 const ArtGallery = () => {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedArt, setSelectedArt] = useState(null);
 
     // Embla Carousels
-    const [featuredEmblaRef] = useEmblaCarousel({
+    const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
         loop: true,
-        align: 'center',
+        align: 'start',
+        startIndex: 0,
         containScroll: 'trimSnaps',
         dragFree: true
     });
+
+    const scrollPrev = () => featuredEmblaApi && featuredEmblaApi.scrollPrev();
+    const scrollNext = () => featuredEmblaApi && featuredEmblaApi.scrollNext();
 
     useEffect(() => {
         fetchArtworks();
@@ -47,7 +53,12 @@ const ArtGallery = () => {
 
     // Helper to get items for a category
     const getCategoryItems = (catId) => {
-        return artworks.filter(art => art.category?.toLowerCase().includes(catId));
+        return artworks.filter(art =>
+            art.category?.toLowerCase().includes(catId) &&
+            !art.category?.toLowerCase().includes('upcoming') &&
+            !art.description?.includes('[FEATURED]') &&
+            !art.title?.includes('[FEATURED]')
+        );
     };
 
     // Helper to get Featured items
@@ -55,7 +66,8 @@ const ArtGallery = () => {
         return artworks.filter(art =>
             art.description?.includes('[FEATURED]') ||
             art.title?.includes('[FEATURED]') ||
-            art.tags?.includes('[FEATURED]')
+            art.tags?.includes('[FEATURED]') ||
+            art.category?.toLowerCase() === 'featured'
         );
     };
 
@@ -74,10 +86,7 @@ const ArtGallery = () => {
     const displayFeatured = getDisplayItems(featuredItems);
 
     return (
-        <section id="gallery" className="section-container relative min-h-screen py-12 bg-ghibli-cream/20">
-
-
-
+        <section id="gallery" className="section-container relative min-h-screen py-12 bg-ghibli-cream/20 font-gallery">
             <div className="max-w-7xl mx-auto px-4 relative z-10">
 
                 {/* 1. Header */}
@@ -94,19 +103,20 @@ const ArtGallery = () => {
                 </div>
 
                 {/* 2. Best Work Carousel (Embla) - Dynamic */}
-                <div className="mb-24">
+                <div className="mb-24 relative">
                     <div className="flex items-center gap-2 mb-6 opacity-60">
                         <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
                         <span className="text-xs uppercase tracking-widest font-bold">Featured Highlights</span>
                     </div>
 
                     {/* Embla Viewport */}
-                    <div className="overflow-hidden" ref={featuredEmblaRef}>
-                        <div className="flex gap-6 select-none touch-pan-y"> {/* Embla Container */}
+                    <div className="overflow-hidden mb-8 py-10 -my-10" ref={featuredEmblaRef}>
+                        <div className="flex gap-6 select-none touch-pan-y items-stretch"> {/* Embla Container */}
                             {displayFeatured.map((work, index) => (
                                 <div
                                     key={`${work.id || 'feat'}-${index}`}
-                                    className="relative flex-[0_0_260px] md:flex-[0_0_320px] aspect-[3/4] rounded-[1.5rem] overflow-hidden group shadow-md hover:shadow-lg transition-all mx-2"
+                                    onClick={() => !work.isPlaceholder && setSelectedArt(work)}
+                                    className={`relative flex-[0_0_280px] sm:flex-[0_0_350px] md:flex-[0_0_420px] aspect-[4/3] rounded-[2rem] overflow-hidden group shadow-lg hover:shadow-2xl transition-all mx-2 bg-white ${work.isPlaceholder ? '' : 'cursor-pointer'}`}
                                 >
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 z-10"></div>
 
@@ -138,6 +148,24 @@ const ArtGallery = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex justify-end items-center gap-4 px-2">
+                        <button
+                            onClick={scrollPrev}
+                            className="w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95"
+                            aria-label="Previous Highlight"
+                        >
+                            <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
+                        </button>
+                        <button
+                            onClick={scrollNext}
+                            className="w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95"
+                            aria-label="Next Highlight"
+                        >
+                            <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* 3. Category Sections - Embla Carousels */}
@@ -152,18 +180,115 @@ const ArtGallery = () => {
                                 cat={cat}
                                 items={displayItems}
                                 isEmpty={items.length === 0}
+                                onCardClick={(item) => setSelectedArt({ ...item, category: cat.id })}
                             />
                         );
                     })}
                 </div>
 
             </div>
+
+            {/* Modal - STUDIO STYLE (Imported from FullGallery) */}
+            <AnimatePresence>
+                {selectedArt && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSelectedArt(null)}
+                        className="fixed inset-0 z-[200] bg-ghibli-charcoal/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-5xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-2xl relative"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setSelectedArt(null)}
+                                className="absolute top-6 right-6 z-20 w-8 h-8 rounded-full bg-ghibli-charcoal/5 hover:bg-ghibli-charcoal/10 flex items-center justify-center text-ghibli-charcoal/60 hover:text-ghibli-charcoal transition-all font-bold"
+                            >✕</button>
+
+                            {/* Image Section */}
+                            <div className="w-full md:w-[55%] bg-ghibli-paper/30 relative flex items-center justify-center p-8 md:p-12 hidden md:flex">
+                                <div className="relative w-full h-full shadow-2xl rounded-lg overflow-hidden max-h-[600px]">
+                                    {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                        <div className="w-full h-full bg-white flex items-center justify-center">
+                                            <span className="text-6xl opacity-20">✨</span>
+                                        </div>
+                                    ) : (
+                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Mobile Image (Smaller) */}
+                            <div className="w-full h-64 md:hidden bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
+                                {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                    <div className="w-full h-full bg-white flex items-center justify-center">
+                                        <span className="text-4xl opacity-20">✨</span>
+                                    </div>
+                                ) : (
+                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                )}
+                            </div>
+
+                            {/* Details Section */}
+                            <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
+                                {/* 1. TITLE */}
+                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
+                                    {selectedArt.title || 'Untitled Piece'}
+                                </h3>
+
+                                {/* 2. NAME (Category + Subcategory) */}
+                                <div className="flex items-center gap-3 mb-6">
+                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[11px] bg-ghibli-paper/30 px-3 py-1 rounded-full">
+                                        {selectedArt.category?.toUpperCase() || 'COLLECTION'}
+                                    </span>
+                                    {selectedArt.description?.includes('[SubCategory:') && (
+                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px]">
+                                            • {selectedArt.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1] || ''}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
+                                    <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
+                                        <path d="M0 10 Q25 20 50 10 T100 10" />
+                                    </svg>
+                                </div>
+
+                                {/* 3. STORY */}
+                                <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
+                                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
+                                    <p>
+                                        {(selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things.")
+                                            .replace(/\[FEATURED\]/g, '')
+                                            .replace(/\[SubCategory:.*?\]/g, '')
+                                            .trim()
+                                        }
+                                    </p>
+                                </div>
+
+                                <a
+                                    href="/#contact"
+                                    onClick={() => setSelectedArt(null)}
+                                    className="px-8 py-4 bg-[#8D6E63] text-ghibli-cream rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#A0704F] transition-all self-start shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 text-center w-full md:w-auto"
+                                >
+                                    Inquire
+                                </a>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </section >
     );
 };
 
 // Sub-component for Category Slider
-const CategorySlider = ({ cat, items, isEmpty }) => {
+const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
     const [emblaRef] = useEmblaCarousel({
         align: 'start',
         containScroll: 'trimSnaps',
@@ -172,7 +297,7 @@ const CategorySlider = ({ cat, items, isEmpty }) => {
 
     return (
         <div className="animate-fade-in-up">
-            {/* Section Header */}
+            {/* Section Header ... (keep existing) */}
             <div className="flex items-end justify-between mb-8 px-2">
                 <div>
                     <h3 className="text-2xl md:text-3xl font-bold text-ghibli-charcoal font-serif mb-2">
@@ -192,12 +317,13 @@ const CategorySlider = ({ cat, items, isEmpty }) => {
             </div>
 
             {/* Embla Viewport */}
-            <div className="overflow-hidden -mx-4 px-4" ref={emblaRef}>
-                <div className="flex gap-4 select-none touch-pan-y">
+            <div className="overflow-hidden -mx-4 px-4 py-8 -my-8" ref={emblaRef}>
+                <div className="flex gap-4 select-none touch-pan-y items-stretch">
                     {items.map((item, index) => (
                         <div
                             key={`${item.id || 'cat'}-${index}`}
-                            className="flex-[0_0_200px] sm:flex-[0_0_240px] rounded-[1.5rem] flex flex-col groupcursor-pointer"
+                            onClick={() => !item.isPlaceholder && onCardClick(item)}
+                            className={`flex-[0_0_200px] sm:flex-[0_0_240px] rounded-[1.5rem] flex flex-col group ${item.isPlaceholder ? '' : 'cursor-pointer'}`}
                         >
                             {/* Card Image Area */}
                             <div className="aspect-[4/5] bg-ghibli-paper/40 rounded-[1.5rem] mb-3 flex items-center justify-center relative overflow-hidden transition-transform duration-500 group-hover:-translate-y-1">

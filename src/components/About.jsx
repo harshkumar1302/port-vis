@@ -2,7 +2,7 @@
 
 const About = () => {
     return (
-        <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20 py-12 -mt-12">
+        <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20 py-8 md:py-16 -mt-12 md:-mt-12 scroll-mt-24">
             {/* --- Organic Flow Backdrop --- */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* 1. Base Gradient - Soft Creamy White */}
@@ -21,10 +21,20 @@ const About = () => {
 
 
             <div className="max-w-4xl mx-auto relative z-10 px-6">
-                <h2 className="text-4xl md:text-6xl font-bold text-center mb-16 text-ghibli-charcoal drop-shadow-sm">
-                    <span className="italic text-ghibli-wood">About</span>
-                </h2>
-
+                {/*<h2 className="text-4xl md:text-6xl font-bold text-center mb-16 text-ghibli-charcoal drop-shadow-sm">
+                    <span className="italic text-ghibli-wood">Why Visheshkala - beyond beauty, beyond art?</span>
+                </h2>*/}
+                <div className="text-center mb-16 space-y-4">
+                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
+                        Why Visheshkala
+                    </span>
+                    <h2 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif">
+                        Beyond beauty, beyond art
+                    </h2>
+                    <p className="text-ghibli-charcoal/60 max-w-xl mx-auto">
+                        Rooted in tradition, refined with care. Artifacts crafted slowly with patience and love, designed to carry meaning and endure with purpose.
+                    </p>
+                </div>
                 <div className="space-y-12">
                     {/* Genesis Card */}
                     <div className="card-glass p-6 sm:p-10 bg-white/60 backdrop-blur-3xl shadow-xl text-center relative overflow-hidden group">

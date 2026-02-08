@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
 const FromTheStudio = () => {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedArt, setSelectedArt] = useState(null);
 
     useEffect(() => {
         const fetchArtworks = async () => {
@@ -14,6 +15,7 @@ const FromTheStudio = () => {
                 const { data, error } = await supabase
                     .from('artworks')
                     .select('*')
+                    .ilike('category', 'upcoming')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -30,18 +32,7 @@ const FromTheStudio = () => {
     }, []);
 
     return (
-        <section id="fromthestudio" className="section-container relative overflow-hidden py-12">
-
-
-
-            {/* Left Side Balance - Vertical Pattern Strip - REMOVED for Continuity */}
-            {/* <div className="absolute top-0 left-0 h-full w-[100px] pointer-events-none hidden md:flex flex-col justify-center items-center opacity-10">
-                 <div className="h-full w-[1px] bg-ghibli-charcoal/50"></div>
-                 <div className="absolute top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap text-6xl font-serif text-ghibli-charcoal/20 tracking-[0.5em] uppercase">
-                    Handmade Craft
-                 </div>
-            </div> */}
-
+        <section id="fromthestudio" className="section-container relative overflow-hidden py-12 -mt-12 md:mt-0 scroll-mt-24">
             <div className="max-w-6xl mx-auto space-y-12 relative z-10">
                 {/* Header Section */}
                 <div className="text-center space-y-4 max-w-2xl mx-auto">
@@ -69,12 +60,15 @@ const FromTheStudio = () => {
                 ) : artworks.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
                         {artworks.map((art) => (
-                            <div key={art.id} className="group relative">
+                            <div
+                                key={art.id}
+                                className="group relative cursor-pointer"
+                                onClick={() => setSelectedArt(art)}
+                            >
                                 <div className="absolute inset-0 bg-ghibli-wood/10 rounded-[2rem] transform rotate-1 group-hover:rotate-3 transition-transform duration-500"></div>
                                 <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-lg border border-ghibli-wood/10 card-glass transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
                                     <div className="aspect-square relative overflow-hidden bg-ghibli-paper/20">
                                         {(!art.image_url || art.image_url.trim() === '') ? (
-                                            /* Placeholder when NO image is provided or empty string */
                                             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-ghibli-wood/10 to-ghibli-wood/5 animate-pulse">
                                                 <span className="text-5xl mb-2">🎨</span>
                                                 <span className="text-[10px] font-bold tracking-[0.2em] text-ghibli-wood/60 uppercase">
@@ -82,7 +76,6 @@ const FromTheStudio = () => {
                                                 </span>
                                             </div>
                                         ) : (
-                                            /* Actual image with smooth fade-in */
                                             <>
                                                 <div className="absolute inset-0 bg-ghibli-paper/20 animate-pulse flex items-center justify-center">
                                                     <span className="text-2xl opacity-20">🌿</span>
@@ -144,9 +137,106 @@ const FromTheStudio = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal - STUDIO STYLE */}
+            <AnimatePresence>
+                {selectedArt && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSelectedArt(null)}
+                        className="fixed inset-0 z-[200] bg-ghibli-charcoal/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-5xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-2xl relative"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setSelectedArt(null)}
+                                className="absolute top-6 right-6 z-20 w-8 h-8 rounded-full bg-ghibli-charcoal/5 hover:bg-ghibli-charcoal/10 flex items-center justify-center text-ghibli-charcoal/60 hover:text-ghibli-charcoal transition-all font-bold"
+                            >✕</button>
+
+                            {/* Image Section */}
+                            <div className="w-full md:w-[55%] bg-ghibli-paper/30 relative flex items-center justify-center p-8 md:p-12 hidden md:flex">
+                                <div className="relative w-full h-full shadow-2xl rounded-lg overflow-hidden max-h-[600px]">
+                                    {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                        <div className="w-full h-full bg-white flex items-center justify-center">
+                                            <span className="text-6xl opacity-20">✨</span>
+                                        </div>
+                                    ) : (
+                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Mobile Image (Smaller) */}
+                            <div className="w-full h-64 md:hidden bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
+                                {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
+                                    <div className="w-full h-full bg-white flex items-center justify-center">
+                                        <span className="text-4xl opacity-20">✨</span>
+                                    </div>
+                                ) : (
+                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                )}
+                            </div>
+
+                            {/* Details Section */}
+                            <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
+                                {/* 1. TITLE */}
+                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
+                                    {selectedArt.title || 'Untitled Piece'}
+                                </h3>
+
+                                {/* 2. NAME (Category + Subcategory) */}
+                                <div className="flex items-center gap-3 mb-6">
+                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[11px] bg-ghibli-paper/30 px-3 py-1 rounded-full">
+                                        UPCOMING COLLECTION
+                                    </span>
+                                    {selectedArt.description?.includes('[SubCategory:') && (
+                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px]">
+                                            • {selectedArt.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1] || ''}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
+                                    <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
+                                        <path d="M0 10 Q25 20 50 10 T100 10" />
+                                    </svg>
+                                </div>
+
+                                {/* 3. STORY */}
+                                <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
+                                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
+                                    <p>
+                                        {(selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things.")
+                                            .replace(/\[FEATURED\]/g, '')
+                                            .replace(/\[SubCategory:.*?\]/g, '')
+                                            .trim()
+                                        }
+                                    </p>
+                                </div>
+
+                                <a
+                                    href="/#contact"
+                                    onClick={() => setSelectedArt(null)}
+                                    className="px-8 py-4 bg-[#8D6E63] text-ghibli-cream rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#A0704F] transition-all self-start shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 text-center w-full md:w-auto"
+                                >
+                                    Inquire
+                                </a>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </section>
     );
 };
 
 export default FromTheStudio;
+
 

@@ -79,6 +79,10 @@ const AdminDashboard = () => {
         window.location.href = '/';
     };
 
+    const [uploadType, setUploadType] = useState('gallery'); // gallery, featured, upcoming
+
+    // ... existing login logic ...
+
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!file || !session) return;
@@ -102,10 +106,17 @@ const AdminDashboard = () => {
                 .getPublicUrl(filePath);
 
             // 3. Save Metadata to DB
-            // Append sub-category and Featured tag
             let finalDescription = desc;
-            if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
-            if (isFeatured) finalDescription += `\n\n[FEATURED]`;
+            let finalCategory = category;
+
+            if (uploadType === 'upcoming') {
+                finalCategory = 'Upcoming';
+            } else if (uploadType === 'featured') {
+                finalCategory = 'Featured';
+                finalDescription += `\n\n[FEATURED]`;
+            } else {
+                if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
+            }
 
             const { error: dbError } = await supabase
                 .from('artworks')
@@ -113,7 +124,7 @@ const AdminDashboard = () => {
                     {
                         title,
                         description: finalDescription,
-                        category, // Main Category
+                        category: finalCategory,
                         image_url: publicUrl,
                         user_id: session.user.id,
                     },
@@ -125,12 +136,10 @@ const AdminDashboard = () => {
             setTimeout(() => setSuccess(false), 3000);
             setTitle('');
             setDesc('');
-            // Reset to defaults
             setCategory('Mandala');
-            setIsFeatured(false);
             setFile(null);
             setPreviewUrl(null);
-            fetchArtworks(); // Refresh list
+            fetchArtworks();
         } catch (error) {
             alert(error.message);
         } finally {
@@ -218,27 +227,58 @@ const AdminDashboard = () => {
                     {/* Upload Form */}
                     <div className="lg:col-span-1">
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] lg:sticky lg:top-32">
-                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">New Creation</h2>
+                            <h2 className="text-2xl font-bold mb-6 text-ghibli-navy">New Creation</h2>
+
+                            {/* Mode Selector */}
+                            <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-8">
+                                <button
+                                    onClick={() => setUploadType('gallery')}
+                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'gallery' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                >
+                                    Gallery
+                                </button>
+                                <button
+                                    onClick={() => setUploadType('featured')}
+                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'featured' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                >
+                                    Featured
+                                </button>
+                                <button
+                                    onClick={() => setUploadType('upcoming')}
+                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'upcoming' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                >
+                                    Upcoming
+                                </button>
+                            </div>
+
                             <form onSubmit={handleUpload} className="space-y-6">
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Title</label>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" required />
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Main Category</label>
-                                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                            {Object.keys(CATEGORIES_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                        </select>
+                                {uploadType === 'gallery' ? (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Main Category</label>
+                                            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
+                                                {Object.keys(CATEGORIES_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
+                                            <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
+                                                {CATEGORIES_DATA[category]?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
-                                        <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                            {CATEGORIES_DATA[category]?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                                        </select>
+                                ) : (
+                                    <div className="p-4 rounded-xl bg-ghibli-wood/5 border border-ghibli-wood/10 text-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-ghibli-wood opacity-60">
+                                            {uploadType === 'featured' ? '★ FOR TOP HIGHLIGHTS' : '🌿 FOR UPCOMING ART'}
+                                        </span>
                                     </div>
-                                </div>
+                                )}
 
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Story</label>
@@ -246,7 +286,7 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Reference Image</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Image File</label>
                                     <div className="relative group">
                                         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="file-upload" required />
                                         <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-ghibli-wood/20 rounded-2xl bg-white/30 hover:bg-white/50 transition-all cursor-pointer overflow-hidden group-hover:border-ghibli-wood/40">
@@ -260,28 +300,15 @@ const AdminDashboard = () => {
                                             ) : (
                                                 <div className="text-center p-6">
                                                     <span className="text-3xl block mb-2 opacity-50">📸</span>
-                                                    <span className="text-[10px] font-bold text-ghibli-wood/60 uppercase tracking-widest">Select Artwork File</span>
+                                                    <span className="text-[10px] font-bold text-ghibli-wood/60 uppercase tracking-widest">Select File</span>
                                                 </div>
                                             )}
                                         </label>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 mb-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={isFeatured}
-                                        onChange={(e) => setIsFeatured(e.target.checked)}
-                                        className="w-5 h-5 accent-ghibli-wood cursor-pointer"
-                                        id="featured-check"
-                                    />
-                                    <label htmlFor="featured-check" className="text-sm font-bold text-ghibli-charcoal/80 cursor-pointer select-none">
-                                        Feature this item? (Top Slider)
-                                    </label>
-                                </div>
-
                                 <button disabled={uploading} className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg hover:-translate-y-1 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'}`}>
-                                    {uploading ? 'Uploading...' : success ? '✨ Done!' : '✨ Add Work'}
+                                    {uploading ? 'Uploading...' : success ? '✨ Done!' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'}`}
                                 </button>
                             </form>
                         </div>
