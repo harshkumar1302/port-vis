@@ -294,33 +294,41 @@ Check your internet connection. If this is on Vercel, please ensure you have run
             }
 
             if (editingId) {
-                // Update Existing
-                const { error: dbError } = await supabase
-                    .from('artworks')
-                    .update({
+                // Update Existing via Private API
+                const res = await fetch('/api/manage-art', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: editingId,
                         title,
                         description: finalDescription,
                         category: finalCategory,
                         image_url: finalImageUrl,
-                    })
-                    .eq('id', editingId);
+                    }),
+                });
 
-                if (dbError) throw dbError;
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Failed to update artwork');
+                }
             } else {
-                // Insert New
-                const { error: dbError } = await supabase
-                    .from('artworks')
-                    .insert([
-                        {
-                            title,
-                            description: finalDescription,
-                            category: finalCategory,
-                            image_url: finalImageUrl,
-                            user_id: session.user.id,
-                        },
-                    ]);
+                // Insert New via Private API
+                const res = await fetch('/api/manage-art', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        description: finalDescription,
+                        category: finalCategory,
+                        image_url: finalImageUrl,
+                        user_id: session.user.id,
+                    }),
+                });
 
-                if (dbError) throw dbError;
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Failed to add artwork');
+                }
             }
 
             setSuccess(true);
@@ -368,8 +376,19 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                 const fileName = art.image_url.split('/').pop();
                 await supabase.storage.from('artworks').remove([fileName]);
             }
-            const { error: dbError } = await supabase.from('artworks').delete().eq('id', art.id);
-            if (dbError) throw dbError;
+
+            // Delete via Private API
+            const res = await fetch('/api/manage-art', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: art.id }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to delete artwork');
+            }
+
             setArtworks(artworks.filter(a => a.id !== art.id));
         } catch (error) {
             alert(`Delete failed: ${error.message}`);
