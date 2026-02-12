@@ -98,7 +98,10 @@ const AdminDashboard = () => {
                 alert(`🔒 Access Denied: ${data.error || 'Invalid credentials'}`);
             }
         } catch (err) {
-            alert('🔒 Connection error. Please try again.');
+            console.error('Login error:', err);
+            alert(`🔒 Connection error. 
+            
+If you are developing locally, please use "vercel dev" to start the server, as standard Vite doesn't support backend /api routes.`);
         } finally {
             setLoading(false);
         }
@@ -134,12 +137,16 @@ const AdminDashboard = () => {
                 alert('✨ Owner account registered successfully! You can now log in.');
                 setLoginMode('login');
                 setEmail(regEmail);
+                setPassword(''); // Clear passwords
             } else {
                 const data = await res.json();
                 alert(`❌ Registration failed: ${data.error}`);
             }
         } catch (err) {
-            alert('❌ Connection error. Please try again.');
+            console.error('Registration error:', err);
+            alert(`❌ Connection error. 
+            
+If you are developing locally, please use "vercel dev" instead of "npm run dev" to enable the backend registration logic.`);
         } finally {
             setIsRegistering(false);
         }
@@ -366,10 +373,11 @@ const AdminDashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors rounded-full hover:bg-white/50"
+                                            title={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                                 </svg>
                                             ) : (
@@ -408,10 +416,11 @@ const AdminDashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors rounded-full hover:bg-white/50"
+                                            title={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                                 </svg>
                                             ) : (
@@ -437,10 +446,11 @@ const AdminDashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors rounded-full hover:bg-white/50"
+                                            title={showConfirmPassword ? "Hide password" : "Show password"}
                                         >
                                             {showConfirmPassword ? (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                                 </svg>
                                             ) : (
