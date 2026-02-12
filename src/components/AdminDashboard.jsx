@@ -43,6 +43,10 @@ const AdminDashboard = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [isSendingReset, setIsSendingReset] = useState(false);
+    const [resetSuccess, setResetSuccess] = useState(false);
 
     // Update sub-category when main category changes
     useEffect(() => {
@@ -169,6 +173,35 @@ If this is production, please check your Vercel logs and ensure you have run the
 Check your internet connection. If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
         } finally {
             setIsRegistering(false);
+        }
+    };
+
+    const handleRequestReset = async (e) => {
+        e.preventDefault();
+        setIsSendingReset(true);
+        try {
+            const res = await fetch('/api/request-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: resetEmail }),
+            });
+
+            if (res.ok) {
+                setResetSuccess(true);
+                setTimeout(() => {
+                    setShowForgotModal(false);
+                    setResetSuccess(false);
+                    setResetEmail('');
+                }, 3000);
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to send reset link');
+            }
+        } catch (err) {
+            console.error('Reset request error:', err);
+            alert('Connection error. Please try again.');
+        } finally {
+            setIsSendingReset(false);
         }
     };
 
@@ -413,12 +446,13 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     {loading ? 'Logging in...' : 'Enter Studio'}
                                 </button>
                                 <div className="text-center mt-4">
-                                    <a
-                                        href="/reset-password"
-                                        className="text-sm text-ghibli-wood hover:underline"
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowForgotModal(true)}
+                                        className="text-sm text-ghibli-wood hover:underline font-bold"
                                     >
                                         Forgot Password?
-                                    </a>
+                                    </button>
                                 </div>
                             </form>
                         ) : (
@@ -497,6 +531,79 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         )}
                     </div>
                 </div>
+
+                {/* Forgot Password Modal */}
+                {showForgotModal && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                        <div className="bg-white rounded-[2.5rem] shadow-2xl p-10 max-w-md w-full relative border border-white/20">
+                            <button
+                                onClick={() => {
+                                    setShowForgotModal(false);
+                                    setResetEmail('');
+                                    setResetSuccess(false);
+                                }}
+                                className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors"
+                            >
+                                ✕
+                            </button>
+
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-ghibli-navy font-serif mb-3">Reset Password</h2>
+                                <p className="text-ghibli-charcoal/60 text-sm leading-relaxed">
+                                    Enter your email address and we'll send you a link to reset your password.
+                                </p>
+                            </div>
+
+                            {resetSuccess ? (
+                                <div className="text-center py-8 animate-in fade-in zoom-in duration-500">
+                                    <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+                                        ✨
+                                    </div>
+                                    <h3 className="text-xl font-bold text-ghibli-navy mb-2">Check Your Email</h3>
+                                    <p className="text-ghibli-charcoal/60 text-sm">
+                                        If that email exists, a reset link has been sent. This window will close shortly.
+                                    </p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleRequestReset} className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Studio Email</label>
+                                        <input
+                                            type="email"
+                                            value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            className="w-full p-4 rounded-2xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold placeholder:text-ghibli-wood/30 shadow-inner focus:ring-2 focus:ring-ghibli-wood/20 outline-none"
+                                            placeholder="your@email.com"
+                                            required
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={isSendingReset}
+                                        className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-2xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                                    >
+                                        {isSendingReset ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Sending...
+                                            </>
+                                        ) : 'Send Reset Link'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowForgotModal(false)}
+                                        className="w-full text-center text-sm font-bold text-ghibli-wood/50 hover:text-ghibli-wood transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -516,7 +623,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             onClick={() => setShowChangePassword(true)}
                             className="w-full sm:w-auto px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
                         >
-                            <span>⚙️</span> Settings
+                            <span>⚙️</span> Reset Password
                         </button>
                         <button onClick={handleSignOut} className="w-full sm:w-auto px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
                             <span>🚪</span> Sign Out
