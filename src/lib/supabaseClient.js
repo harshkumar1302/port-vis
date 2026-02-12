@@ -10,15 +10,24 @@ export const supabase = (supabaseUrl && supabaseUrl !== 'YOUR_SUPABASE_URL')
     ? createClient(supabaseUrl, supabaseAnonKey)
     : {
         from: () => ({
-            select: () => Promise.resolve({ data: [], error: null }),
+            select: () => ({
+                eq: () => ({
+                    single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+                    order: () => Promise.resolve({ data: [], error: { message: 'Supabase not configured' } }),
+                }),
+                order: () => Promise.resolve({ data: [], error: { message: 'Supabase not configured' } }),
+            }),
             upload: () => Promise.resolve({ error: { message: 'Supabase not configured' } }),
             getPublicUrl: () => ({ data: { publicUrl: '' } }),
-            insert: () => Promise.resolve({ error: { message: 'Supabase not configured' } })
+            insert: () => Promise.resolve({ error: { message: 'Supabase not configured' } }),
+            update: () => ({ eq: () => Promise.resolve({ error: { message: 'Supabase not configured' } }) }),
+            delete: () => ({ eq: () => Promise.resolve({ error: { message: 'Supabase not configured' } }) })
         }),
         storage: {
             from: () => ({
                 upload: () => Promise.resolve({ error: { message: 'Supabase not configured' } }),
-                getPublicUrl: () => ({ data: { publicUrl: '' } })
+                getPublicUrl: () => ({ data: { publicUrl: '' } }),
+                remove: () => Promise.resolve({ error: { message: 'Supabase not configured' } })
             })
         },
         auth: {

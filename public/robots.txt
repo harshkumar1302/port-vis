@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vishakhagarg.vercel.app/sitemap.xml
+Sitemap: https://visheshkala.com/sitemap.xml

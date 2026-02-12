@@ -1,16 +1,39 @@
-# React + Vite
+# Visheshkala Studio 🎨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Visheshkala (by Vishakha Garg) is a digital gallery and admin studio for handmade miniatures, custom clay art, and fine art pieces.
 
-Currently, two official plugins are available:
+## 🚀 Features
+- **Narrative Storytelling**: A Ghibli-inspired "About" section that takes users through a creative journey.
+- **Dynamic Gallery**: Categorized showcase of Mandalas, Miniatures, Gifts, and DIY art.
+- **Secure Admin Dashboard**: A private portal to manage artworks, uploads, and descriptions.
+- **Secure Reset Flow**: Token-based password reset system with email integration.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠 Tech Stack
+- **Frontend**: React, Vite, Framer Motion, Tailwind CSS.
+- **Backend/API**: Vercel Serverless Functions (Node.js).
+- **Database**: Supabase (PostgreSQL + RLS).
+- **Email**: Resend.
 
-## React Compiler
+## 🔒 Security & Performance
+- **Row Level Security (RLS)**: Database tables are protected; administrative actions are isolated to server-side functions.
+- **JWT Authentication**: Secure, cookie-based session management for the admin.
+- **Responsive Design**: Optimized for everything from mobile phones up to high-definition desktops.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📦 Getting Started
 
-## Expanding the ESLint configuration
+### Local Development
+1. Clone the repository.
+2. Install dependencies: `npm install`
+3. Start the dev server: `npm run dev`
+4. **Note**: For API functionality locally, use `vercel dev`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Environment Variables
+Ensure the following are set in your `.env` (local) or Vercel (production):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `JWT_SECRET`
+- `RESEND_API_KEY`
+
+---
+*Matchless offerings, from us to you.*
