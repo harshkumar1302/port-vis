@@ -92,16 +92,24 @@ const AdminDashboard = () => {
             });
 
             if (res.ok) {
-                setSession({ user: { id: 'admin-master', email } });
+                setSession({ user: { id: 'admin-master', email: 'owner' } });
             } else {
-                const data = await res.json();
-                alert(`🔒 Access Denied: ${data.error || 'Invalid credentials'}`);
+                let errorMsg = 'Invalid credentials';
+                try {
+                    const data = await res.json();
+                    errorMsg = data.error || errorMsg;
+                } catch (jsonErr) {
+                    errorMsg = `Server error (${res.status})`;
+                }
+                alert(`🔒 Access Denied: ${errorMsg}`);
             }
         } catch (err) {
             console.error('Login error:', err);
             alert(`🔒 Connection error. 
             
-If you are developing locally, please use "vercel dev" to start the server, as standard Vite doesn't support backend /api routes.`);
+If you are developing locally, please use "vercel dev" to start the server. 
+
+If this is production, please check your Vercel logs and ensure you have run the Supabase SQL setup.`);
         } finally {
             setLoading(false);
         }
@@ -139,14 +147,20 @@ If you are developing locally, please use "vercel dev" to start the server, as s
                 setEmail(regEmail);
                 setPassword(''); // Clear passwords
             } else {
-                const data = await res.json();
-                alert(`❌ Registration failed: ${data.error}`);
+                let errorMsg = 'Failed to register';
+                try {
+                    const data = await res.json();
+                    errorMsg = data.error || errorMsg;
+                } catch (jsonErr) {
+                    errorMsg = `Server error (${res.status})`;
+                }
+                alert(`❌ Registration failed: ${errorMsg}`);
             }
         } catch (err) {
             console.error('Registration error:', err);
             alert(`❌ Connection error. 
             
-If you are developing locally, please use "vercel dev" instead of "npm run dev" to enable the backend registration logic.`);
+Check your internet connection. If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
         } finally {
             setIsRegistering(false);
         }

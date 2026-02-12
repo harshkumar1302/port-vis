@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
-import { sendWelcomeEmail } from "./utils/email";
+import { sendWelcomeEmail } from "./utils/email.js";
 
 const supabase = createClient(
     process.env.VITE_SUPABASE_URL,
