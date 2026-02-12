@@ -26,6 +26,7 @@ const AdminDashboard = () => {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [isFeatured, setIsFeatured] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
     // Update sub-category when main category changes
     useEffect(() => {
@@ -83,29 +84,78 @@ const AdminDashboard = () => {
 
     // ... existing login logic ...
 
+    const handleEdit = (art) => {
+        setEditingId(art.id);
+        setTitle(art.title || '');
+
+        // Parse description and subcategory
+        let cleanDesc = art.description || '';
+        let extractedSub = '';
+
+        // Extract subcategory if present
+        const subMatch = cleanDesc.match(/\[SubCategory:\s*(.*?)\]/);
+        if (subMatch) {
+            extractedSub = subMatch[1];
+            cleanDesc = cleanDesc.replace(/\[SubCategory:.*?\]/g, '').trim();
+        }
+
+        // Extract featured status
+        const isFeaturedItem = cleanDesc.includes('[FEATURED]');
+        cleanDesc = cleanDesc.replace(/\[FEATURED\]/g, '').trim();
+
+        setDesc(cleanDesc);
+
+        // Determine mode and category
+        if (art.category === 'Upcoming') {
+            setUploadType('upcoming');
+            setCategory('Mandala'); // Reset category dropdown
+        } else if (art.category === 'Featured' || isFeaturedItem) {
+            setUploadType('featured');
+            setCategory('Mandala');
+        } else {
+            setUploadType('gallery');
+            setCategory(art.category || 'Mandala');
+            // Wait for category useEffect to set initial subCategory, then override it
+            setTimeout(() => setSubCategory(extractedSub), 0);
+        }
+
+        setPreviewUrl(art.image_url);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!file || !session) return;
+        if (!session) return;
+        if (!file && !editingId) return;
 
         try {
             setUploading(true);
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            let finalImageUrl = null;
 
-            // 1. Upload Image
-            let { error: uploadError } = await supabase.storage
-                .from('artworks')
-                .upload(filePath, file);
+            if (file) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const filePath = `${fileName}`;
 
-            if (uploadError) throw uploadError;
+                // 1. Upload Image
+                let { error: uploadError } = await supabase.storage
+                    .from('artworks')
+                    .upload(filePath, file);
 
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('artworks')
-                .getPublicUrl(filePath);
+                if (uploadError) throw uploadError;
 
-            // 3. Save Metadata to DB
+                // 2. Get Public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('artworks')
+                    .getPublicUrl(filePath);
+
+                finalImageUrl = publicUrl;
+            } else if (editingId) {
+                const art = artworks.find(a => a.id === editingId);
+                finalImageUrl = art.image_url;
+            }
+
+            // 3. Prepare Metadata
             let finalDescription = desc;
             let finalCategory = category;
 
@@ -118,33 +168,55 @@ const AdminDashboard = () => {
                 if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
             }
 
-            const { error: dbError } = await supabase
-                .from('artworks')
-                .insert([
-                    {
+            if (editingId) {
+                // Update Existing
+                const { error: dbError } = await supabase
+                    .from('artworks')
+                    .update({
                         title,
                         description: finalDescription,
                         category: finalCategory,
-                        image_url: publicUrl,
-                        user_id: session.user.id,
-                    },
-                ]);
+                        image_url: finalImageUrl,
+                    })
+                    .eq('id', editingId);
 
-            if (dbError) throw dbError;
+                if (dbError) throw dbError;
+            } else {
+                // Insert New
+                const { error: dbError } = await supabase
+                    .from('artworks')
+                    .insert([
+                        {
+                            title,
+                            description: finalDescription,
+                            category: finalCategory,
+                            image_url: finalImageUrl,
+                            user_id: session.user.id,
+                        },
+                    ]);
+
+                if (dbError) throw dbError;
+            }
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-            setTitle('');
-            setDesc('');
-            setCategory('Mandala');
-            setFile(null);
-            setPreviewUrl(null);
+            resetForm();
             fetchArtworks();
         } catch (error) {
             alert(error.message);
         } finally {
             setUploading(false);
         }
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setTitle('');
+        setDesc('');
+        setCategory('Mandala');
+        setFile(null);
+        setPreviewUrl(null);
+        setUploadType('gallery');
     };
 
     const handleFileChange = (e) => {
@@ -227,7 +299,12 @@ const AdminDashboard = () => {
                     {/* Upload Form */}
                     <div className="lg:col-span-1">
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] lg:sticky lg:top-32">
-                            <h2 className="text-2xl font-bold mb-6 text-ghibli-navy">New Creation</h2>
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-ghibli-navy">{editingId ? 'Edit Artwork' : 'New Creation'}</h2>
+                                {editingId && (
+                                    <button onClick={resetForm} className="text-[10px] font-bold text-red-500 uppercase tracking-widest hover:underline">Cancel</button>
+                                )}
+                            </div>
 
                             {/* Mode Selector */}
                             <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-8">
@@ -286,9 +363,9 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Image File</label>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Image File {editingId && '(Optional if not changing)'}</label>
                                     <div className="relative group">
-                                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="file-upload" required />
+                                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="file-upload" required={!editingId} />
                                         <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-ghibli-wood/20 rounded-2xl bg-white/30 hover:bg-white/50 transition-all cursor-pointer overflow-hidden group-hover:border-ghibli-wood/40">
                                             {previewUrl ? (
                                                 <div className="relative w-full h-full">
@@ -308,7 +385,7 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <button disabled={uploading} className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg hover:-translate-y-1 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'}`}>
-                                    {uploading ? 'Uploading...' : success ? '✨ Done!' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'}`}
+                                    {uploading ? 'Processing...' : success ? '✨ Done!' : editingId ? '✨ Update Artwork' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'}`}
                                 </button>
                             </form>
                         </div>
@@ -347,9 +424,30 @@ const AdminDashboard = () => {
                                                         <span className="px-2 py-0.5 rounded-md bg-ghibli-wood/10 text-[9px] font-bold text-ghibli-wood uppercase tracking-widest">{art.category}</span>
                                                         {isFeatured && <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest bg-yellow-100 px-2 py-0.5 rounded-md">Featured</span>}
                                                     </div>
-                                                    <h3 className="font-bold text-ghibli-charcoal truncate">{art.title}</h3>
+                                                    <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
                                                 </div>
-                                                <button onClick={() => handleDelete(art)} className="self-end sm:self-center p-3 text-red-500 opacity-60 hover:bg-red-500/10 rounded-xl transition-all">🗑️</button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEdit(art)}
+                                                        className="p-3 text-ghibli-wood/60 hover:text-ghibli-wood hover:bg-ghibli-wood/10 rounded-xl transition-all flex items-center justify-center"
+                                                        title="Edit artwork"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M12 20h9" />
+                                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(art)}
+                                                        className="p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center"
+                                                        title="Delete artwork"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M3 6h18" />
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         );
                                     })
