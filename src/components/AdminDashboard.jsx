@@ -253,8 +253,8 @@ const AdminDashboard = () => {
 
                             <form onSubmit={handleUpload} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Title</label>
-                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" required />
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Title (Optional)</label>
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" />
                                 </div>
 
                                 {uploadType === 'gallery' ? (

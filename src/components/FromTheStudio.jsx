@@ -97,14 +97,20 @@ const FromTheStudio = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="p-6 space-y-2">
-                                        <h3 className="text-xl font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-                                            {art.title}
-                                        </h3>
-                                        <p className="text-sm text-ghibli-charcoal/70 line-clamp-2">
-                                            {art.description}
-                                        </p>
-                                    </div>
+                                    {(art.title || (art.description && art.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim())) && (
+                                        <div className="p-6 space-y-2">
+                                            {art.title && (
+                                                <h3 className="text-xl font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+                                                    {art.title}
+                                                </h3>
+                                            )}
+                                            {art.description && art.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim() && (
+                                                <p className="text-sm text-ghibli-charcoal/70 line-clamp-2">
+                                                    {art.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim()}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -187,9 +193,11 @@ const FromTheStudio = () => {
                             {/* Details Section */}
                             <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
                                 {/* 1. TITLE */}
-                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
-                                    {selectedArt.title || 'Untitled Piece'}
-                                </h3>
+                                {selectedArt.title && (
+                                    <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
+                                        {selectedArt.title}
+                                    </h3>
+                                )}
 
                                 {/* 2. NAME (Category + Subcategory) */}
                                 <div className="flex items-center gap-3 mb-6">
@@ -203,23 +211,27 @@ const FromTheStudio = () => {
                                     )}
                                 </div>
 
-                                <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
-                                    <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
-                                        <path d="M0 10 Q25 20 50 10 T100 10" />
-                                    </svg>
-                                </div>
+                                {(selectedArt.title || (selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim())) && (
+                                    <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
+                                        <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
+                                            <path d="M0 10 Q25 20 50 10 T100 10" />
+                                        </svg>
+                                    </div>
+                                )}
 
                                 {/* 3. STORY */}
-                                <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
-                                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
-                                    <p>
-                                        {(selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things.")
-                                            .replace(/\[FEATURED\]/g, '')
-                                            .replace(/\[SubCategory:.*?\]/g, '')
-                                            .trim()
-                                        }
-                                    </p>
-                                </div>
+                                {selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim() && (
+                                    <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
+                                        <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
+                                        <p>
+                                            {selectedArt.description
+                                                .replace(/\[FEATURED\]/g, '')
+                                                .replace(/\[SubCategory:.*?\]/g, '')
+                                                .trim()
+                                            }
+                                        </p>
+                                    </div>
+                                )}
 
                                 <a
                                     href="/#contact"

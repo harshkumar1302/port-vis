@@ -20,7 +20,7 @@ const ArtGallery = () => {
 
     // Embla Carousels
     const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
-        loop: true,
+        loop: false,
         align: 'start',
         startIndex: 0,
         containScroll: 'trimSnaps',
@@ -71,10 +71,11 @@ const ArtGallery = () => {
         );
     };
 
-    const getDisplayItems = (items, minCount = 8) => {
+    const getDisplayItems = (items, placeholderCount = 8, minThreshold = 8) => {
         const result = [...items];
-        if (result.length < minCount) {
-            const placeholdersNeeded = minCount - result.length;
+        // Only show placeholders if we haven't reached the "mature gallery" threshold
+        if (result.length < minThreshold) {
+            const placeholdersNeeded = Math.max(0, placeholderCount - result.length);
             for (let i = 0; i < placeholdersNeeded; i++) {
                 result.push({ id: `placeholder-${i}`, isPlaceholder: true });
             }
@@ -83,7 +84,7 @@ const ArtGallery = () => {
     };
 
     const featuredItems = getFeaturedItems();
-    const displayFeatured = getDisplayItems(featuredItems);
+    const displayFeatured = getDisplayItems(featuredItems, 8, 5); // Threshold of 5 for highlights
 
     return (
         <section id="gallery" className="section-container relative min-h-screen py-12 bg-ghibli-cream/20 font-gallery">
@@ -139,7 +140,7 @@ const ArtGallery = () => {
                                         )
                                     )}
 
-                                    {!work.isPlaceholder && (
+                                    {!work.isPlaceholder && work.title && (
                                         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <h3 className="text-white font-serif font-bold text-lg">{work.title}</h3>
                                         </div>
@@ -172,7 +173,7 @@ const ArtGallery = () => {
                 <div className="space-y-20">
                     {MAIN_CATEGORIES.map((cat) => {
                         const items = getCategoryItems(cat.id);
-                        const displayItems = getDisplayItems(items, 8); // Force 8 items minimum
+                        const displayItems = getDisplayItems(items, 8, 5); // Threshold of 5 for categories
 
                         return (
                             <CategorySlider
@@ -237,9 +238,11 @@ const ArtGallery = () => {
                             {/* Details Section */}
                             <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
                                 {/* 1. TITLE */}
-                                <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
-                                    {selectedArt.title || 'Untitled Piece'}
-                                </h3>
+                                {selectedArt.title && (
+                                    <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
+                                        {selectedArt.title}
+                                    </h3>
+                                )}
 
                                 {/* 2. NAME (Category + Subcategory) */}
                                 <div className="flex items-center gap-3 mb-6">
@@ -253,23 +256,27 @@ const ArtGallery = () => {
                                     )}
                                 </div>
 
-                                <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
-                                    <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
-                                        <path d="M0 10 Q25 20 50 10 T100 10" />
-                                    </svg>
-                                </div>
+                                {(selectedArt.title || (selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim())) && (
+                                    <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
+                                        <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
+                                            <path d="M0 10 Q25 20 50 10 T100 10" />
+                                        </svg>
+                                    </div>
+                                )}
 
                                 {/* 3. STORY */}
-                                <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
-                                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
-                                    <p>
-                                        {(selectedArt.description || "A unique handmade piece, crafted with attention to detail and a love for the small things.")
-                                            .replace(/\[FEATURED\]/g, '')
-                                            .replace(/\[SubCategory:.*?\]/g, '')
-                                            .trim()
-                                        }
-                                    </p>
-                                </div>
+                                {selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim() && (
+                                    <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
+                                        <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
+                                        <p>
+                                            {selectedArt.description
+                                                .replace(/\[FEATURED\]/g, '')
+                                                .replace(/\[SubCategory:.*?\]/g, '')
+                                                .trim()
+                                            }
+                                        </p>
+                                    </div>
+                                )}
 
                                 <a
                                     href="/#contact"
@@ -350,9 +357,11 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
 
                             {/* Card Footer - Minimal */}
                             <div className="px-1">
-                                <h4 className={`font-bold text-sm font-serif truncate transition-colors ${item.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal/70 group-hover:text-ghibli-charcoal'}`}>
-                                    {item.isPlaceholder ? 'Gallery Slot' : (item?.title || `${cat.label} ${index + 1}`)}
-                                </h4>
+                                {(item.isPlaceholder || item.title) && (
+                                    <h4 className={`font-bold text-sm font-serif truncate transition-colors ${item.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal/70 group-hover:text-ghibli-charcoal'}`}>
+                                        {item.isPlaceholder ? 'Gallery Slot' : item.title}
+                                    </h4>
+                                )}
                             </div>
                         </div>
                     ))}
