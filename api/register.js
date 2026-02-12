@@ -18,13 +18,29 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Email and password are required" });
     }
 
+    // 0. Initialize Supabase (Defensive check)
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        return res.status(500).json({
+            error: "Server configuration missing (Supabase keys). Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel."
+        });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     try {
         // 1. Check if an owner already exists (we only want ONE owner)
         const { count, error: countError } = await supabase
             .from("admin_auth")
             .select("*", { count: "exact", head: true });
 
-        if (countError) throw countError;
+        if (countError) {
+            return res.status(500).json({
+                error: `Supabase error: ${countError.message}. Have you created the 'admin_auth' table using the SQL script?`
+            });
+        }
 
         if (count > 0) {
             return res.status(403).json({
@@ -41,14 +57,20 @@ export default async function handler(req, res) {
             .from("admin_auth")
             .insert([{ email, password_hash: passwordHash }]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+            return res.status(500).json({ error: `Failed to save user: ${insertError.message}` });
+        }
 
-        // 4. Send Welcome Email
-        await sendWelcomeEmail(email);
+        // 4. Send Welcome Email (Non-blocking)
+        try {
+            await sendWelcomeEmail(email);
+        } catch (emailErr) {
+            console.error("Welcome email failed but registration succeeded:", emailErr);
+        }
 
         return res.status(200).json({ ok: true, message: "Owner registered successfully" });
     } catch (err) {
-        console.error("Registration error:", err);
-        return res.status(500).json({ error: "Failed to register owner" });
+        console.error("Registration crash:", err);
+        return res.status(500).json({ error: `Internal Server Error: ${err.message || 'Unknown error'}` });
     }
 }

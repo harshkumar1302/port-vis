@@ -17,8 +17,20 @@ export default async function handler(req, res) {
 
     if (!jwtSecret) {
         console.error("Missing JWT_SECRET environment variable.");
-        return res.status(500).json({ error: "Server configuration error" });
+        return res.status(500).json({ error: "Server configuration error (JWT_SECRET missng). Please set it in Vercel." });
     }
+
+    // 0. Initialize Supabase (Defensive check)
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        return res.status(500).json({
+            error: "Server configuration missing (Supabase keys). Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel."
+        });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     try {
         // 1. Fetch user from Supabase
@@ -29,7 +41,7 @@ export default async function handler(req, res) {
             .single();
 
         if (error || !user) {
-            return res.status(401).json({ error: "Invalid credentials" });
+            return res.status(401).json({ error: "Invalid credentials or user not found." });
         }
 
         // 2. Compare passwords
@@ -48,7 +60,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ ok: true });
     } catch (err) {
-        console.error("Login error:", err);
-        return res.status(500).json({ error: "Login failed" });
+        console.error("Login crash:", err);
+        return res.status(500).json({ error: `Internal Server Error: ${err.message || 'Unknown error'}` });
     }
 }

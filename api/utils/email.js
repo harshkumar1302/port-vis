@@ -1,19 +1,21 @@
 import { Resend } from "resend";
 
 export const sendWelcomeEmail = async (email) => {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+  const apiKey = process.env.RESEND_API_KEY;
 
-    if (!process.env.RESEND_API_KEY) {
-        console.warn("RESEND_API_KEY is missing. Skipping email.");
-        return;
-    }
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY is missing. Skipping email.");
+    return;
+  }
 
-    try {
-        await resend.emails.send({
-            from: "Visheshkala <studio@vishakhagarg.com>", // You might need to verify a domain in Resend
-            to: email,
-            subject: "Welcome to your Artist Journey! ✨",
-            html: `
+  const resend = new Resend(apiKey);
+
+  try {
+    await resend.emails.send({
+      from: "Visheshkala <studio@vishakhagarg.com>", // You might need to verify a domain in Resend
+      to: email,
+      subject: "Welcome to your Artist Journey! ✨",
+      html: `
         <div style="font-family: 'serif', 'Georgia', serif; color: #4A3728; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #FAF9F6; border-radius: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <img src="https://vishakhagarg.vercel.app/logo.png" alt="V.G Logo" style="width: 80px; height: 80px; object-fit: contain;" />
@@ -43,9 +45,9 @@ export const sendWelcomeEmail = async (email) => {
           </div>
         </div>
       `,
-        });
-        console.log(`Welcome email sent to ${email}`);
-    } catch (error) {
-        console.error("Failed to send welcome email:", error);
-    }
+    });
+    console.log(`Welcome email sent to ${email}`);
+  } catch (error) {
+    console.error("Failed to send welcome email:", error);
+  }
 };
