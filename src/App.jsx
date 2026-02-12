@@ -13,6 +13,8 @@ import AdminDashboard from './components/AdminDashboard';
 import FullGallery from './components/FullGallery';
 import Loader from './components/Loader';
 
+import ResetPassword from './components/ResetPassword';
+
 const Home = () => (
   <>
     <Hero />
@@ -27,17 +29,18 @@ const Home = () => (
 const Layout = ({ children }) => {
   const location = useLocation();
   const isAdmin = location.pathname === '/admin';
+  const isResetPassword = location.pathname === '/reset-password';
 
   return (
     <div className="relative min-h-screen bg-ghibli-cream text-ghibli-charcoal transition-colors duration-500 overflow-x-hidden selection:bg-ghibli-gold/30">
 
-      {!isAdmin && <Navbar />}
+      {!isAdmin && !isResetPassword && <Navbar />}
 
 
 
       {children}
 
-      {!isAdmin && (
+      {!isAdmin && !isResetPassword && (
         <footer className="py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none">
           <div className="flex items-center justify-center gap-2">
 
@@ -113,6 +116,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/gallery/:category" element={<FullGallery />} />
           </Routes>
         </Layout>

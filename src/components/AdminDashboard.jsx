@@ -36,6 +36,13 @@ const AdminDashboard = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
     // Update sub-category when main category changes
     useEffect(() => {
@@ -405,6 +412,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                 <button type="submit" disabled={loading} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95">
                                     {loading ? 'Logging in...' : 'Enter Studio'}
                                 </button>
+                                <div className="text-center mt-4">
+                                    <a
+                                        href="/reset-password"
+                                        className="text-sm text-ghibli-wood hover:underline"
+                                    >
+                                        Forgot Password?
+                                    </a>
+                                </div>
                             </form>
                         ) : (
                             <form onSubmit={handleRegister} className="space-y-6 text-left">
@@ -496,9 +511,17 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         </a>
                         <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
                     </div>
-                    <button onClick={handleSignOut} className="w-full sm:w-auto px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
-                        <span>🚪</span> Sign Out
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowChangePassword(true)}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <span>⚙️</span> Settings
+                        </button>
+                        <button onClick={handleSignOut} className="w-full sm:w-auto px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <span>🚪</span> Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
@@ -663,6 +686,134 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                     </div>
                 </div>
             </div>
+
+            {/* Change Password Modal */}
+            {showChangePassword && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
+                        <button
+                            onClick={() => {
+                                setShowChangePassword(false);
+                                setCurrentPassword('');
+                                setNewPassword('');
+                                setConfirmNewPassword('');
+                            }}
+                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl"
+                        >
+                            ✕
+                        </button>
+
+                        <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
+                        <p className="text-ghibli-charcoal/60 mb-6">
+                            Update your password. You'll receive a confirmation email.
+                        </p>
+
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+
+                            if (newPassword !== confirmNewPassword) {
+                                alert('New passwords do not match!');
+                                return;
+                            }
+
+                            if (newPassword.length < 8) {
+                                alert('New password must be at least 8 characters');
+                                return;
+                            }
+
+                            try {
+                                const res = await fetch('/api/change-password', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ currentPassword, newPassword }),
+                                });
+
+                                const data = await res.json();
+
+                                if (res.ok) {
+                                    alert('✅ Password updated successfully! Check your email for confirmation.');
+                                    setShowChangePassword(false);
+                                    setCurrentPassword('');
+                                    setNewPassword('');
+                                    setConfirmNewPassword('');
+                                } else {
+                                    alert(`❌ ${data.error || 'Failed to update password'}`);
+                                }
+                            } catch (err) {
+                                console.error('Password change error:', err);
+                                alert('Connection error. Please try again.');
+                            }
+                        }} className="space-y-4">
+                            <div className="relative">
+                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
+                                <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    placeholder="Enter current password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                >
+                                    {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    placeholder="Enter new password"
+                                    required
+                                    minLength={8}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                >
+                                    {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
+                                <input
+                                    type={showConfirmNewPassword ? "text" : "password"}
+                                    value={confirmNewPassword}
+                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    placeholder="Confirm new password"
+                                    required
+                                    minLength={8}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                >
+                                    {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6"
+                            >
+                                Update Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
