@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import bcrypt from 'bcryptjs';
 import { supabase } from '../lib/supabaseClient';
 
 // Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
 const CATEGORIES_DATA = {
-    'Mandala': ['Dot Mandala', 'Generic Mandala', 'Wall Mandala'],
+    'Mandala': ['Generic Mandala', 'Wall Mandala'],
     'Miniature': ['Miniatures', 'Clay Sets'],
     'Gift Material': ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     'DIY Art': ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
@@ -28,6 +29,15 @@ const AdminDashboard = () => {
     const [isFeatured, setIsFeatured] = useState(false);
     const [editingId, setEditingId] = useState(null);
 
+    // Setup mode state
+    const [loginMode, setLoginMode] = useState('login'); // 'login' or 'register'
+    const [regEmail, setRegEmail] = useState('');
+    const [regPassword, setRegPassword] = useState('');
+    const [regConfirmPassword, setRegConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
+
     // Update sub-category when main category changes
     useEffect(() => {
         if (CATEGORIES_DATA[category]) {
@@ -38,11 +48,23 @@ const AdminDashboard = () => {
     }, [category]);
 
     useEffect(() => {
-        const sessionAuth = sessionStorage.getItem('ghibli_admin_key');
-        if (sessionAuth === 'secure_active_2026') {
-            setSession({ user: { id: 'admin-master', email: 'hello@creativeme' } });
-        }
+        checkSession();
     }, []);
+
+    const checkSession = async () => {
+        try {
+            const res = await fetch('/api/me', { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                setSession({ user: { id: 'admin-master', email: 'owner' } });
+            } else {
+                setSession(null);
+            }
+        } catch (err) {
+            console.error('Session check failed:', err);
+            setSession(null);
+        }
+    };
 
     useEffect(() => {
         if (session) {
@@ -58,26 +80,69 @@ const AdminDashboard = () => {
         if (!error) setArtworks(data || []);
     };
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-        if (email === 'hello@creativeme' && password === 'upload@2026Updesh') {
-            setTimeout(() => {
-                const adminSession = { user: { id: 'admin-master', email: 'hello@creativeme' } };
-                setSession(adminSession);
-                sessionStorage.setItem('ghibli_admin_key', 'secure_active_2026');
-                setLoading(false);
-            }, 1000);
-        } else {
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (res.ok) {
+                setSession({ user: { id: 'admin-master', email } });
+            } else {
+                const data = await res.json();
+                alert(`🔒 Access Denied: ${data.error || 'Invalid credentials'}`);
+            }
+        } catch (err) {
+            alert('🔒 Connection error. Please try again.');
+        } finally {
             setLoading(false);
-            alert("🔒 Access Denied. Invalid Authorization Key.");
         }
     };
 
-    const handleSignOut = () => {
-        sessionStorage.removeItem('ghibli_admin_key');
-        setSession(null);
-        window.location.href = '/';
+    const handleSignOut = async () => {
+        try {
+            await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+            setSession(null);
+            window.location.href = '/';
+        } catch (err) {
+            console.error('Logout failed:', err);
+            setSession(null);
+            window.location.href = '/';
+        }
+    };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        if (regPassword !== regConfirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+        setIsRegistering(true);
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: regEmail, password: regPassword }),
+            });
+
+            if (res.ok) {
+                alert('✨ Owner account registered successfully! You can now log in.');
+                setLoginMode('login');
+                setEmail(regEmail);
+            } else {
+                const data = await res.json();
+                alert(`❌ Registration failed: ${data.error}`);
+            }
+        } catch (err) {
+            alert('❌ Connection error. Please try again.');
+        } finally {
+            setIsRegistering(false);
+        }
     };
 
     const [uploadType, setUploadType] = useState('gallery'); // gallery, featured, upcoming
@@ -259,21 +324,139 @@ const AdminDashboard = () => {
                         <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Studio
                     </a>
                     <div className="card-ghibli p-10 bg-white/40 backdrop-blur-xl border border-white/20 text-center shadow-2xl rounded-[2rem]">
-                        <h1 className="text-3xl font-bold text-ghibli-navy font-serif mb-2">Admin Login</h1>
+                        <h1 className="text-3xl font-bold text-ghibli-navy font-serif mb-2">Admin Dashboard</h1>
                         <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-wood/60 uppercase block mb-8">🔒 Secure Authentication System</span>
-                        <form onSubmit={handleLogin} className="space-y-6 text-left">
-                            <div>
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Email</label>
-                                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" required />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Password</label>
-                                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" required />
-                            </div>
-                            <button type="submit" disabled={loading} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95">
-                                {loading ? 'Logging in...' : 'Enter Studio'}
+
+                        {/* Login/Setup Tabs */}
+                        <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-8">
+                            <button
+                                onClick={() => setLoginMode('login')}
+                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${loginMode === 'login' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                            >
+                                Login
                             </button>
-                        </form>
+                            <button
+                                onClick={() => {
+                                    setLoginMode('register');
+                                    setRegPassword('');
+                                    setRegConfirmPassword('');
+                                }}
+                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${loginMode === 'register' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                            >
+                                Register
+                            </button>
+                        </div>
+
+                        {loginMode === 'login' ? (
+                            <form onSubmit={handleLogin} className="space-y-6 text-left">
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Email</label>
+                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showPassword ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" disabled={loading} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95">
+                                    {loading ? 'Logging in...' : 'Enter Studio'}
+                                </button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleRegister} className="space-y-6 text-left">
+                                <p className="text-xs text-ghibli-charcoal/60 leading-relaxed italic mb-2 text-center">
+                                    Create your master owner account. <br /> (Only one account is allowed)
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Registration Email</label>
+                                    <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" placeholder="e.g. art@studio.com" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Create Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            value={regPassword}
+                                            onChange={(e) => setRegPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            placeholder="Choose a strong password"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showPassword ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            value={regConfirmPassword}
+                                            onChange={(e) => setRegConfirmPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            placeholder="Repeat your password"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-0 inset-y-0 px-3 flex items-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" disabled={isRegistering} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95">
+                                    {isRegistering ? 'Registering...' : 'Register Owner account'}
+                                </button>
+                            </form>
+                        )}
                     </div>
                 </div>
             </div>

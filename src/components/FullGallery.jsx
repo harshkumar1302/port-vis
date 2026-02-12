@@ -12,7 +12,7 @@ const MAIN_CATEGORIES = [
 ];
 
 const SUB_CATEGORIES = {
-    mandala: ['All', 'Dot Mandala', 'Generic Mandala', 'Wall Mandala'],
+    mandala: ['All', , 'Generic Mandala', 'Wall Mandala'],
     miniature: ['All', 'Miniatures', 'Clay Sets'],
     gift: ['All', 'Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     diy: ['All', 'Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
@@ -193,26 +193,26 @@ const FullGallery = () => {
                             >✕</button>
 
                             {/* Image Section */}
-                            <div className="w-full md:w-[55%] bg-ghibli-paper/30 relative flex items-center justify-center p-8 md:p-12 hidden md:flex">
-                                <div className="relative w-full h-full shadow-2xl rounded-lg overflow-hidden max-h-[600px]">
+                            <div className="w-full md:w-[55%] bg-ghibli-paper/10 relative flex items-center justify-center p-6 md:p-8 hidden md:flex">
+                                <div className="relative w-full h-full shadow-2xl rounded-lg overflow-hidden max-h-[70vh]">
                                     {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
                                         <div className="w-full h-full bg-white flex items-center justify-center">
                                             <span className="text-6xl opacity-20">✨</span>
                                         </div>
                                     ) : (
-                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain" />
                                     )}
                                 </div>
                             </div>
 
-                            {/* Mobile Image (Smaller) */}
-                            <div className="w-full h-64 md:hidden bg-ghibli-paper/30 relative flex items-center justify-center overflow-hidden">
+                            {/* Mobile Image (Full Visibility) */}
+                            <div className="w-full h-[45vh] md:hidden bg-ghibli-paper/10 relative flex items-center justify-center overflow-hidden p-4">
                                 {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
                                     <div className="w-full h-full bg-white flex items-center justify-center">
                                         <span className="text-4xl opacity-20">✨</span>
                                     </div>
                                 ) : (
-                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-cover" />
+                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain" />
                                 )}
                             </div>
 
