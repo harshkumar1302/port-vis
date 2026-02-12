@@ -2,10 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import { sendWelcomeEmail } from "./utils/email.js";
 
-const supabase = createClient(
-    process.env.VITE_SUPABASE_URL,
-    process.env.VITE_SUPABASE_ANON_KEY
-);
+
 
 export default async function handler(req, res) {
     if (req.method !== "POST") {
