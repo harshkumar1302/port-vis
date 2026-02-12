@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import bcrypt from 'bcryptjs';
 import { supabase } from '../lib/supabaseClient';
 
 // Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
