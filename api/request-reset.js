@@ -13,54 +13,60 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Email is required" });
     }
 
-    // Initialize Supabase
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    // Initialize Supabase with Service Role
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
         return res.status(500).json({
-            error: "Server configuration missing (Supabase keys)"
+            error: "Server configuration missing"
         });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     try {
-        // Check if email exists
+        // 1. Check if email exists (Silent fail if not found)
         const { data: user, error: userError } = await supabase
             .from("admin_auth")
             .select("email")
             .eq("email", email)
             .single();
 
+        // 2. Definitive "Success" message path
+        const successResponse = () => res.status(200).json({
+            success: true,
+            message: "If an account exists for this email, a reset link has been sent."
+        });
+
         if (!user || userError) {
-            return res.status(404).json({
-                error: "No user found with this email address."
-            });
+            return successResponse();
         }
 
-        // Generate secure random token
-        const token = crypto.randomBytes(32).toString("hex");
+        // 3. Generate secure random token
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-        // Store token in database
+        // 4. Store HASHED token in database
         const { error: tokenError } = await supabase
             .from("password_reset_tokens")
             .insert([{
                 email,
-                token,
+                token: hashedToken, // Store the hash
                 expires_at: expiresAt.toISOString(),
                 used: false
             }]);
 
         if (tokenError) {
             console.error("Error storing reset token:", tokenError);
-            return res.status(500).json({ error: "Failed to process reset request" });
+            // Still return success to prevent timing attacks/enumeration
+            return successResponse();
         }
 
-        // Send reset email
+        // 5. Send reset email with RAW token
         const resend = new Resend(process.env.RESEND_API_KEY);
-        const resetUrl = `https://visheshkala.com/reset-password?token=${token}`;
+        const resetUrl = `https://visheshkala.com/reset-password?token=${rawToken}`;
 
         if (process.env.RESEND_API_KEY) {
             try {
@@ -116,14 +122,10 @@ export default async function handler(req, res) {
                 });
             } catch (emailError) {
                 console.error("Error sending reset email:", emailError);
-                return res.status(500).json({ error: "Failed to send reset email" });
             }
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Reset link has been sent to your email."
-        });
+        return successResponse();
 
     } catch (err) {
         console.error("Password reset request error:", err);

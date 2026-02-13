@@ -17,13 +17,14 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server configuration error (JWT_SECRET missng). Please set it in Vercel." });
     }
 
-    // 0. Initialize Supabase (Defensive check)
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    // 0. Initialize Supabase with Service Role for secure backend access
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
+        console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
         return res.status(500).json({
-            error: "Server configuration missing (Supabase keys). Please set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel."
+            error: "Server configuration missing. Please ensure SUPABASE_SERVICE_ROLE_KEY is set in Vercel."
         });
     }
 
@@ -38,7 +39,8 @@ export default async function handler(req, res) {
             .single();
 
         if (error || !user) {
-            return res.status(401).json({ error: "Invalid credentials or user not found." });
+            // Generic error to prevent account enumeration
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
         // 2. Compare passwords
@@ -47,8 +49,15 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: "Invalid credentials" });
         }
 
-        // 3. Sign Token
-        const token = jwt.sign({ role: "owner" }, jwtSecret, { expiresIn: "12h" });
+        // 3. Sign Token with email and role
+        const token = jwt.sign(
+            {
+                email: user.email,
+                role: "owner"
+            },
+            jwtSecret,
+            { expiresIn: "12h" }
+        );
 
         res.setHeader(
             "Set-Cookie",

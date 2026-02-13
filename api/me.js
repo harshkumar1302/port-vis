@@ -22,8 +22,15 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Server configuration error" });
         }
 
-        jwt.verify(token, jwtSecret);
-        return res.status(200).json({ authenticated: true });
+        const decoded = jwt.verify(token, jwtSecret);
+        if (decoded.role !== "owner") {
+            return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+        }
+        return res.status(200).json({
+            authenticated: true,
+            email: decoded.email,
+            role: decoded.role
+        });
     } catch (err) {
         return res.status(401).json({ error: "Invalid token" });
     }

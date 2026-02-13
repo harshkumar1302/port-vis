@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
+import crypto from "crypto";
 
 export default async function handler(req, res) {
     if (req.method !== "POST") {
@@ -17,24 +18,27 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Password must be at least 8 characters" });
     }
 
-    // Initialize Supabase
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    // Initialize Supabase with Service Role
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
         return res.status(500).json({
-            error: "Server configuration missing (Supabase keys)"
+            error: "Server configuration missing"
         });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     try {
-        // Verify token exists, is not used, and is not expired
+        // 1. Hash the incoming raw token to compare with our stored hash
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+        // 2. Verify token exists, is not used, and is not expired
         const { data: resetToken, error: tokenError } = await supabase
             .from("password_reset_tokens")
             .select("*")
-            .eq("token", token)
+            .eq("token", hashedToken)
             .eq("used", false)
             .single();
 
@@ -42,7 +46,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Invalid or expired reset token" });
         }
 
-        // Check if token is expired
+        // 3. Check if token is expired
         const now = new Date();
         const expiresAt = new Date(resetToken.expires_at);
 
@@ -50,11 +54,11 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Reset token has expired" });
         }
 
-        // Hash new password
+        // 4. Hash new password
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(newPassword, salt);
 
-        // Update password in admin_auth
+        // 5. Update password in admin_auth
         const { error: updateError } = await supabase
             .from("admin_auth")
             .update({ password_hash: passwordHash })
@@ -65,11 +69,11 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Failed to update password" });
         }
 
-        // Mark token as used
+        // 6. Mark token as used
         await supabase
             .from("password_reset_tokens")
             .update({ used: true })
-            .eq("token", token);
+            .eq("token", hashedToken);
 
         // Send confirmation email
         const resend = new Resend(process.env.RESEND_API_KEY);

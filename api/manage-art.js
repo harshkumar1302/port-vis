@@ -17,13 +17,16 @@ export default async function handler(req, res) {
     }
 
     try {
-        jwt.verify(token, jwtSecret);
+        const decoded = jwt.verify(token, jwtSecret);
+        if (decoded.role !== "owner") {
+            return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+        }
     } catch (err) {
         return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
     }
 
     // 2. Initialize Supabase with Service Role (Bypasses RLS)
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
