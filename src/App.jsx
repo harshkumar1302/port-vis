@@ -118,6 +118,8 @@ const App = () => {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/gallery/:category" element={<FullGallery />} />
+            {/* Fallback for unknown routes */}
+            <Route path="*" element={<Home />} />
           </Routes>
         </Layout>
       </Router>
