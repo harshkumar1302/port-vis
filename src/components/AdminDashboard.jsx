@@ -165,6 +165,7 @@ const AdminDashboard = () => {
     const [artworkOrders, setArtworkOrders] = useState({});
     const [loadingSettings, setLoadingSettings] = useState(false);
     const [savingCategories, setSavingCategories] = useState(false);
+    const [categoriesSaveSuccess, setCategoriesSaveSuccess] = useState(false);
 
     // Category Manager UI State
     const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -239,7 +240,8 @@ const AdminDashboard = () => {
     const saveCategoryDefinitions = async (defs) => {
         try {
             setSavingCategories(true);
-            await fetch('/api/settings', {
+            setCategoriesSaveSuccess(false);
+            const res = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -248,6 +250,10 @@ const AdminDashboard = () => {
                     value: defs
                 })
             });
+            if (res.ok) {
+                setCategoriesSaveSuccess(true);
+                setTimeout(() => setCategoriesSaveSuccess(false), 3000);
+            }
         } catch (err) {
             console.error('Failed to save category definitions:', err);
         } finally {
@@ -1038,12 +1044,23 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Category Manager</h2>
                                     <p className="text-xs text-ghibli-charcoal/60">Add, edit, and reorder your art collections.</p>
                                 </div>
-                                <button
-                                    onClick={() => setShowCategoryManager(!showCategoryManager)}
-                                    className="px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
-                                >
-                                    {showCategoryManager ? 'Hide Manager' : 'Open Manager'}
-                                </button>
+                                <div className="flex gap-2">
+                                    {showCategoryManager && (
+                                        <button
+                                            onClick={() => saveCategoryDefinitions(categoryDefinitions)}
+                                            disabled={savingCategories}
+                                            className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 flex items-center gap-2 ${categoriesSaveSuccess ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream shadow-sm'}`}
+                                        >
+                                            {savingCategories ? '⏳ Saving...' : categoriesSaveSuccess ? '✨ Saved!' : '💾 Save Changes'}
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setShowCategoryManager(!showCategoryManager)}
+                                        className="px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
+                                    >
+                                        {showCategoryManager ? 'Hide Manager' : 'Open Manager'}
+                                    </button>
+                                </div>
                             </div>
 
                             {showCategoryManager && (

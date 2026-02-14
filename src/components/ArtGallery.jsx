@@ -92,9 +92,9 @@ const ArtGallery = () => {
     };
 
     // Helper to get items for a category
-    const getCategoryItems = (catId) => {
+    const getCategoryItems = (catLabel) => {
         return artworks.filter(art =>
-            art.category?.toLowerCase().includes(catId) &&
+            art.category === catLabel &&
             !art.category?.toLowerCase().includes('upcoming') &&
             !art.description?.includes('[FEATURED]') &&
             !art.title?.includes('[FEATURED]')
@@ -244,7 +244,7 @@ const ArtGallery = () => {
                 {/* 3. Category Sections - Embla Carousels */}
                 <div className="space-y-20">
                     {categories.map((cat) => {
-                        const rawItems = getCategoryItems(cat.id);
+                        const rawItems = getCategoryItems(cat.label);
 
                         const orderKey = cat.label;
 
