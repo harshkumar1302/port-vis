@@ -1260,8 +1260,16 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         </div>
 
                         <div className="card-ghibli p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
-                            <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">Manage Collection ({artworks.length})</h2>
-                            <div className="space-y-8">
+                            <div className="flex items-center justify-between mb-8 border-b border-ghibli-wood/5 pb-6">
+                                <h2 className="text-2xl font-bold text-ghibli-navy flex items-center gap-3">
+                                    Manage Collection
+                                    <span className="px-3 py-1 rounded-full bg-ghibli-wood/10 text-ghibli-wood text-[10px] font-bold uppercase tracking-widest border border-ghibli-wood/5">
+                                        {artworks.length} Media Uploaded
+                                    </span>
+                                </h2>
+                            </div>
+
+                            <div className="space-y-12">
                                 {artworks.length === 0 ? (
                                     <div className="text-center py-20 bg-white/10 rounded-3xl border border-dashed border-ghibli-wood/10">
                                         <span className="text-6xl block mb-6 animate-pulse opacity-40">🌙</span>
@@ -1278,89 +1286,227 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         collisionDetection={closestCenter}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        {[...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'].map(catLabel => {
-                                            const catDef = categoryDefinitions.find(c => c.label === catLabel);
-                                            const catItems = artworks.filter(a => {
-                                                if (catLabel === 'Upcoming' || catLabel === 'Featured') return a.category === catLabel;
-                                                return (
-                                                    a.category?.trim().toLowerCase() === catDef?.label?.trim().toLowerCase() ||
-                                                    a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase()
-                                                );
-                                            });
-                                            if (catItems.length === 0) return null;
+                                        {/* 🖼️ GALLERY SECTION */}
+                                        <div className="space-y-8">
+                                            <div className="flex items-center gap-3 pb-2 border-b-2 border-ghibli-wood/10">
+                                                <div className="w-10 h-10 rounded-2xl bg-ghibli-wood text-ghibli-cream flex items-center justify-center text-xl shadow-lg shadow-ghibli-wood/20">🏞️</div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-ghibli-navy leading-none">The Gallery</h3>
+                                                    <p className="text-[10px] text-ghibli-wood/50 font-bold uppercase tracking-widest mt-1">Organized by category & subcategory</p>
+                                                </div>
+                                            </div>
 
-                                            // Apply sorting
-                                            const order = artworkOrders[catLabel] || [];
-                                            const sortedItems = [...catItems].sort((a, b) => {
-                                                const indexA = order.indexOf(a.id);
-                                                const indexB = order.indexOf(b.id);
+                                            <div className="space-y-10 pl-2">
+                                                {categoryDefinitions.map(catDef => {
+                                                    const catLabel = catDef.label;
+                                                    const catItems = artworks.filter(a => {
+                                                        const isMatch = a.category?.trim().toLowerCase() === catLabel?.trim().toLowerCase() ||
+                                                            a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase();
+                                                        // Only show in Gallery if NOT marked as Featured or Upcoming category
+                                                        return isMatch && a.category !== 'Upcoming' && a.category !== 'Featured' && !a.description?.includes('[FEATURED]');
+                                                    });
 
-                                                const posA = indexA === -1 ? -Infinity : indexA;
-                                                const posB = indexB === -1 ? -Infinity : indexB;
+                                                    if (catItems.length === 0) return null;
 
-                                                if (posA === posB) {
-                                                    return new Date(b.created_at) - new Date(a.created_at);
-                                                }
-                                                return posA - posB;
-                                            });
+                                                    // Apply sorting
+                                                    const order = artworkOrders[catLabel] || [];
+                                                    const sortedItems = [...catItems].sort((a, b) => {
+                                                        const indexA = order.indexOf(a.id);
+                                                        const indexB = order.indexOf(b.id);
+                                                        const posA = indexA === -1 ? -Infinity : indexA;
+                                                        const posB = indexB === -1 ? -Infinity : indexB;
+                                                        if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
+                                                        return posA - posB;
+                                                    });
 
-                                            return (
-                                                <div key={category} className="mb-4">
-                                                    <h3 className="text-sm font-bold text-ghibli-wood/60 uppercase tracking-widest mb-4 pl-2 border-l-4 border-ghibli-wood/20">
-                                                        {category} Collection
-                                                    </h3>
-                                                    <SortableContext
-                                                        items={sortedItems.map(a => a.id)}
-                                                        strategy={verticalListSortingStrategy}
-                                                    >
-                                                        <div className="space-y-4">
-                                                            {sortedItems.map(art => {
-                                                                const isFeatured = art.description?.includes('[FEATURED]') || art.title?.includes('[FEATURED]');
-                                                                return (
+                                                    // Group by SubCategory
+                                                    const subGroups = sortedItems.reduce((acc, art) => {
+                                                        const subMatch = art.description?.match(/\[SubCategory:\s*(.*?)\]/);
+                                                        const sub = subMatch ? subMatch[1] : 'Main Collection';
+                                                        if (!acc[sub]) acc[sub] = [];
+                                                        acc[sub].push(art);
+                                                        return acc;
+                                                    }, {});
+
+                                                    return (
+                                                        <div key={catLabel} className="space-y-6">
+                                                            <h4 className="flex items-center gap-2 text-xs font-black text-ghibli-wood uppercase tracking-[0.3em] bg-ghibli-wood/5 p-3 rounded-xl border border-ghibli-wood/10">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-ghibli-wood"></span>
+                                                                {catLabel}
+                                                                <span className="ml-auto text-[9px] opacity-40">{catItems.length} items</span>
+                                                            </h4>
+
+                                                            <div className="space-y-8 pl-4 border-l border-ghibli-wood/10">
+                                                                {Object.entries(subGroups).map(([subLabel, subItems]) => (
+                                                                    <div key={subLabel}>
+                                                                        <h5 className="text-[10px] font-bold text-ghibli-wood/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                            <span className="w-3 h-[1px] bg-ghibli-wood/20"></span>
+                                                                            {subLabel} ({subItems.length})
+                                                                        </h5>
+                                                                        <SortableContext
+                                                                            items={subItems.map(a => a.id)}
+                                                                            strategy={verticalListSortingStrategy}
+                                                                        >
+                                                                            <div className="space-y-4">
+                                                                                {subItems.map(art => (
+                                                                                    <SortableArtworkRow
+                                                                                        key={art.id}
+                                                                                        art={art}
+                                                                                        isFeatured={false}
+                                                                                        handleEdit={handleEdit}
+                                                                                        handleDelete={handleDelete}
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+                                                                        </SortableContext>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* ⭐ FEATURED SECTION */}
+                                        <div className="space-y-8 mt-16 pt-12 border-t-2 border-dashed border-ghibli-wood/10">
+                                            <div className="flex items-center gap-3 pb-2 border-b-2 border-yellow-500/10">
+                                                <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-white flex items-center justify-center text-xl shadow-lg shadow-yellow-400/20">⭐</div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-ghibli-navy leading-none">Featured Artworks</h3>
+                                                    <p className="text-[10px] text-yellow-600/60 font-bold uppercase tracking-widest mt-1">Highlighted highlights</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4 pt-2">
+                                                {(() => {
+                                                    const featuredItems = artworks.filter(a => a.category === 'Featured' || a.description?.includes('[FEATURED]'));
+                                                    if (featuredItems.length === 0) return (
+                                                        <div className="p-8 text-center bg-yellow-500/5 rounded-3xl border border-dashed border-yellow-500/10">
+                                                            <p className="text-[10px] font-bold text-yellow-600/40 uppercase tracking-[0.2em]">No featured items yet</p>
+                                                        </div>
+                                                    );
+
+                                                    const order = artworkOrders['Featured'] || [];
+                                                    const sortedItems = [...featuredItems].sort((a, b) => {
+                                                        const indexA = order.indexOf(a.id);
+                                                        const indexB = order.indexOf(b.id);
+                                                        const posA = indexA === -1 ? -Infinity : indexA;
+                                                        const posB = indexB === -1 ? -Infinity : indexB;
+                                                        if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
+                                                        return posA - posB;
+                                                    });
+
+                                                    return (
+                                                        <SortableContext
+                                                            items={sortedItems.map(a => a.id)}
+                                                            strategy={verticalListSortingStrategy}
+                                                        >
+                                                            <div className="space-y-4">
+                                                                {sortedItems.map(art => (
                                                                     <SortableArtworkRow
                                                                         key={art.id}
                                                                         art={art}
-                                                                        isFeatured={isFeatured}
+                                                                        isFeatured={true}
                                                                         handleEdit={handleEdit}
                                                                         handleDelete={handleDelete}
                                                                     />
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </SortableContext>
+                                                                ))}
+                                                            </div>
+                                                        </SortableContext>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+
+                                        {/* ⏳ UPCOMING SECTION */}
+                                        <div className="space-y-8 mt-16 pt-12 border-t-2 border-dashed border-ghibli-wood/10">
+                                            <div className="flex items-center gap-3 pb-2 border-b-2 border-blue-500/10">
+                                                <div className="w-10 h-10 rounded-2xl bg-blue-400 text-white flex items-center justify-center text-xl shadow-lg shadow-blue-400/20">⏳</div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-ghibli-navy leading-none">Upcoming Releases</h3>
+                                                    <p className="text-[10px] text-blue-600/60 font-bold uppercase tracking-widest mt-1">Soon to be published</p>
                                                 </div>
-                                            );
-                                        })}
+                                            </div>
+
+                                            <div className="space-y-4 pt-2">
+                                                {(() => {
+                                                    const upcomingItems = artworks.filter(a => a.category === 'Upcoming');
+                                                    if (upcomingItems.length === 0) return (
+                                                        <div className="p-8 text-center bg-blue-500/5 rounded-3xl border border-dashed border-blue-500/10">
+                                                            <p className="text-[10px] font-bold text-blue-600/40 uppercase tracking-[0.2em]">No upcoming items scheduled</p>
+                                                        </div>
+                                                    );
+
+                                                    const order = artworkOrders['Upcoming'] || [];
+                                                    const sortedItems = [...upcomingItems].sort((a, b) => {
+                                                        const indexA = order.indexOf(a.id);
+                                                        const indexB = order.indexOf(b.id);
+                                                        const posA = indexA === -1 ? -Infinity : indexA;
+                                                        const posB = indexB === -1 ? -Infinity : indexB;
+                                                        if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
+                                                        return posA - posB;
+                                                    });
+
+                                                    return (
+                                                        <SortableContext
+                                                            items={sortedItems.map(a => a.id)}
+                                                            strategy={verticalListSortingStrategy}
+                                                        >
+                                                            <div className="space-y-4">
+                                                                {sortedItems.map(art => (
+                                                                    <SortableArtworkRow
+                                                                        key={art.id}
+                                                                        art={art}
+                                                                        isFeatured={false}
+                                                                        handleEdit={handleEdit}
+                                                                        handleDelete={handleDelete}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        </SortableContext>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
 
                                         {/* Uncategorized / Unknown Section */}
                                         {(() => {
-                                            const knownLabels = [...categoryDefinitions.map(c => c.label?.trim().toLowerCase()), ...categoryDefinitions.map(c => c.id?.trim().toLowerCase()), 'upcoming', 'featured'];
-                                            const uncategorizedItems = artworks.filter(a => !knownLabels.includes(a.category?.trim().toLowerCase()));
+                                            const knownLabels = [
+                                                ...categoryDefinitions.map(c => c.label?.trim().toLowerCase()),
+                                                ...categoryDefinitions.map(c => c.id?.trim().toLowerCase()),
+                                                'upcoming',
+                                                'featured'
+                                            ];
+                                            const uncategorizedItems = artworks.filter(a => {
+                                                const cat = a.category?.trim().toLowerCase();
+                                                const isKnown = knownLabels.includes(cat);
+                                                const isTaggedFeatured = a.description?.includes('[FEATURED]');
+                                                return !isKnown && !isTaggedFeatured;
+                                            });
+
                                             if (uncategorizedItems.length === 0) return null;
 
                                             return (
-                                                <div className="mt-12 pt-8 border-t-2 border-dashed border-ghibli-wood/10">
-                                                    <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-2xl mb-6">
-                                                        <h3 className="text-sm font-bold text-yellow-700 uppercase tracking-widest flex items-center gap-2">
+                                                <div className="mt-16 pt-12 border-t-2 border-dashed border-red-500/10">
+                                                    <div className="bg-red-500/5 border border-red-500/10 p-4 rounded-2xl mb-6">
+                                                        <h3 className="text-sm font-bold text-red-700 uppercase tracking-widest flex items-center gap-2">
                                                             ⚠️ Action Required: Uncategorized Items ({uncategorizedItems.length})
                                                         </h3>
-                                                        <p className="text-[10px] text-yellow-600 font-bold mt-1 uppercase tracking-tight">
+                                                        <p className="text-[10px] text-red-600/60 font-bold mt-1 uppercase tracking-tight">
                                                             These items have categories that don't match your current definitions. Edit them to correctly assign them.
                                                         </p>
                                                     </div>
                                                     <div className="space-y-4">
-                                                        {uncategorizedItems.map(art => {
-                                                            const isFeatured = art.description?.includes('[FEATURED]') || art.title?.includes('[FEATURED]');
-                                                            return (
-                                                                <SortableArtworkRow
-                                                                    key={art.id}
-                                                                    art={art}
-                                                                    isFeatured={isFeatured}
-                                                                    handleEdit={handleEdit}
-                                                                    handleDelete={handleDelete}
-                                                                />
-                                                            );
-                                                        })}
+                                                        {uncategorizedItems.map(art => (
+                                                            <SortableArtworkRow
+                                                                key={art.id}
+                                                                art={art}
+                                                                isFeatured={art.description?.includes('[FEATURED]')}
+                                                                handleEdit={handleEdit}
+                                                                handleDelete={handleDelete}
+                                                            />
+                                                        ))}
                                                     </div>
                                                 </div>
                                             );
