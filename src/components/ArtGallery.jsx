@@ -239,11 +239,15 @@ const ArtGallery = () => {
                         };
                         const orderKey = catMapping[cat.id];
 
-                        // Try manual order first, fall back to priority system
-                        let finalItems = applyOrder(rawItems, orderKey);
-                        if (!finalItems) {
-                            finalItems = getPrioritizedItems(cat.id, rawItems);
+                        // 1. Apply Manual Order (if existent), otherwise keeps default (Date desc)
+                        let sortedItems = applyOrder(rawItems, orderKey);
+                        if (!sortedItems) {
+                            sortedItems = rawItems;
                         }
+
+                        // 2. Apply Priority Subcategory Grouping (on top of the sorted items)
+                        // This moves prioritized items to the front, preserving their relative manual/date order.
+                        const finalItems = getPrioritizedItems(cat.id, sortedItems);
 
                         const displayItems = getDisplayItems(finalItems, 8, 5); // Threshold of 5 for categories
 
