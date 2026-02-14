@@ -17,6 +17,7 @@ const ArtGallery = () => {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedArt, setSelectedArt] = useState(null);
+    const [showcasedSubcategory, setShowcasedSubcategory] = useState(null);
 
     // Embla Carousels
     const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
@@ -32,7 +33,20 @@ const ArtGallery = () => {
 
     useEffect(() => {
         fetchArtworks();
+        fetchShowcaseSettings();
     }, []);
+
+    const fetchShowcaseSettings = async () => {
+        try {
+            const res = await fetch('/api/settings?id=showcased_subcategory');
+            if (res.ok) {
+                const data = await res.json();
+                setShowcasedSubcategory(data.value?.name || null);
+            }
+        } catch (err) {
+            console.error('Failed to fetch showcase settings:', err);
+        }
+    };
 
     const fetchArtworks = async () => {
         try {
@@ -168,6 +182,22 @@ const ArtGallery = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* 2.5 Showcased Subcategory Section (If set) */}
+                {showcasedSubcategory && (
+                    <div className="mb-24 animate-fade-in-up">
+                        <div className="flex items-center gap-2 mb-8 opacity-60">
+                            <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
+                            <span className="text-xs uppercase tracking-widest font-bold">Featured Collection: {showcasedSubcategory}</span>
+                        </div>
+                        <CategorySlider
+                            cat={{ id: 'showcase', label: showcasedSubcategory }}
+                            items={artworks.filter(art => art.description?.includes(`[SubCategory: ${showcasedSubcategory}]`))}
+                            isEmpty={false}
+                            onCardClick={(item) => setSelectedArt({ ...item, category: showcasedSubcategory })}
+                        />
+                    </div>
+                )}
 
                 {/* 3. Category Sections - Embla Carousels */}
                 <div className="space-y-20">

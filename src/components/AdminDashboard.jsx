@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 
 // Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
 const CATEGORIES_DATA = {
-    'Mandala': ['Flower Mandala', 'Generic Mandala', 'Wall Mandala'],
+    'Mandala': ['Flower Mandala', 'Creative Mandala', 'Wall Mandala'],
     'Miniature': ['Miniatures', 'Clay Sets'],
     'Gift Material': ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     'DIY Art': ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
@@ -48,6 +48,10 @@ const AdminDashboard = () => {
     const [isSendingReset, setIsSendingReset] = useState(false);
     const [resetSuccess, setResetSuccess] = useState(false);
 
+    // Site Settings State
+    const [showcasedSubcategory, setShowcasedSubcategory] = useState('');
+    const [loadingSettings, setLoadingSettings] = useState(false);
+
     // Update sub-category when main category changes
     useEffect(() => {
         if (CATEGORIES_DATA[category]) {
@@ -67,12 +71,52 @@ const AdminDashboard = () => {
             if (res.ok) {
                 const data = await res.json();
                 setSession({ user: { id: 'admin-master', email: 'owner' } });
+                fetchSettings();
             } else {
                 setSession(null);
             }
         } catch (err) {
             console.error('Session check failed:', err);
             setSession(null);
+        }
+    };
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings?id=showcased_subcategory');
+            if (res.ok) {
+                const data = await res.json();
+                setShowcasedSubcategory(data.value?.name || '');
+            }
+        } catch (err) {
+            console.error('Failed to fetch settings:', err);
+        }
+    };
+
+    const handleUpdateShowcase = async () => {
+        setLoadingSettings(true);
+        try {
+            const res = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id: 'showcased_subcategory',
+                    value: { name: showcasedSubcategory || null }
+                })
+            });
+
+            if (res.ok) {
+                alert('✨ Home page showcase updated!');
+            } else {
+                const data = await res.json();
+                alert(`❌ Failed to update: ${data.error}`);
+            }
+        } catch (err) {
+            console.error('Update settings failed:', err);
+            alert('Connection error');
+        } finally {
+            setLoadingSettings(false);
         }
     };
 
@@ -89,6 +133,12 @@ const AdminDashboard = () => {
             .order('created_at', { ascending: false });
         if (!error) setArtworks(data || []);
     };
+
+    // Calculate unique subcategories for the showcase selector
+    const uniqueSubcategories = [...new Set(artworks.map(art => {
+        const subMatch = art.description?.match(/\[SubCategory:\s*(.*?)\]/);
+        return subMatch ? subMatch[1] : null;
+    }).filter(Boolean))].sort();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -748,6 +798,35 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                     {/* Manage List */}
                     <div className="lg:col-span-2">
+                        {/* Showcase Management */}
+                        <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] mb-8">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Showcase Management</h2>
+                                    <p className="text-xs text-ghibli-charcoal/60">Choose a sub-category to feature at the top of your home page.</p>
+                                </div>
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <select
+                                        value={showcasedSubcategory}
+                                        onChange={(e) => setShowcasedSubcategory(e.target.value)}
+                                        className="flex-grow sm:flex-grow-0 p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer"
+                                    >
+                                        <option value="">None (Default)</option>
+                                        {uniqueSubcategories.map(sub => (
+                                            <option key={sub} value={sub}>{sub}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={handleUpdateShowcase}
+                                        disabled={loadingSettings}
+                                        className="px-6 py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all disabled:opacity-50 active:scale-95"
+                                    >
+                                        {loadingSettings ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="card-ghibli p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
                             <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">Manage Collection ({artworks.length})</h2>
                             <div className="space-y-4">
@@ -777,6 +856,11 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 <div className="flex-grow min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="px-2 py-0.5 rounded-md bg-ghibli-wood/10 text-[9px] font-bold text-ghibli-wood uppercase tracking-widest">{art.category}</span>
+                                                        {art.description?.includes('[SubCategory:') && (
+                                                            <span className="px-2 py-0.5 rounded-md bg-ghibli-paper/40 text-[9px] font-bold text-ghibli-charcoal/60 uppercase tracking-widest">
+                                                                {art.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1]}
+                                                            </span>
+                                                        )}
                                                         {isFeatured && <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest bg-yellow-100 px-2 py-0.5 rounded-md">Featured</span>}
                                                     </div>
                                                     <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
