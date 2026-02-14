@@ -1,5 +1,22 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
 const CATEGORIES_DATA = {
@@ -7,6 +24,100 @@ const CATEGORIES_DATA = {
     'Miniature': ['Miniatures', 'Clay Sets'],
     'Gift Material': ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     'DIY Art': ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
+};
+
+// Sortable Item Component
+const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: art.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 100 : 'auto',
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-ghibli-wood/10 group ${isFeatured ? 'bg-ghibli-wood/5' : 'bg-white/20 hover:bg-white/40'}`}
+        >
+            {/* Drag Handle */}
+            <div
+                {...attributes}
+                {...listeners}
+                className="hidden sm:flex items-center justify-center p-2 cursor-grab active:cursor-grabbing text-ghibli-wood/30 hover:text-ghibli-wood/60"
+            >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
+                </svg>
+            </div>
+
+            <div className="w-full sm:w-20 h-40 sm:h-20 rounded-xl overflow-hidden bg-ghibli-paper/20 flex-shrink-0 relative">
+                <img src={art.image_url} alt={art.title} className="w-full h-full object-cover" />
+                {isFeatured && (
+                    <div className="absolute top-1 right-1 bg-yellow-400 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full shadow-sm" title="Featured Item">
+                        ★
+                    </div>
+                )}
+            </div>
+            <div className="flex-grow min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 rounded-md bg-ghibli-wood/10 text-[9px] font-bold text-ghibli-wood uppercase tracking-widest">{art.category}</span>
+                    {art.description?.includes('[SubCategory:') && (
+                        <span className="px-2 py-0.5 rounded-md bg-ghibli-paper/40 text-[9px] font-bold text-ghibli-charcoal/60 uppercase tracking-widest">
+                            {art.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1]}
+                        </span>
+                    )}
+                    {isFeatured && <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest bg-yellow-100 px-2 py-0.5 rounded-md">Featured</span>}
+                </div>
+                <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
+                {/* Mobile Drag Handle */}
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="sm:hidden p-3 text-ghibli-wood/30 active:text-ghibli-wood/60 cursor-grab active:cursor-grabbing"
+                >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
+                    </svg>
+                </div>
+
+                <button
+                    onClick={() => handleEdit(art)}
+                    className="flex-1 sm:flex-none p-3 text-ghibli-wood/60 hover:text-ghibli-wood hover:bg-ghibli-wood/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-ghibli-wood/10"
+                    title="Edit artwork"
+                >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg>
+                    <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Edit</span>
+                </button>
+                <button
+                    onClick={() => handleDelete(art)}
+                    className="flex-1 sm:flex-none p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-red-500/10"
+                    title="Delete artwork"
+                >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Delete</span>
+                </button>
+            </div>
+        </div>
+    );
 };
 
 const AdminDashboard = () => {
@@ -50,7 +161,13 @@ const AdminDashboard = () => {
 
     // Site Settings State
     const [categoryPriorities, setCategoryPriorities] = useState({});
+    const [artworkOrders, setArtworkOrders] = useState({});
     const [loadingSettings, setLoadingSettings] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), // 5px movement required for drag
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
 
     // Update sub-category when main category changes
     useEffect(() => {
@@ -88,8 +205,74 @@ const AdminDashboard = () => {
                 const data = await res.json();
                 setCategoryPriorities(data.value || {});
             }
+
+            const resOrder = await fetch('/api/settings?id=artwork_orders');
+            if (resOrder.ok) {
+                const data = await resOrder.json();
+                setArtworkOrders(data.value || {});
+            }
         } catch (err) {
             console.error('Failed to fetch settings:', err);
+        }
+    };
+
+    const saveArtworkOrder = async (newOrders) => {
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id: 'artwork_orders',
+                    value: newOrders
+                })
+            });
+        } catch (err) {
+            console.error('Failed to save order:', err);
+        }
+    };
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const activeArt = artworks.find(a => a.id === active.id);
+        const overArt = artworks.find(a => a.id === over.id);
+
+        if (!activeArt || !overArt || activeArt.category !== overArt.category) return;
+
+        const category = activeArt.category;
+
+        // Get current list of IDs for this category (sorted by current display order)
+        const catItems = artworks.filter(a => a.category === category);
+
+        // Calculate the current order array based on existing state + any new items
+        let currentOrder = artworkOrders[category] || [];
+        const catIds = catItems.map(a => a.id);
+
+        // Filter out any IDs that might have been deleted
+        currentOrder = currentOrder.filter(id => catIds.includes(id));
+
+        // Add any new IDs that aren't in the order list yet (put them at the top or bottom as per preference)
+        const newIds = catIds.filter(id => !currentOrder.includes(id));
+        // Default: New items at top? Or bottom? 
+        // If "created_at desc" is default, newly created items are at top.
+        // So let's prepend new IDs.
+        const fullOrder = [...newIds, ...currentOrder];
+
+        const oldIndex = fullOrder.indexOf(active.id);
+        const newIndex = fullOrder.indexOf(over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+            const reordered = arrayMove(fullOrder, oldIndex, newIndex);
+
+            const updatedOrders = {
+                ...artworkOrders,
+                [category]: reordered
+            };
+
+            setArtworkOrders(updatedOrders);
+            saveArtworkOrder(updatedOrders);
         }
     };
 
@@ -856,7 +1039,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                         <div className="card-ghibli p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
                             <h2 className="text-2xl font-bold mb-8 text-ghibli-navy">Manage Collection ({artworks.length})</h2>
-                            <div className="space-y-4">
+                            <div className="space-y-8">
                                 {artworks.length === 0 ? (
                                     <div className="text-center py-20 bg-white/10 rounded-3xl border border-dashed border-ghibli-wood/10">
                                         <span className="text-6xl block mb-6 animate-pulse opacity-40">🌙</span>
@@ -868,191 +1051,192 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         </p>
                                     </div>
                                 ) : (
-                                    artworks.map((art) => {
-                                        const isFeatured = art.description?.includes('[FEATURED]') || art.title?.includes('[FEATURED]');
-                                        return (
-                                            <div key={art.id} className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-ghibli-wood/10 group ${isFeatured ? 'bg-ghibli-wood/5' : 'bg-white/20 hover:bg-white/40'}`}>
-                                                <div className="w-full sm:w-20 h-40 sm:h-20 rounded-xl overflow-hidden bg-ghibli-paper/20 flex-shrink-0 relative">
-                                                    <img src={art.image_url} alt={art.title} className="w-full h-full object-cover" />
-                                                    {isFeatured && (
-                                                        <div className="absolute top-1 right-1 bg-yellow-400 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full shadow-sm" title="Featured Item">
-                                                            ★
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        {['Mandala', 'Miniature', 'Gift Material', 'DIY Art', 'Upcoming', 'Featured'].map(category => {
+                                            const catItems = artworks.filter(a => a.category === category);
+                                            if (catItems.length === 0) return null;
+
+                                            // Apply sorting
+                                            const order = artworkOrders[category] || [];
+                                            const sortedItems = [...catItems].sort((a, b) => {
+                                                const indexA = order.indexOf(a.id);
+                                                const indexB = order.indexOf(b.id);
+
+                                                const posA = indexA === -1 ? -Infinity : indexA;
+                                                const posB = indexB === -1 ? -Infinity : indexB;
+
+                                                if (posA === posB) {
+                                                    return new Date(b.created_at) - new Date(a.created_at);
+                                                }
+                                                return posA - posB;
+                                            });
+
+                                            return (
+                                                <div key={category} className="mb-4">
+                                                    <h3 className="text-sm font-bold text-ghibli-wood/60 uppercase tracking-widest mb-4 pl-2 border-l-4 border-ghibli-wood/20">
+                                                        {category} Collection
+                                                    </h3>
+                                                    <SortableContext
+                                                        items={sortedItems.map(a => a.id)}
+                                                        strategy={verticalListSortingStrategy}
+                                                    >
+                                                        <div className="space-y-4">
+                                                            {sortedItems.map(art => {
+                                                                const isFeatured = art.description?.includes('[FEATURED]') || art.title?.includes('[FEATURED]');
+                                                                return (
+                                                                    <SortableArtworkRow
+                                                                        key={art.id}
+                                                                        art={art}
+                                                                        isFeatured={isFeatured}
+                                                                        handleEdit={handleEdit}
+                                                                        handleDelete={handleDelete}
+                                                                    />
+                                                                );
+                                                            })}
                                                         </div>
-                                                    )}
+                                                    </SortableContext>
                                                 </div>
-                                                <div className="flex-grow min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="px-2 py-0.5 rounded-md bg-ghibli-wood/10 text-[9px] font-bold text-ghibli-wood uppercase tracking-widest">{art.category}</span>
-                                                        {art.description?.includes('[SubCategory:') && (
-                                                            <span className="px-2 py-0.5 rounded-md bg-ghibli-paper/40 text-[9px] font-bold text-ghibli-charcoal/60 uppercase tracking-widest">
-                                                                {art.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1]}
-                                                            </span>
-                                                        )}
-                                                        {isFeatured && <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest bg-yellow-100 px-2 py-0.5 rounded-md">Featured</span>}
-                                                    </div>
-                                                    <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
-                                                </div>
-                                                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
-                                                    <button
-                                                        onClick={() => handleEdit(art)}
-                                                        className="flex-1 sm:flex-none p-3 text-ghibli-wood/60 hover:text-ghibli-wood hover:bg-ghibli-wood/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-ghibli-wood/10"
-                                                        title="Edit artwork"
-                                                    >
-                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M12 20h9" />
-                                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                                                        </svg>
-                                                        <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Edit</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(art)}
-                                                        className="flex-1 sm:flex-none p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-red-500/10"
-                                                        title="Delete artwork"
-                                                    >
-                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M3 6h18" />
-                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                        </svg>
-                                                        <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Delete</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
+                                            );
+                                        })}
+                                    </DndContext>
                                 )}
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Change Password Modal */}
-            {showChangePassword && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
-                        <button
-                            onClick={() => {
-                                setShowChangePassword(false);
-                                setCurrentPassword('');
-                                setNewPassword('');
-                                setConfirmNewPassword('');
-                            }}
-                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
-                        >
-                            ✕
-                        </button>
-
-                        <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
-                        <p className="text-ghibli-charcoal/60 mb-6">
-                            Update your password. You'll receive a confirmation email.
-                        </p>
-
-                        <form onSubmit={async (e) => {
-                            e.preventDefault();
-
-                            if (newPassword !== confirmNewPassword) {
-                                alert('New passwords do not match!');
-                                return;
-                            }
-
-                            if (newPassword.length < 8) {
-                                alert('New password must be at least 8 characters');
-                                return;
-                            }
-
-                            try {
-                                const res = await fetch('/api/change-password', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({ currentPassword, newPassword }),
-                                });
-
-                                const data = await res.json();
-
-                                if (res.ok) {
-                                    alert('✅ Password updated successfully! Check your email for confirmation.');
+                {/* Change Password Modal */}
+                {showChangePassword && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
+                            <button
+                                onClick={() => {
                                     setShowChangePassword(false);
                                     setCurrentPassword('');
                                     setNewPassword('');
                                     setConfirmNewPassword('');
-                                } else {
-                                    alert(`❌ ${data.error || 'Failed to update password'}`);
-                                }
-                            } catch (err) {
-                                console.error('Password change error:', err);
-                                alert('Connection error. Please try again.');
-                            }
-                        }} className="space-y-4">
-                            <div className="relative">
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
-                                <input
-                                    type={showCurrentPassword ? "text" : "password"}
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    placeholder="Enter current password"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                >
-                                    {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
-
-                            <div className="relative">
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
-                                <input
-                                    type={showNewPassword ? "text" : "password"}
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    placeholder="Enter new password"
-                                    required
-                                    minLength={8}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                >
-                                    {showNewPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
-
-                            <div className="relative">
-                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
-                                <input
-                                    type={showConfirmNewPassword ? "text" : "password"}
-                                    value={confirmNewPassword}
-                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    placeholder="Confirm new password"
-                                    required
-                                    minLength={8}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                                    className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                >
-                                    {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
+                                }}
+                                className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
                             >
-                                Update Password
+                                ✕
                             </button>
-                        </form>
+
+                            <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
+                            <p className="text-ghibli-charcoal/60 mb-6">
+                                Update your password. You'll receive a confirmation email.
+                            </p>
+
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+
+                                if (newPassword !== confirmNewPassword) {
+                                    alert('New passwords do not match!');
+                                    return;
+                                }
+
+                                if (newPassword.length < 8) {
+                                    alert('New password must be at least 8 characters');
+                                    return;
+                                }
+
+                                try {
+                                    const res = await fetch('/api/change-password', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ currentPassword, newPassword }),
+                                    });
+
+                                    const data = await res.json();
+
+                                    if (res.ok) {
+                                        alert('✅ Password updated successfully! Check your email for confirmation.');
+                                        setShowChangePassword(false);
+                                        setCurrentPassword('');
+                                        setNewPassword('');
+                                        setConfirmNewPassword('');
+                                    } else {
+                                        alert(`❌ ${data.error || 'Failed to update password'}`);
+                                    }
+                                } catch (err) {
+                                    console.error('Password change error:', err);
+                                    alert('Connection error. Please try again.');
+                                }
+                            }} className="space-y-4">
+                                <div className="relative">
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
+                                    <input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        placeholder="Enter current password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                    >
+                                        {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
+
+                                <div className="relative">
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        placeholder="Enter new password"
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                    >
+                                        {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
+
+                                <div className="relative">
+                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
+                                    <input
+                                        type={showConfirmNewPassword ? "text" : "password"}
+                                        value={confirmNewPassword}
+                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        placeholder="Confirm new password"
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                    >
+                                        {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
+                                >
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };

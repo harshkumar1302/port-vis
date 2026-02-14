@@ -18,6 +18,7 @@ const ArtGallery = () => {
     const [loading, setLoading] = useState(true);
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
+    const [artworkOrders, setArtworkOrders] = useState({});
 
     // Embla Carousels
     const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
@@ -42,6 +43,12 @@ const ArtGallery = () => {
             if (res.ok) {
                 const data = await res.json();
                 setCategoryPriorities(data.value || {});
+            }
+
+            const resOrder = await fetch('/api/settings?id=artwork_orders');
+            if (resOrder.ok) {
+                const data = await resOrder.json();
+                setArtworkOrders(data.value || {});
             }
         } catch (err) {
             console.error('Failed to fetch category priorities:', err);
@@ -112,6 +119,24 @@ const ArtGallery = () => {
         const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
         const others = items.filter(art => !art.description?.includes(`[SubCategory: ${prioritySub}]`));
         return [...prioritized, ...others];
+    };
+
+    const applyOrder = (items, category) => {
+        const order = artworkOrders[category] || [];
+        if (order.length === 0) return null; // Return null to indicate no manual order
+
+        return [...items].sort((a, b) => {
+            const indexA = order.indexOf(a.id);
+            const indexB = order.indexOf(b.id);
+
+            const posA = indexA === -1 ? -Infinity : indexA;
+            const posB = indexB === -1 ? -Infinity : indexB;
+
+            if (posA === posB) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            }
+            return posA - posB;
+        });
     };
 
 
@@ -205,8 +230,22 @@ const ArtGallery = () => {
                 <div className="space-y-20">
                     {MAIN_CATEGORIES.map((cat) => {
                         const rawItems = getCategoryItems(cat.id);
-                        const prioritizedItems = getPrioritizedItems(cat.id, rawItems);
-                        const displayItems = getDisplayItems(prioritizedItems, 8, 5); // Threshold of 5 for categories
+
+                        const catMapping = {
+                            'mandala': 'Mandala',
+                            'miniature': 'Miniature',
+                            'gift': 'Gift Material',
+                            'diy': 'DIY Art'
+                        };
+                        const orderKey = catMapping[cat.id];
+
+                        // Try manual order first, fall back to priority system
+                        let finalItems = applyOrder(rawItems, orderKey);
+                        if (!finalItems) {
+                            finalItems = getPrioritizedItems(cat.id, rawItems);
+                        }
+
+                        const displayItems = getDisplayItems(finalItems, 8, 5); // Threshold of 5 for categories
 
                         return (
                             <CategorySlider
