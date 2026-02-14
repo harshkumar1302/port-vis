@@ -219,9 +219,6 @@ const ArtGallery = () => {
                         );
                     })}
                 </div>
-
-
-
             </div>
 
             {/* Modal - STUDIO STYLE (Imported from FullGallery) */}

@@ -150,7 +150,6 @@ const AdminDashboard = () => {
     Object.keys(subcategoriesByMain).forEach(key => {
         subcategoriesByMain[key] = [...subcategoriesByMain[key]].sort();
     });
-    Riverside
 
     const handleLogin = async (e) => {
         e.preventDefault();
