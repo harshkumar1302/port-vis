@@ -1,22 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import {
-    DndContext,
-    closestCenter,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    DragOverlay
-} from '@dnd-kit/core';
-import {
-    arrayMove,
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
-    useSortable
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { arrayMove } from '@dnd-kit/sortable';
 
 // Default Categories Data - Used for initial setup if DB is empty
 const DEFAULT_CATEGORIES = [
@@ -26,39 +11,34 @@ const DEFAULT_CATEGORIES = [
     { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
 ];
 
-// Sortable Item Component
-const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging
-    } = useSortable({ id: art?.id });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 100 : 'auto',
-        opacity: isDragging ? 0.5 : 1,
-    };
-
+// Artwork Row Component with Arrow Reordering
+const ArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, onMove, isFirst, isLast }) => {
     return (
         <div
-            ref={setNodeRef}
-            style={style}
             className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-ghibli-wood/10 group ${isFeatured ? 'bg-ghibli-wood/5' : 'bg-white/20 hover:bg-white/40'}`}
         >
-            {/* Drag Handle */}
-            <div
-                {...attributes}
-                {...listeners}
-                className="hidden sm:flex items-center justify-center p-2 cursor-grab active:cursor-grabbing text-ghibli-wood/30 hover:text-ghibli-wood/60 touch-none"
-            >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
-                </svg>
+            {/* Arrow Controls */}
+            <div className="flex sm:flex-col gap-2 items-center justify-center p-1">
+                <button
+                    onClick={() => onMove('up')}
+                    disabled={isFirst}
+                    className="p-2 text-ghibli-wood/30 hover:text-ghibli-wood disabled:opacity-10 transition-colors active:scale-90"
+                    title="Move up"
+                >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 15l-6-6-6 6" />
+                    </svg>
+                </button>
+                <button
+                    onClick={() => onMove('down')}
+                    disabled={isLast}
+                    className="p-2 text-ghibli-wood/30 hover:text-ghibli-wood disabled:opacity-10 transition-colors active:scale-90"
+                    title="Move down"
+                >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </button>
             </div>
 
             <div className="w-full sm:w-20 h-40 sm:h-20 rounded-xl overflow-hidden bg-ghibli-paper/20 flex-shrink-0 relative">
@@ -82,16 +62,6 @@ const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverl
                 <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
             </div>
             <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
-                {/* Mobile Drag Handle */}
-                <div
-                    {...attributes}
-                    {...listeners}
-                    className="sm:hidden p-3 text-ghibli-wood/30 active:text-ghibli-wood/60 cursor-grab active:cursor-grabbing touch-none"
-                >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
-                    </svg>
-                </div>
 
                 <button
                     onClick={() => handleEdit(art)}
@@ -174,7 +144,6 @@ const AdminDashboard = () => {
 
     // Collapsible Sections State
     const [collapsedSections, setCollapsedSections] = useState({});
-    const [activeId, setActiveId] = useState(null);
 
     const toggleSection = (sectionId) => {
         setCollapsedSections(prev => ({
@@ -182,11 +151,6 @@ const AdminDashboard = () => {
             [sectionId]: !prev[sectionId]
         }));
     };
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), // 5px movement required for drag
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-    );
 
     // Update sub-category when main category changes
     useEffect(() => {
@@ -283,6 +247,60 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleMoveArtwork = (categoryLabel, artworkId, direction) => {
+        const art = artworks.find(a => a.id === artworkId);
+        if (!art) return;
+
+        const subMatch = art.description?.match(/\[SubCategory:\s*(.*?)\]/);
+        const targetSub = subMatch ? subMatch[1] : 'Main Collection';
+
+        // 1. Get all artworks sharing this top-level category label
+        const catItems = artworks.filter(a => {
+            const catDef = categoryDefinitions.find(c => c.label === categoryLabel);
+            return a.category?.trim().toLowerCase() === categoryLabel?.trim().toLowerCase() ||
+                a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase();
+        });
+        const catIds = catItems.map(a => a.id);
+
+        // 2. Get current order and sync with existsing IDs
+        const order = [...(artworkOrders[categoryLabel] || [])];
+        const currentOrder = order.filter(id => catIds.includes(id));
+        const newIds = catIds.filter(id => !currentOrder.includes(id));
+        const fullOrder = [...newIds, ...currentOrder];
+
+        // 3. Find siblings in the same subcategory to identify the swap target
+        const siblingIds = fullOrder.filter(id => {
+            const item = artworks.find(i => i.id === id);
+            const sMatch = item?.description?.match(/\[SubCategory:\s*(.*?)\]/);
+            const sLabel = sMatch ? sMatch[1] : 'Main Collection';
+            return sLabel === targetSub;
+        });
+
+        const currentIndexInSiblings = siblingIds.indexOf(artworkId);
+        if (currentIndexInSiblings === -1) return;
+
+        const targetIndexInSiblings = direction === 'up' ? currentIndexInSiblings - 1 : currentIndexInSiblings + 1;
+        if (targetIndexInSiblings < 0 || targetIndexInSiblings >= siblingIds.length) return;
+
+        const fellowId = siblingIds[targetIndexInSiblings];
+
+        // 4. Swap them in the master fullOrder list
+        const updatedFullOrder = [...fullOrder];
+        const idx1 = updatedFullOrder.indexOf(artworkId);
+        const idx2 = updatedFullOrder.indexOf(fellowId);
+        if (idx1 !== -1 && idx2 !== -1) {
+            [updatedFullOrder[idx1], updatedFullOrder[idx2]] = [updatedFullOrder[idx2], updatedFullOrder[idx1]];
+        }
+
+        const updatedOrders = {
+            ...artworkOrders,
+            [categoryLabel]: updatedFullOrder
+        };
+
+        setArtworkOrders(updatedOrders);
+        saveArtworkOrder(updatedOrders);
+    };
+
     const saveArtworkOrder = async (newOrders) => {
         try {
             await fetch('/api/settings', {
@@ -299,65 +317,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleDragStart = (event) => {
-        setActiveId(event.active.id);
-    };
-
-    const handleDragCancel = () => {
-        setActiveId(null);
-    };
-
-    const handleDragEnd = (event) => {
-        setActiveId(null);
-        const { active, over } = event;
-        if (!over || active.id === over.id) return;
-
-        const activeArt = artworks.find(a => a.id === active.id);
-        const overArt = artworks.find(a => a.id === over.id);
-
-        if (!activeArt || !overArt) return;
-
-        const category = activeArt.category;
-        const overCategory = overArt.category;
-
-        // Ensure we're in the same top-level category or featured/upcoming buckets
-        if (category !== overCategory && !(
-            (category === 'Featured' || activeArt.description?.includes('[FEATURED]')) &&
-            (overCategory === 'Featured' || overArt.description?.includes('[FEATURED]'))
-        )) return;
-
-        // Get current list of IDs for this category (sorted by current display order)
-        const catItems = artworks.filter(a => a.category === category);
-
-        // Calculate the current order array based on existing state + any new items
-        let currentOrder = artworkOrders[category] || [];
-        const catIds = catItems.map(a => a.id);
-
-        // Filter out any IDs that might have been deleted
-        currentOrder = currentOrder.filter(id => catIds.includes(id));
-
-        // Add any new IDs that aren't in the order list yet (put them at the top or bottom as per preference)
-        const newIds = catIds.filter(id => !currentOrder.includes(id));
-        // Default: New items at top? Or bottom? 
-        // If "created_at desc" is default, newly created items are at top.
-        // So let's prepend new IDs.
-        const fullOrder = [...newIds, ...currentOrder];
-
-        const oldIndex = fullOrder.indexOf(active.id);
-        const newIndex = fullOrder.indexOf(over.id);
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-            const reordered = arrayMove(fullOrder, oldIndex, newIndex);
-
-            const updatedOrders = {
-                ...artworkOrders,
-                [category]: reordered
-            };
-
-            setArtworkOrders(updatedOrders);
-            saveArtworkOrder(updatedOrders);
-        }
-    };
 
     const handleUpdatePriorities = async () => {
         setLoadingSettings(true);
@@ -376,7 +335,7 @@ const AdminDashboard = () => {
                 alert('✨ Category priorities updated!');
             } else {
                 const data = await res.json();
-                alert(`❌ Failed to update: ${data.error}`);
+                alert(`❌ Failed to update: ${data.error} `);
             }
         } catch (err) {
             console.error('Update settings failed:', err);
@@ -436,9 +395,9 @@ const AdminDashboard = () => {
                     const data = await res.json();
                     errorMsg = data.error || errorMsg;
                 } catch (jsonErr) {
-                    errorMsg = `Server error (${res.status})`;
+                    errorMsg = `Server error(${res.status})`;
                 }
-                alert(`🔒 Access Denied: ${errorMsg}`);
+                alert(`🔒 Access Denied: ${errorMsg} `);
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -489,15 +448,15 @@ If this is production, please check your Vercel logs and ensure you have run the
                     const data = await res.json();
                     errorMsg = data.error || errorMsg;
                 } catch (jsonErr) {
-                    errorMsg = `Server error (${res.status})`;
+                    errorMsg = `Server error(${res.status})`;
                 }
-                alert(`❌ Registration failed: ${errorMsg}`);
+                alert(`❌ Registration failed: ${errorMsg} `);
             }
         } catch (err) {
             console.error('Registration error:', err);
             alert(`❌ Connection error. 
             
-Check your internet connection. If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
+Check your internet connection.If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
         } finally {
             setIsRegistering(false);
         }
@@ -586,8 +545,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
             if (file) {
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const filePath = `${fileName}`;
+                const fileName = `${Date.now()}.${fileExt} `;
+                const filePath = `${fileName} `;
 
                 // 1. Upload Image
                 let { error: uploadError } = await supabase.storage
@@ -695,7 +654,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
     };
 
     const handleDelete = async (art) => {
-        const confirmDelete = window.confirm(`Are you sure you want to delete "${art.title}"? This cannot be undone.`);
+        const confirmDelete = window.confirm(`Are you sure you want to delete "${art.title}" ? This cannot be undone.`);
         if (!confirmDelete) return;
 
         try {
@@ -718,7 +677,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
             setArtworks(artworks.filter(a => a.id !== art.id));
         } catch (error) {
-            alert(`Delete failed: ${error.message}`);
+            alert(`Delete failed: ${error.message} `);
         }
     };
 
@@ -737,7 +696,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-8">
                             <button
                                 onClick={() => setLoginMode('login')}
-                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${loginMode === 'login' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                className={`flex - 1 py - 2 text - [10px] font - bold uppercase tracking - wider rounded - lg transition - all ${loginMode === 'login' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'} `}
                             >
                                 Login
                             </button>
@@ -747,7 +706,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     setRegPassword('');
                                     setRegConfirmPassword('');
                                 }}
-                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${loginMode === 'register' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                className={`flex - 1 py - 2 text - [10px] font - bold uppercase tracking - wider rounded - lg transition - all ${loginMode === 'register' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'} `}
                             >
                                 Register
                             </button>
@@ -992,19 +951,19 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-8">
                                 <button
                                     onClick={() => setUploadType('gallery')}
-                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'gallery' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                    className={`flex - 1 py - 2 text - [10px] font - bold uppercase tracking - wider rounded - lg transition - all ${uploadType === 'gallery' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'} `}
                                 >
                                     Gallery
                                 </button>
                                 <button
                                     onClick={() => setUploadType('featured')}
-                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'featured' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                    className={`flex - 1 py - 2 text - [10px] font - bold uppercase tracking - wider rounded - lg transition - all ${uploadType === 'featured' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'} `}
                                 >
                                     Featured
                                 </button>
                                 <button
                                     onClick={() => setUploadType('upcoming')}
-                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'upcoming' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                                    className={`flex - 1 py - 2 text - [10px] font - bold uppercase tracking - wider rounded - lg transition - all ${uploadType === 'upcoming' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'} `}
                                 >
                                     Upcoming
                                 </button>
@@ -1072,8 +1031,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     </div>
                                 </div>
 
-                                <button disabled={uploading} className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'}`}>
-                                    {uploading ? 'Processing...' : success ? '✨ Done!' : editingId ? '✨ Update Artwork' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'}`}
+                                <button disabled={uploading} className={`w - full py - 4 rounded - xl font - bold transition - all shadow - lg hover: -translate - y - 1 active: scale - [0.98] disabled: opacity - 50 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'} `}>
+                                    {uploading ? 'Processing...' : success ? '✨ Done!' : editingId ? '✨ Update Artwork' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'} `}
                                 </button>
                             </form>
                         </div>
@@ -1093,7 +1052,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         <button
                                             onClick={() => saveCategoryDefinitions(categoryDefinitions)}
                                             disabled={savingCategories}
-                                            className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 flex items-center gap-2 ${categoriesSaveSuccess ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream shadow-sm'}`}
+                                            className={`px - 6 py - 2.5 rounded - full text - xs font - bold transition - all active: scale - 95 flex items - center gap - 2 ${categoriesSaveSuccess ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream shadow-sm'} `}
                                         >
                                             {savingCategories ? '⏳ Saving...' : categoriesSaveSuccess ? '✨ Saved!' : '💾 Save Changes'}
                                         </button>
@@ -1199,7 +1158,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                if (!window.confirm(`Delete "${cat.label}" and all its subcategories?`)) return;
+                                                                if (!window.confirm(`Delete "${cat.label}" and all its subcategories ? `)) return;
                                                                 const updated = categoryDefinitions.filter((_, i) => i !== index);
                                                                 setCategoryDefinitions(updated);
                                                                 saveCategoryDefinitions(updated);
@@ -1329,13 +1288,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         </p>
                                     </div>
                                 ) : (
-                                    <DndContext
-                                        sensors={sensors}
-                                        collisionDetection={closestCenter}
-                                        onDragStart={handleDragStart}
-                                        onDragEnd={handleDragEnd}
-                                        onDragCancel={handleDragCancel}
-                                    >
+                                    <>
                                         {/* 🖼️ GALLERY SECTION */}
                                         <div className="space-y-8">
                                             <div className="flex items-center gap-3 pb-2 border-b-2 border-ghibli-wood/10">
@@ -1385,7 +1338,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                 onClick={() => toggleSection(catLabel)}
                                                                 className="w-full flex items-center gap-2 text-xs font-black text-ghibli-wood uppercase tracking-[0.3em] bg-ghibli-wood/5 p-3 rounded-xl border border-ghibli-wood/10 hover:bg-ghibli-wood/10 transition-all text-left"
                                                             >
-                                                                <span className={`transition-transform duration-300 ${isCatCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                                                                <span className={`transition - transform duration - 300 ${isCatCollapsed ? '-rotate-90' : 'rotate-0'} `}>
                                                                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                                                         <path d="M6 9l6 6 6-6" />
                                                                     </svg>
@@ -1398,7 +1351,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                             {!isCatCollapsed && (
                                                                 <div className="space-y-8 pl-4 border-l border-ghibli-wood/10 transition-all">
                                                                     {Object.entries(subGroups).map(([subLabel, subItems]) => {
-                                                                        const subKey = `${catLabel}-${subLabel}`;
+                                                                        const subKey = `${catLabel} -${subLabel} `;
                                                                         const isSubCollapsed = collapsedSections[subKey];
                                                                         return (
                                                                             <div key={subLabel}>
@@ -1406,7 +1359,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                                     onClick={() => toggleSection(subKey)}
                                                                                     className="w-full text-[10px] font-bold text-ghibli-wood/40 uppercase tracking-widest mb-4 flex items-center gap-2 hover:text-ghibli-wood/60 transition-colors text-left"
                                                                                 >
-                                                                                    <span className={`transition-transform duration-300 ${isSubCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                                                                                    <span className={`transition - transform duration - 300 ${isSubCollapsed ? '-rotate-90' : 'rotate-0'} `}>
                                                                                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                                                                             <path d="M6 9l6 6 6-6" />
                                                                                         </svg>
@@ -1415,22 +1368,20 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                                     {subLabel} ({subItems.length})
                                                                                 </button>
                                                                                 {!isSubCollapsed && (
-                                                                                    <SortableContext
-                                                                                        items={subItems.map(a => a.id)}
-                                                                                        strategy={verticalListSortingStrategy}
-                                                                                    >
-                                                                                        <div className="space-y-4">
-                                                                                            {subItems.map(art => (
-                                                                                                <SortableArtworkRow
-                                                                                                    key={art.id}
-                                                                                                    art={art}
-                                                                                                    isFeatured={false}
-                                                                                                    handleEdit={handleEdit}
-                                                                                                    handleDelete={handleDelete}
-                                                                                                />
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </SortableContext>
+                                                                                    <div className="space-y-4">
+                                                                                        {subItems.map((art, idx) => (
+                                                                                            <ArtworkRow
+                                                                                                key={art.id}
+                                                                                                art={art}
+                                                                                                isFeatured={false}
+                                                                                                handleEdit={handleEdit}
+                                                                                                handleDelete={handleDelete}
+                                                                                                onMove={(dir) => handleMoveArtwork(catLabel, art.id, dir)}
+                                                                                                isFirst={idx === 0}
+                                                                                                isLast={idx === subItems.length - 1}
+                                                                                            />
+                                                                                        ))}
+                                                                                    </div>
                                                                                 )}
                                                                             </div>
                                                                         );
@@ -1454,7 +1405,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                     <h3 className="text-lg font-bold text-ghibli-navy leading-none">Featured Artworks</h3>
                                                     <p className="text-[10px] text-yellow-600/60 font-bold uppercase tracking-widest mt-1">Highlighted highlights</p>
                                                 </div>
-                                                <span className={`ml-auto transition-transform duration-300 ${collapsedSections['Featured'] ? '-rotate-90' : 'rotate-0'}`}>
+                                                <span className={`ml - auto transition - transform duration - 300 ${collapsedSections['Featured'] ? '-rotate-90' : 'rotate-0'} `}>
                                                     <svg className="w-6 h-6 text-yellow-500/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M6 9l6 6 6-6" />
                                                     </svg>
@@ -1482,22 +1433,20 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         });
 
                                                         return (
-                                                            <SortableContext
-                                                                items={sortedItems.map(a => a.id)}
-                                                                strategy={verticalListSortingStrategy}
-                                                            >
-                                                                <div className="space-y-4">
-                                                                    {sortedItems.map(art => (
-                                                                        <SortableArtworkRow
-                                                                            key={art.id}
-                                                                            art={art}
-                                                                            isFeatured={true}
-                                                                            handleEdit={handleEdit}
-                                                                            handleDelete={handleDelete}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            </SortableContext>
+                                                            <div className="space-y-4">
+                                                                {sortedItems.map((art, idx) => (
+                                                                    <ArtworkRow
+                                                                        key={art.id}
+                                                                        art={art}
+                                                                        isFeatured={true}
+                                                                        handleEdit={handleEdit}
+                                                                        handleDelete={handleDelete}
+                                                                        onMove={(dir) => handleMoveArtwork('Featured', art.id, dir)}
+                                                                        isFirst={idx === 0}
+                                                                        isLast={idx === sortedItems.length - 1}
+                                                                    />
+                                                                ))}
+                                                            </div>
                                                         );
                                                     })()}
                                                 </div>
@@ -1515,7 +1464,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                     <h3 className="text-lg font-bold text-ghibli-navy leading-none">Upcoming Releases</h3>
                                                     <p className="text-[10px] text-blue-600/60 font-bold uppercase tracking-widest mt-1">Soon to be published</p>
                                                 </div>
-                                                <span className={`ml-auto transition-transform duration-300 ${collapsedSections['Upcoming'] ? '-rotate-90' : 'rotate-0'}`}>
+                                                <span className={`ml - auto transition - transform duration - 300 ${collapsedSections['Upcoming'] ? '-rotate-90' : 'rotate-0'} `}>
                                                     <svg className="w-6 h-6 text-blue-500/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M6 9l6 6 6-6" />
                                                     </svg>
@@ -1543,22 +1492,20 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         });
 
                                                         return (
-                                                            <SortableContext
-                                                                items={sortedItems.map(a => a.id)}
-                                                                strategy={verticalListSortingStrategy}
-                                                            >
-                                                                <div className="space-y-4">
-                                                                    {sortedItems.map(art => (
-                                                                        <SortableArtworkRow
-                                                                            key={art.id}
-                                                                            art={art}
-                                                                            isFeatured={false}
-                                                                            handleEdit={handleEdit}
-                                                                            handleDelete={handleDelete}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            </SortableContext>
+                                                            <div className="space-y-4">
+                                                                {sortedItems.map((art, idx) => (
+                                                                    <ArtworkRow
+                                                                        key={art.id}
+                                                                        art={art}
+                                                                        isFeatured={false}
+                                                                        handleEdit={handleEdit}
+                                                                        handleDelete={handleDelete}
+                                                                        onMove={(dir) => handleMoveArtwork('Upcoming', art.id, dir)}
+                                                                        isFirst={idx === 0}
+                                                                        isLast={idx === sortedItems.length - 1}
+                                                                    />
+                                                                ))}
+                                                            </div>
                                                         );
                                                     })()}
                                                 </div>
@@ -1594,168 +1541,155 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                     </div>
                                                     <div className="space-y-4">
                                                         {uncategorizedItems.map(art => (
-                                                            <SortableArtworkRow
+                                                            <ArtworkRow
                                                                 key={art.id}
                                                                 art={art}
                                                                 isFeatured={art.description?.includes('[FEATURED]')}
                                                                 handleEdit={handleEdit}
                                                                 handleDelete={handleDelete}
+                                                                onMove={() => { }} // No ordering for uncategorized
+                                                                isFirst={true}
+                                                                isLast={true}
                                                             />
                                                         ))}
                                                     </div>
                                                 </div>
                                             );
                                         })()}
-                                        <DragOverlay zIndex={1000}>
-                                            {activeId ? (
-                                                <div className="w-full max-w-[calc(100vw-2rem)] opacity-90 shadow-2xl">
-                                                    <SortableArtworkRow
-                                                        art={artworks.find(a => a.id === activeId)}
-                                                        isFeatured={(() => {
-                                                            const a = artworks.find(i => i.id === activeId);
-                                                            return a?.category === 'Featured' || a?.description?.includes('[FEATURED]');
-                                                        })()}
-                                                        handleEdit={() => { }}
-                                                        handleDelete={() => { }}
-                                                        isOverlay={true}
-                                                    />
-                                                </div>
-                                            ) : null}
-                                        </DragOverlay>
-                                    </DndContext>
+                                    </>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Change Password Modal */}
-                {showChangePassword && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
-                            <button
-                                onClick={() => {
-                                    setShowChangePassword(false);
-                                    setCurrentPassword('');
-                                    setNewPassword('');
-                                    setConfirmNewPassword('');
-                                }}
-                                className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
-                            >
-                                ✕
-                            </button>
-
-                            <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
-                            <p className="text-ghibli-charcoal/60 mb-6">
-                                Update your password. You'll receive a confirmation email.
-                            </p>
-
-                            <form onSubmit={async (e) => {
-                                e.preventDefault();
-
-                                if (newPassword !== confirmNewPassword) {
-                                    alert('New passwords do not match!');
-                                    return;
-                                }
-
-                                if (newPassword.length < 8) {
-                                    alert('New password must be at least 8 characters');
-                                    return;
-                                }
-
-                                try {
-                                    const res = await fetch('/api/change-password', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({ currentPassword, newPassword }),
-                                    });
-
-                                    const data = await res.json();
-
-                                    if (res.ok) {
-                                        alert('✅ Password updated successfully! Check your email for confirmation.');
+                    {/* Change Password Modal */}
+                    {showChangePassword && (
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
+                                <button
+                                    onClick={() => {
                                         setShowChangePassword(false);
                                         setCurrentPassword('');
                                         setNewPassword('');
                                         setConfirmNewPassword('');
-                                    } else {
-                                        alert(`❌ ${data.error || 'Failed to update password'}`);
-                                    }
-                                } catch (err) {
-                                    console.error('Password change error:', err);
-                                    alert('Connection error. Please try again.');
-                                }
-                            }} className="space-y-4">
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
-                                    <input
-                                        type={showCurrentPassword ? "text" : "password"}
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Enter current password"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
-                                    <input
-                                        type={showNewPassword ? "text" : "password"}
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Enter new password"
-                                        required
-                                        minLength={8}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showNewPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
-                                    <input
-                                        type={showConfirmNewPassword ? "text" : "password"}
-                                        value={confirmNewPassword}
-                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Confirm new password"
-                                        required
-                                        minLength={8}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
+                                    }}
+                                    className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
                                 >
-                                    Update Password
+                                    ✕
                                 </button>
-                            </form>
+
+                                <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
+                                <p className="text-ghibli-charcoal/60 mb-6">
+                                    Update your password. You'll receive a confirmation email.
+                                </p>
+
+                                <form onSubmit={async (e) => {
+                                    e.preventDefault();
+
+                                    if (newPassword !== confirmNewPassword) {
+                                        alert('New passwords do not match!');
+                                        return;
+                                    }
+
+                                    if (newPassword.length < 8) {
+                                        alert('New password must be at least 8 characters');
+                                        return;
+                                    }
+
+                                    try {
+                                        const res = await fetch('/api/change-password', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            credentials: 'include',
+                                            body: JSON.stringify({ currentPassword, newPassword }),
+                                        });
+
+                                        const data = await res.json();
+
+                                        if (res.ok) {
+                                            alert('✅ Password updated successfully! Check your email for confirmation.');
+                                            setShowChangePassword(false);
+                                            setCurrentPassword('');
+                                            setNewPassword('');
+                                            setConfirmNewPassword('');
+                                        } else {
+                                            alert(`❌ ${data.error || 'Failed to update password'} `);
+                                        }
+                                    } catch (err) {
+                                        console.error('Password change error:', err);
+                                        alert('Connection error. Please try again.');
+                                    }
+                                }} className="space-y-4">
+                                    <div className="relative">
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
+                                        <input
+                                            type={showCurrentPassword ? "text" : "password"}
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            placeholder="Enter current password"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
+                                        </button>
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
+                                        <input
+                                            type={showNewPassword ? "text" : "password"}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            placeholder="Enter new password"
+                                            required
+                                            minLength={8}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                                        </button>
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
+                                        <input
+                                            type={showConfirmNewPassword ? "text" : "password"}
+                                            value={confirmNewPassword}
+                                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                            className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            placeholder="Confirm new password"
+                                            required
+                                            minLength={8}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                                            className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
+                                        >
+                                            {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
+                                    >
+                                        Update Password
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
