@@ -120,6 +120,98 @@ const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
     );
 };
 
+// Sortable Category Card Component
+const SortableCategoryCard = ({ mainCat, categoriesData, handleDeleteMainCategory, handleDeleteSubCategory, newSubCategory, setNewSubCategory, handleAddSubCategory }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: mainCat });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 100 : 'auto',
+        opacity: isDragging ? 0.8 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className="bg-white p-6 rounded-2xl border border-ghibli-wood/10 shadow-sm"
+        >
+            <div className="flex justify-between items-center mb-4 pb-4 border-b border-ghibli-wood/5">
+                <div className="flex items-center gap-3">
+                    {/* Drag Handle */}
+                    <div
+                        {...attributes}
+                        {...listeners}
+                        className="cursor-grab active:cursor-grabbing text-ghibli-wood/30 hover:text-ghibli-wood/60 p-1"
+                        title="Drag to reorder"
+                    >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-ghibli-navy">{mainCat}</h3>
+                </div>
+                <button
+                    onClick={() => handleDeleteMainCategory(mainCat)}
+                    className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                    title="Delete Category"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+
+            <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                    {categoriesData[mainCat].map(sub => (
+                        <div key={sub} className="flex items-center gap-2 bg-ghibli-paper/40 px-3 py-1.5 rounded-lg border border-ghibli-wood/5 group">
+                            <span className="text-sm font-medium text-ghibli-charcoal/80">{sub}</span>
+                            <button
+                                onClick={() => handleDeleteSubCategory(mainCat, sub)}
+                                className="text-ghibli-wood/20 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    {categoriesData[mainCat].length === 0 && (
+                        <span className="text-xs text-ghibli-charcoal/40 italic">No sub-categories</span>
+                    )}
+                </div>
+
+                <div className="flex gap-2 mt-4 pt-2">
+                    <input
+                        type="text"
+                        value={newSubCategory.category === mainCat ? newSubCategory.value : ''}
+                        onChange={(e) => setNewSubCategory({ category: mainCat, value: e.target.value })}
+                        placeholder="New Sub-category..."
+                        className="flex-1 p-2 rounded-lg border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-sm font-medium"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddSubCategory(mainCat);
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={() => handleAddSubCategory(mainCat)}
+                        className="px-4 py-2 bg-ghibli-wood/10 text-ghibli-wood rounded-lg font-bold text-xs hover:bg-ghibli-wood hover:text-white transition-colors"
+                    >
+                        +
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const AdminDashboard = () => {
     const [session, setSession] = useState(null);
     const [email, setEmail] = useState('');
@@ -332,6 +424,25 @@ const AdminDashboard = () => {
         };
         setCategoriesData(updated);
         await saveCategories(updated);
+    };
+
+    const handleCategoryReorder = async (event) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = Object.keys(categoriesData).indexOf(active.id);
+        const newIndex = Object.keys(categoriesData).indexOf(over.id);
+
+        const categoryKeys = Object.keys(categoriesData);
+        const reorderedKeys = arrayMove(categoryKeys, oldIndex, newIndex);
+
+        const reordered = {};
+        reorderedKeys.forEach(key => {
+            reordered[key] = categoriesData[key];
+        });
+
+        setCategoriesData(reordered);
+        await saveCategories(reordered);
     };
 
     const handleDragEnd = (event) => {
@@ -1248,8 +1359,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         </div>
 
                         {activeTab === 'categories' ? (
-                            <div className="space-y-8">
-                                <div className="bg-ghibli-wood/5 p-6 rounded-2xl border border-ghibli-wood/10">
+                            <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2">
+                                <div className="bg-ghibli-wood/5 p-6 rounded-2xl border border-ghibli-wood/10 sticky top-0 z-10">
                                     <h3 className="text-lg font-bold text-ghibli-wood mb-4">Add Main Category</h3>
                                     <form onSubmit={handleAddMainCategory} className="flex gap-4">
                                         <input
@@ -1265,63 +1376,31 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     </form>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-6">
-                                    {Object.keys(categoriesData).map(mainCat => (
-                                        <div key={mainCat} className="bg-white p-6 rounded-2xl border border-ghibli-wood/10 shadow-sm">
-                                            <div className="flex justify-between items-center mb-4 pb-4 border-b border-ghibli-wood/5">
-                                                <h3 className="text-xl font-bold text-ghibli-navy">{mainCat}</h3>
-                                                <button
-                                                    onClick={() => handleDeleteMainCategory(mainCat)}
-                                                    className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                                                    title="Delete Category"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {categoriesData[mainCat].map(sub => (
-                                                        <div key={sub} className="flex items-center gap-2 bg-ghibli-paper/40 px-3 py-1.5 rounded-lg border border-ghibli-wood/5 group">
-                                                            <span className="text-sm font-medium text-ghibli-charcoal/80">{sub}</span>
-                                                            <button
-                                                                onClick={() => handleDeleteSubCategory(mainCat, sub)}
-                                                                className="text-ghibli-wood/20 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                                            >
-                                                                ✕
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    {categoriesData[mainCat].length === 0 && (
-                                                        <span className="text-xs text-ghibli-charcoal/40 italic">No sub-categories</span>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex gap-2 mt-4 pt-2">
-                                                    <input
-                                                        type="text"
-                                                        value={newSubCategory.category === mainCat ? newSubCategory.value : ''}
-                                                        onChange={(e) => setNewSubCategory({ category: mainCat, value: e.target.value })}
-                                                        placeholder="New Sub-category..."
-                                                        className="flex-1 p-2 rounded-lg border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-sm font-medium"
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                handleAddSubCategory(mainCat);
-                                                            }
-                                                        }}
-                                                    />
-                                                    <button
-                                                        onClick={() => handleAddSubCategory(mainCat)}
-                                                        className="px-4 py-2 bg-ghibli-wood/10 text-ghibli-wood rounded-lg font-bold text-xs hover:bg-ghibli-wood hover:text-white transition-colors"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </div>
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleCategoryReorder}
+                                >
+                                    <SortableContext
+                                        items={Object.keys(categoriesData)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="grid grid-cols-1 gap-6">
+                                            {Object.keys(categoriesData).map(mainCat => (
+                                                <SortableCategoryCard
+                                                    key={mainCat}
+                                                    mainCat={mainCat}
+                                                    categoriesData={categoriesData}
+                                                    handleDeleteMainCategory={handleDeleteMainCategory}
+                                                    handleDeleteSubCategory={handleDeleteSubCategory}
+                                                    newSubCategory={newSubCategory}
+                                                    setNewSubCategory={setNewSubCategory}
+                                                    handleAddSubCategory={handleAddSubCategory}
+                                                />
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+                                    </SortableContext>
+                                </DndContext>
                             </div>
                         ) : (
                             <div>
