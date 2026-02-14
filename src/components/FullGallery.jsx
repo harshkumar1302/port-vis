@@ -3,20 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
-// --- Constants (Shared with ArtGallery) ---
-const MAIN_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art' },
-    { id: 'miniature', label: 'Miniatures' },
-    { id: 'gift', label: 'Gift Material' },
-    { id: 'diy', label: 'DIY Art' },
+// --- Constants ---
+const FALLBACK_CATEGORIES = [
+    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
+    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
+    { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
+    { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
 ];
-
-const SUB_CATEGORIES = {
-    mandala: ['All', 'Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'],
-    miniature: ['All', 'Miniatures', 'Clay Sets'],
-    gift: ['All', 'Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
-    diy: ['All', 'Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
-};
 
 const FullGallery = () => {
     const { category } = useParams();
@@ -27,9 +20,10 @@ const FullGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
+    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
 
     // Validate category
-    const currentCategory = MAIN_CATEGORIES.find(c => c.id === category);
+    const currentCategory = categories.find(c => c.id === category);
 
     useEffect(() => {
         if (!currentCategory) {
@@ -43,6 +37,14 @@ const FullGallery = () => {
 
     const fetchSettings = async () => {
         try {
+            const resCat = await fetch('/api/settings?id=category_definitions');
+            if (resCat.ok) {
+                const data = await resCat.json();
+                if (data.value && Array.isArray(data.value) && data.value.length > 0) {
+                    setCategories(data.value);
+                }
+            }
+
             const res = await fetch('/api/settings?id=category_priorities');
             if (res.ok) {
                 const data = await res.json();
@@ -96,13 +98,10 @@ const FullGallery = () => {
     });
 
     const getPrioritizedItems = (catId, items) => {
-        const catMapping = {
-            'mandala': 'Mandala',
-            'miniature': 'Miniature',
-            'gift': 'Gift Material',
-            'diy': 'DIY Art'
-        };
-        const prioritySub = categoryPriorities[catMapping[catId]];
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return items;
+
+        const prioritySub = categoryPriorities[cat.label];
         if (!prioritySub) return items;
 
         const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
@@ -110,14 +109,10 @@ const FullGallery = () => {
         return [...prioritized, ...others];
     };
 
-    const applyOrder = (items, category) => {
-        const catMapping = {
-            'mandala': 'Mandala',
-            'miniature': 'Miniature',
-            'gift': 'Gift Material',
-            'diy': 'DIY Art'
-        };
-        const orderKey = catMapping[category];
+    const applyOrder = (items, categoryId) => {
+        const cat = categories.find(c => c.id === categoryId);
+        if (!cat) return items;
+        const orderKey = cat.label;
         const order = artworkOrders[orderKey] || [];
         if (order.length === 0) return null;
 
@@ -182,7 +177,7 @@ const FullGallery = () => {
                 {/* Sub-Category Tabs (Sticky) */}
                 <div className="sticky top-24 z-30 bg-ghibli-cream/95 backdrop-blur-sm -mx-4 px-4 md:-mx-8 md:px-8 py-4 mb-12 border-b border-ghibli-wood/10">
                     <div className="flex overflow-x-auto gap-3 no-scrollbar max-w-7xl mx-auto">
-                        {SUB_CATEGORIES[category]?.map((sub) => (
+                        {['All', ...(currentCategory?.subCategories || [])].map((sub) => (
                             <button
                                 key={sub}
                                 onClick={() => setSelectedSubCategory(sub)}
@@ -193,7 +188,7 @@ const FullGallery = () => {
                             >
                                 {sub}
                             </button>
-                        )) || null}
+                        ))}
                     </div>
                 </div>
 

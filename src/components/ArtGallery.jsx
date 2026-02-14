@@ -6,7 +6,9 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { supabase } from '../lib/supabaseClient';
 
 // --- Constants ---
-const MAIN_CATEGORIES = [
+// Categories now loaded dynamically from DB
+// Initial fallback categories
+const FALLBACK_CATEGORIES = [
     { id: 'mandala', label: 'Mandala Art' },
     { id: 'miniature', label: 'Miniatures' },
     { id: 'gift', label: 'Gift Material' },
@@ -19,6 +21,7 @@ const ArtGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
+    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
 
     // Embla Carousels
     const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
@@ -33,9 +36,24 @@ const ArtGallery = () => {
     const scrollNext = () => featuredEmblaApi && featuredEmblaApi.scrollNext();
 
     useEffect(() => {
+        fetchCategories();
         fetchArtworks();
         fetchShowcaseSettings();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch('/api/settings?id=category_definitions');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.value && Array.isArray(data.value) && data.value.length > 0) {
+                    setCategories(data.value);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch categories:', err);
+        }
+    };
 
     const fetchShowcaseSettings = async () => {
         try {
@@ -107,13 +125,10 @@ const ArtGallery = () => {
 
     // Helper to sort by priority subcategory
     const getPrioritizedItems = (catId, items) => {
-        const catMapping = {
-            'mandala': 'Mandala',
-            'miniature': 'Miniature',
-            'gift': 'Gift Material',
-            'diy': 'DIY Art'
-        };
-        const prioritySub = categoryPriorities[catMapping[catId]];
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return items;
+
+        const prioritySub = categoryPriorities[cat.label];
         if (!prioritySub) return items;
 
         const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
@@ -228,16 +243,10 @@ const ArtGallery = () => {
 
                 {/* 3. Category Sections - Embla Carousels */}
                 <div className="space-y-20">
-                    {MAIN_CATEGORIES.map((cat) => {
+                    {categories.map((cat) => {
                         const rawItems = getCategoryItems(cat.id);
 
-                        const catMapping = {
-                            'mandala': 'Mandala',
-                            'miniature': 'Miniature',
-                            'gift': 'Gift Material',
-                            'diy': 'DIY Art'
-                        };
-                        const orderKey = catMapping[cat.id];
+                        const orderKey = cat.label;
 
                         // 1. Apply Manual Order (if existent), otherwise keeps default (Date desc)
                         let sortedItems = applyOrder(rawItems, orderKey);

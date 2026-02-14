@@ -18,13 +18,13 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
-const CATEGORIES_DATA = {
-    'Mandala': ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'],
-    'Miniature': ['Miniatures', 'Clay Sets'],
-    'Gift Material': ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
-    'DIY Art': ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
-};
+// Default Categories Data - Used for initial setup if DB is empty
+const DEFAULT_CATEGORIES = [
+    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
+    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
+    { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
+    { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
+];
 
 // Sortable Item Component
 const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
@@ -160,9 +160,16 @@ const AdminDashboard = () => {
     const [resetSuccess, setResetSuccess] = useState(false);
 
     // Site Settings State
+    const [categoryDefinitions, setCategoryDefinitions] = useState([]);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
     const [loadingSettings, setLoadingSettings] = useState(false);
+    const [savingCategories, setSavingCategories] = useState(false);
+
+    // Category Manager UI State
+    const [showCategoryManager, setShowCategoryManager] = useState(false);
+    const [newCategoryLabel, setNewCategoryLabel] = useState('');
+    const [editingCategory, setEditingCategory] = useState(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), // 5px movement required for drag
@@ -171,12 +178,13 @@ const AdminDashboard = () => {
 
     // Update sub-category when main category changes
     useEffect(() => {
-        if (CATEGORIES_DATA[category]) {
-            setSubCategory(CATEGORIES_DATA[category][0]);
+        const catDef = categoryDefinitions.find(c => c.label === category);
+        if (catDef && catDef.subCategories?.length > 0) {
+            setSubCategory(catDef.subCategories[0]);
         } else {
             setSubCategory('');
         }
-    }, [category]);
+    }, [category, categoryDefinitions]);
 
     useEffect(() => {
         checkSession();
@@ -200,6 +208,18 @@ const AdminDashboard = () => {
 
     const fetchSettings = async () => {
         try {
+            const resCat = await fetch('/api/settings?id=category_definitions');
+            if (resCat.ok) {
+                const data = await resCat.json();
+                if (data.value && Array.isArray(data.value) && data.value.length > 0) {
+                    setCategoryDefinitions(data.value);
+                } else {
+                    // Initialize with defaults if empty
+                    setCategoryDefinitions(DEFAULT_CATEGORIES);
+                    saveCategoryDefinitions(DEFAULT_CATEGORIES);
+                }
+            }
+
             const res = await fetch('/api/settings?id=category_priorities');
             if (res.ok) {
                 const data = await res.json();
@@ -213,6 +233,25 @@ const AdminDashboard = () => {
             }
         } catch (err) {
             console.error('Failed to fetch settings:', err);
+        }
+    };
+
+    const saveCategoryDefinitions = async (defs) => {
+        try {
+            setSavingCategories(true);
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id: 'category_definitions',
+                    value: defs
+                })
+            });
+        } catch (err) {
+            console.error('Failed to save category definitions:', err);
+        } finally {
+            setSavingCategories(false);
         }
     };
 
@@ -938,13 +977,13 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Main Category</label>
                                             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                                {Object.keys(CATEGORIES_DATA).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                {categoryDefinitions.map(cat => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
                                             <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                                {CATEGORIES_DATA[category]?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                                {categoryDefinitions.find(c => c.label === category)?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                                             </select>
                                         </div>
                                     </div>
@@ -992,6 +1031,155 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                     {/* Manage List */}
                     <div className="lg:col-span-2">
+                        {/* Category Manager */}
+                        <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] mb-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Category Manager</h2>
+                                    <p className="text-xs text-ghibli-charcoal/60">Add, edit, and reorder your art collections.</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowCategoryManager(!showCategoryManager)}
+                                    className="px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-xs font-bold shadow-sm transition-all active:scale-95"
+                                >
+                                    {showCategoryManager ? 'Hide Manager' : 'Open Manager'}
+                                </button>
+                            </div>
+
+                            {showCategoryManager && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <div className="flex gap-3">
+                                        <input
+                                            type="text"
+                                            value={newCategoryLabel}
+                                            onChange={(e) => setNewCategoryLabel(e.target.value)}
+                                            placeholder="New Category Name (e.g. Sculptures)"
+                                            className="flex-grow p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                if (!newCategoryLabel.trim()) return;
+                                                const newId = newCategoryLabel.toLowerCase().replace(/\s+/g, '-');
+                                                if (categoryDefinitions.some(c => c.id === newId)) {
+                                                    alert('Category ID already exists');
+                                                    return;
+                                                }
+                                                const updated = [...categoryDefinitions, { id: newId, label: newCategoryLabel, subCategories: [] }];
+                                                setCategoryDefinitions(updated);
+                                                saveCategoryDefinitions(updated);
+                                                setNewCategoryLabel('');
+                                            }}
+                                            className="px-6 py-3 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold hover:bg-[#A0704F] transition-all active:scale-95"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {categoryDefinitions.map((cat, index) => (
+                                            <div key={cat.id} className="p-4 rounded-2xl bg-white/30 border border-ghibli-wood/5">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-ghibli-wood/40">#{index + 1}</span>
+                                                        <input
+                                                            type="text"
+                                                            value={cat.label}
+                                                            onChange={(e) => {
+                                                                const updated = [...categoryDefinitions];
+                                                                updated[index].label = e.target.value;
+                                                                setCategoryDefinitions(updated);
+                                                            }}
+                                                            onBlur={() => saveCategoryDefinitions(categoryDefinitions)}
+                                                            className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg"
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (index === 0) return;
+                                                                const updated = arrayMove(categoryDefinitions, index, index - 1);
+                                                                setCategoryDefinitions(updated);
+                                                                saveCategoryDefinitions(updated);
+                                                            }}
+                                                            disabled={index === 0}
+                                                            className="p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20"
+                                                        >
+                                                            ↑
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (index === categoryDefinitions.length - 1) return;
+                                                                const updated = arrayMove(categoryDefinitions, index, index + 1);
+                                                                setCategoryDefinitions(updated);
+                                                                saveCategoryDefinitions(updated);
+                                                            }}
+                                                            disabled={index === categoryDefinitions.length - 1}
+                                                            className="p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20"
+                                                        >
+                                                            ↓
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (!window.confirm(`Delete "${cat.label}" and all its subcategories?`)) return;
+                                                                const updated = categoryDefinitions.filter((_, i) => i !== index);
+                                                                setCategoryDefinitions(updated);
+                                                                saveCategoryDefinitions(updated);
+                                                            }}
+                                                            className="p-2 text-red-500/40 hover:text-red-500"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Subcategories */}
+                                                <div className="pl-6 space-y-2 border-l-2 border-ghibli-wood/10">
+                                                    <div className="flex flex-wrap gap-2 mb-3">
+                                                        {cat.subCategories?.map((sub, sIndex) => (
+                                                            <div key={sub} className="group flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-ghibli-wood/5 text-[10px] font-bold text-ghibli-wood uppercase">
+                                                                <span>{sub}</span>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const updated = [...categoryDefinitions];
+                                                                        updated[index].subCategories = updated[index].subCategories.filter((_, i) => i !== sIndex);
+                                                                        setCategoryDefinitions(updated);
+                                                                        saveCategoryDefinitions(updated);
+                                                                    }}
+                                                                    className="opacity-0 group-hover:opacity-100 text-red-500 transition-opacity"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Add Subcategory..."
+                                                            className="flex-grow bg-transparent border-b border-ghibli-wood/10 text-[10px] font-bold uppercase tracking-widest p-1 focus:border-ghibli-wood outline-none"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && e.target.value.trim()) {
+                                                                    const updated = [...categoryDefinitions];
+                                                                    if (!updated[index].subCategories) updated[index].subCategories = [];
+                                                                    updated[index].subCategories.push(e.target.value.trim());
+                                                                    setCategoryDefinitions(updated);
+                                                                    saveCategoryDefinitions(updated);
+                                                                    e.target.value = '';
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="text-[10px] font-bold text-ghibli-wood/40 uppercase tracking-widest text-center py-2">
+                                        Tip: Press Enter to add a subcategory. Individual changes save automatically.
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Priority Management */}
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] mb-8">
                             <div className="flex flex-col gap-6">
@@ -1013,21 +1201,21 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {Object.keys(CATEGORIES_DATA).map(mainCat => (
-                                        <div key={mainCat} className="flex flex-col gap-2 p-4 rounded-2xl bg-white/20 border border-white/40 shadow-sm">
+                                    {categoryDefinitions.map(cat => (
+                                        <div key={cat.id} className="flex flex-col gap-2 p-4 rounded-2xl bg-white/20 border border-white/40 shadow-sm">
                                             <label className="text-[10px] font-bold uppercase tracking-widest text-ghibli-wood/60">
-                                                {mainCat} Collection
+                                                {cat.label} Collection
                                             </label>
                                             <select
-                                                value={categoryPriorities[mainCat] || ''}
+                                                value={categoryPriorities[cat.label] || ''}
                                                 onChange={(e) => setCategoryPriorities({
                                                     ...categoryPriorities,
-                                                    [mainCat]: e.target.value
+                                                    [cat.label]: e.target.value
                                                 })}
                                                 className="w-full p-2.5 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer text-sm"
                                             >
                                                 <option value="">No Priority (Newest First)</option>
-                                                {subcategoriesByMain[mainCat]?.map(sub => (
+                                                {cat.subCategories?.map(sub => (
                                                     <option key={sub} value={sub}>{sub}</option>
                                                 ))}
                                             </select>
@@ -1056,7 +1244,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         collisionDetection={closestCenter}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        {['Mandala', 'Miniature', 'Gift Material', 'DIY Art', 'Upcoming', 'Featured'].map(category => {
+                                        {[...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'].map(category => {
                                             const catItems = artworks.filter(a => a.category === category);
                                             if (catItems.length === 0) return null;
 
