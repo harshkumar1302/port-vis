@@ -12,7 +12,7 @@ const MAIN_CATEGORIES = [
 ];
 
 const SUB_CATEGORIES = {
-    mandala: ['All', 'Flower Mandala', 'Creative Mandala', 'Wall Mandala'],
+    mandala: ['All', 'Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'],
     miniature: ['All', 'Miniatures', 'Clay Sets'],
     gift: ['All', 'Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     diy: ['All', 'Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
@@ -25,6 +25,8 @@ const FullGallery = () => {
     const [loading, setLoading] = useState(true);
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [selectedArt, setSelectedArt] = useState(null);
+    const [categoryPriorities, setCategoryPriorities] = useState({});
+    const [artworkOrders, setArtworkOrders] = useState({});
 
     // Validate category
     const currentCategory = MAIN_CATEGORIES.find(c => c.id === category);
@@ -35,8 +37,27 @@ const FullGallery = () => {
             return;
         }
         fetchArtworks();
+        fetchSettings();
         window.scrollTo(0, 0);
     }, [category, navigate, currentCategory]);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings?id=category_priorities');
+            if (res.ok) {
+                const data = await res.json();
+                setCategoryPriorities(data.value || {});
+            }
+
+            const resOrder = await fetch('/api/settings?id=artwork_orders');
+            if (resOrder.ok) {
+                const data = await resOrder.json();
+                setArtworkOrders(data.value || {});
+            }
+        } catch (err) {
+            console.error('Failed to fetch settings:', err);
+        }
+    };
 
     const fetchArtworks = async () => {
         try {
@@ -73,6 +94,66 @@ const FullGallery = () => {
         }
         return true;
     });
+
+    const getPrioritizedItems = (catId, items) => {
+        const catMapping = {
+            'mandala': 'Mandala',
+            'miniature': 'Miniature',
+            'gift': 'Gift Material',
+            'diy': 'DIY Art'
+        };
+        const prioritySub = categoryPriorities[catMapping[catId]];
+        if (!prioritySub) return items;
+
+        const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
+        const others = items.filter(art => !art.description?.includes(`[SubCategory: ${prioritySub}]`));
+        return [...prioritized, ...others];
+    };
+
+    const applyOrder = (items, category) => {
+        const catMapping = {
+            'mandala': 'Mandala',
+            'miniature': 'Miniature',
+            'gift': 'Gift Material',
+            'diy': 'DIY Art'
+        };
+        const orderKey = catMapping[category];
+        const order = artworkOrders[orderKey] || [];
+        if (order.length === 0) return null;
+
+        return [...items].sort((a, b) => {
+            const indexA = order.indexOf(a.id);
+            const indexB = order.indexOf(b.id);
+
+            const posA = indexA === -1 ? -Infinity : indexA;
+            const posB = indexB === -1 ? -Infinity : indexB;
+
+            if (posA === posB) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            }
+            return posA - posB;
+        });
+    };
+
+    // Apply Sorting: Manual -> Priority -> Filtered (wait, filter first!)
+    // If user selects specific subcategory in FullGallery, manual reorder for THAT sub-subset might look weird if items are scattered.
+    // But usually FullGallery shows ALL items for a main category by default.
+    // Let's sort the 'filteredArtworks' before rendering.
+
+    let displayArtworks = [...filteredArtworks];
+
+    // Only apply manual order if showing "All" subcategories or if the order makes sense.
+    // Actually, manual order is global for the category.
+    // 1. Manual Order
+    const manualSorted = applyOrder(displayArtworks, category);
+    if (manualSorted) {
+        displayArtworks = manualSorted;
+    }
+
+    // 2. Priority Subcategory (Only if "All" is selected)
+    if (selectedSubCategory === 'All') {
+        displayArtworks = getPrioritizedItems(category, displayArtworks);
+    }
 
     if (!currentCategory) return null;
 
@@ -118,8 +199,8 @@ const FullGallery = () => {
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 min-h-[50vh]">
-                    {filteredArtworks.length > 0 ? (
-                        filteredArtworks.map((art) => (
+                    {displayArtworks.length > 0 ? (
+                        displayArtworks.map((art) => (
                             <div
                                 key={art.id}
                                 onClick={() => setSelectedArt(art)}

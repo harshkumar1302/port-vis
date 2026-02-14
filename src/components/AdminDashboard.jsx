@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 // Shared Categories Data (ideally this should be in a shared config file, but keeping here for now)
 const CATEGORIES_DATA = {
-    'Mandala': ['Flower Mandala', 'Creative Mandala', 'Wall Mandala'],
+    'Mandala': ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'],
     'Miniature': ['Miniatures', 'Clay Sets'],
     'Gift Material': ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     'DIY Art': ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
