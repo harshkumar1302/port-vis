@@ -13,7 +13,7 @@ CREATE POLICY "Allow Public Read Access"
 ON public.site_settings FOR SELECT
 USING (true);
 
--- Insert initial showcased_subcategory setting if it doesn't exist
+-- Insert initial category_priorities setting if it doesn't exist
 INSERT INTO public.site_settings (id, value)
-VALUES ('showcased_subcategory', '{"name": null}')
+VALUES ('category_priorities', '{}')
 ON CONFLICT (id) DO NOTHING;

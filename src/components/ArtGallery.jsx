@@ -17,7 +17,7 @@ const ArtGallery = () => {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedArt, setSelectedArt] = useState(null);
-    const [showcasedSubcategory, setShowcasedSubcategory] = useState(null);
+    const [categoryPriorities, setCategoryPriorities] = useState({});
 
     // Embla Carousels
     const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
@@ -38,15 +38,16 @@ const ArtGallery = () => {
 
     const fetchShowcaseSettings = async () => {
         try {
-            const res = await fetch('/api/settings?id=showcased_subcategory');
+            const res = await fetch('/api/settings?id=category_priorities');
             if (res.ok) {
                 const data = await res.json();
-                setShowcasedSubcategory(data.value?.name || null);
+                setCategoryPriorities(data.value || {});
             }
         } catch (err) {
-            console.error('Failed to fetch showcase settings:', err);
+            console.error('Failed to fetch category priorities:', err);
         }
     };
+
 
     const fetchArtworks = async () => {
         try {
@@ -96,6 +97,23 @@ const ArtGallery = () => {
         }
         return result;
     };
+
+    // Helper to sort by priority subcategory
+    const getPrioritizedItems = (catId, items) => {
+        const catMapping = {
+            'mandala': 'Mandala',
+            'miniature': 'Miniature',
+            'gift': 'Gift Material',
+            'diy': 'DIY Art'
+        };
+        const prioritySub = categoryPriorities[catMapping[catId]];
+        if (!prioritySub) return items;
+
+        const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
+        const others = items.filter(art => !art.description?.includes(`[SubCategory: ${prioritySub}]`));
+        return [...prioritized, ...others];
+    };
+
 
     const featuredItems = getFeaturedItems();
     const displayFeatured = getDisplayItems(featuredItems, 8, 5); // Threshold of 5 for highlights
@@ -183,39 +201,26 @@ const ArtGallery = () => {
                     </div>
                 </div>
 
-                {/* 2.5 Showcased Subcategory Section (If set) */}
-                {showcasedSubcategory && (
-                    <div className="mb-24 animate-fade-in-up">
-                        <div className="flex items-center gap-2 mb-8 opacity-60">
-                            <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
-                            <span className="text-xs uppercase tracking-widest font-bold">Featured Collection: {showcasedSubcategory}</span>
-                        </div>
-                        <CategorySlider
-                            cat={{ id: 'showcase', label: showcasedSubcategory }}
-                            items={artworks.filter(art => art.description?.includes(`[SubCategory: ${showcasedSubcategory}]`))}
-                            isEmpty={false}
-                            onCardClick={(item) => setSelectedArt({ ...item, category: showcasedSubcategory })}
-                        />
-                    </div>
-                )}
-
                 {/* 3. Category Sections - Embla Carousels */}
                 <div className="space-y-20">
                     {MAIN_CATEGORIES.map((cat) => {
-                        const items = getCategoryItems(cat.id);
-                        const displayItems = getDisplayItems(items, 8, 5); // Threshold of 5 for categories
+                        const rawItems = getCategoryItems(cat.id);
+                        const prioritizedItems = getPrioritizedItems(cat.id, rawItems);
+                        const displayItems = getDisplayItems(prioritizedItems, 8, 5); // Threshold of 5 for categories
 
                         return (
                             <CategorySlider
                                 key={cat.id}
                                 cat={cat}
                                 items={displayItems}
-                                isEmpty={items.length === 0}
+                                isEmpty={rawItems.length === 0}
                                 onCardClick={(item) => setSelectedArt({ ...item, category: cat.id })}
                             />
                         );
                     })}
                 </div>
+
+
 
             </div>
 

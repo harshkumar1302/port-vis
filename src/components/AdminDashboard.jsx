@@ -49,7 +49,7 @@ const AdminDashboard = () => {
     const [resetSuccess, setResetSuccess] = useState(false);
 
     // Site Settings State
-    const [showcasedSubcategory, setShowcasedSubcategory] = useState('');
+    const [categoryPriorities, setCategoryPriorities] = useState({});
     const [loadingSettings, setLoadingSettings] = useState(false);
 
     // Update sub-category when main category changes
@@ -83,17 +83,17 @@ const AdminDashboard = () => {
 
     const fetchSettings = async () => {
         try {
-            const res = await fetch('/api/settings?id=showcased_subcategory');
+            const res = await fetch('/api/settings?id=category_priorities');
             if (res.ok) {
                 const data = await res.json();
-                setShowcasedSubcategory(data.value?.name || '');
+                setCategoryPriorities(data.value || {});
             }
         } catch (err) {
             console.error('Failed to fetch settings:', err);
         }
     };
 
-    const handleUpdateShowcase = async () => {
+    const handleUpdatePriorities = async () => {
         setLoadingSettings(true);
         try {
             const res = await fetch('/api/settings', {
@@ -101,13 +101,13 @@ const AdminDashboard = () => {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
-                    id: 'showcased_subcategory',
-                    value: { name: showcasedSubcategory || null }
+                    id: 'category_priorities',
+                    value: categoryPriorities
                 })
             });
 
             if (res.ok) {
-                alert('✨ Home page showcase updated!');
+                alert('✨ Category priorities updated!');
             } else {
                 const data = await res.json();
                 alert(`❌ Failed to update: ${data.error}`);
@@ -134,11 +134,23 @@ const AdminDashboard = () => {
         if (!error) setArtworks(data || []);
     };
 
-    // Calculate unique subcategories for the showcase selector
-    const uniqueSubcategories = [...new Set(artworks.map(art => {
+    // Calculate unique subcategories grouped by main category
+    const subcategoriesByMain = artworks.reduce((acc, art) => {
         const subMatch = art.description?.match(/\[SubCategory:\s*(.*?)\]/);
-        return subMatch ? subMatch[1] : null;
-    }).filter(Boolean))].sort();
+        if (subMatch) {
+            const main = art.category;
+            const sub = subMatch[1];
+            if (!acc[main]) acc[main] = new Set();
+            acc[main].add(sub);
+        }
+        return acc;
+    }, {});
+
+    // Convert Sets to sorted Arrays
+    Object.keys(subcategoriesByMain).forEach(key => {
+        subcategoriesByMain[key] = [...subcategoriesByMain[key]].sort();
+    });
+    Riverside
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -798,31 +810,47 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                     {/* Manage List */}
                     <div className="lg:col-span-2">
-                        {/* Showcase Management */}
+                        {/* Priority Management */}
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] mb-8">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Showcase Management</h2>
-                                    <p className="text-xs text-ghibli-charcoal/60">Choose a sub-category to feature at the top of your home page.</p>
-                                </div>
-                                <div className="flex items-center gap-3 w-full sm:w-auto">
-                                    <select
-                                        value={showcasedSubcategory}
-                                        onChange={(e) => setShowcasedSubcategory(e.target.value)}
-                                        className="flex-grow sm:flex-grow-0 p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer"
-                                    >
-                                        <option value="">None (Default)</option>
-                                        {uniqueSubcategories.map(sub => (
-                                            <option key={sub} value={sub}>{sub}</option>
-                                        ))}
-                                    </select>
+                            <div className="flex flex-col gap-6">
+                                <div className="flex justify-between items-center bg-white/30 p-4 -m-4 sm:-m-6 sm:p-6 mb-2 rounded-t-[1.8rem] border-b border-ghibli-wood/10">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Category Priorities</h2>
+                                        <p className="text-xs text-ghibli-charcoal/60">Choose a sub-category to show first in each section.</p>
+                                    </div>
                                     <button
-                                        onClick={handleUpdateShowcase}
+                                        onClick={handleUpdatePriorities}
                                         disabled={loadingSettings}
-                                        className="px-6 py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all disabled:opacity-50 active:scale-95"
+                                        className="px-6 py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all disabled:opacity-50 active:scale-95 shadow-lg flex items-center gap-2"
                                     >
-                                        {loadingSettings ? 'Saving...' : 'Save'}
+                                        {loadingSettings ? (
+                                            <span className="animate-spin text-sm">⏳</span>
+                                        ) : '✨'}
+                                        {loadingSettings ? 'Saving...' : 'Save Priorities'}
                                     </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {Object.keys(CATEGORIES_DATA).map(mainCat => (
+                                        <div key={mainCat} className="flex flex-col gap-2 p-4 rounded-2xl bg-white/20 border border-white/40 shadow-sm">
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-ghibli-wood/60">
+                                                {mainCat} Collection
+                                            </label>
+                                            <select
+                                                value={categoryPriorities[mainCat] || ''}
+                                                onChange={(e) => setCategoryPriorities({
+                                                    ...categoryPriorities,
+                                                    [mainCat]: e.target.value
+                                                })}
+                                                className="w-full p-2.5 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer text-sm"
+                                            >
+                                                <option value="">No Priority (Newest First)</option>
+                                                {subcategoriesByMain[mainCat]?.map(sub => (
+                                                    <option key={sub} value={sub}>{sub}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
