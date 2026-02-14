@@ -93,7 +93,7 @@ const ArtGallery = () => {
     // Helper to get items for a category
     const getCategoryItems = (catLabel) => {
         return artworks.filter(art =>
-            art.category === catLabel &&
+            art.category?.trim().toLowerCase() === catLabel?.trim().toLowerCase() &&
             !art.category?.toLowerCase().includes('upcoming') &&
             !art.description?.includes('[FEATURED]') &&
             !art.title?.includes('[FEATURED]')

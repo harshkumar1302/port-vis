@@ -179,9 +179,12 @@ const AdminDashboard = () => {
 
     // Update sub-category when main category changes
     useEffect(() => {
-        const catDef = categoryDefinitions.find(c => c.label === category);
+        const catDef = categoryDefinitions.find(c => c.label?.trim().toLowerCase() === category?.trim().toLowerCase());
         if (catDef && catDef.subCategories?.length > 0) {
-            setSubCategory(catDef.subCategories[0]);
+            // Only auto-set if current subCategory isn't valid for this category
+            if (!catDef.subCategories.includes(subCategory)) {
+                setSubCategory(catDef.subCategories[0]);
+            }
         } else {
             setSubCategory('');
         }
@@ -989,7 +992,10 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
                                             <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                                {categoryDefinitions.find(c => c.label === category)?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                                {(() => {
+                                                    const catDef = categoryDefinitions.find(c => c.label?.trim().toLowerCase() === category?.trim().toLowerCase());
+                                                    return catDef?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>) || <option value="">No subcategories</option>;
+                                                })()}
                                             </select>
                                         </div>
                                     </div>
@@ -1310,8 +1316,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                                         {/* Uncategorized / Unknown Section */}
                                         {(() => {
-                                            const knownCategories = [...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'];
-                                            const uncategorizedItems = artworks.filter(a => !knownCategories.includes(a.category));
+                                            const knownLabels = [...categoryDefinitions.map(c => c.label?.trim().toLowerCase()), 'upcoming', 'featured'];
+                                            const uncategorizedItems = artworks.filter(a => !knownLabels.includes(a.category?.trim().toLowerCase()));
                                             if (uncategorizedItems.length === 0) return null;
 
                                             return (

@@ -83,7 +83,7 @@ const FullGallery = () => {
         if (!category) return false;
 
         // 1. Main Category Match
-        const catMatch = art.category === currentCategory.label;
+        const catMatch = art.category?.trim().toLowerCase() === currentCategory.label?.trim().toLowerCase();
         if (!catMatch) return false;
 
         // 2. Sub-Category Match
