@@ -4,9 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
 // --- Constants (Shared with ArtGallery) ---
-// --- Constants ---
-// Categories will be fetched dynamically
+const MAIN_CATEGORIES = [
+    { id: 'mandala', label: 'Mandala Art' },
+    { id: 'miniature', label: 'Miniatures' },
+    { id: 'gift', label: 'Gift Material' },
+    { id: 'diy', label: 'DIY Art' },
+];
 
+const SUB_CATEGORIES = {
+    mandala: ['All', 'Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'],
+    miniature: ['All', 'Miniatures', 'Clay Sets'],
+    gift: ['All', 'Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
+    diy: ['All', 'Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
+};
 
 const FullGallery = () => {
     const { category } = useParams();
@@ -17,48 +27,28 @@ const FullGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
-    const [categoriesData, setCategoriesData] = useState({});
-    const [configLoaded, setConfigLoaded] = useState(false);
 
     // Validate category
-    // Logic updated to check against fetched categoriesData
-    const currentCategoryLabel = category; // We assume category param is the label/ID 
-    const isValidCategory = categoriesData && Object.prototype.hasOwnProperty.call(categoriesData, category);
+    const currentCategory = MAIN_CATEGORIES.find(c => c.id === category);
 
     useEffect(() => {
-        fetchSettingsAndCategories();
-        fetchArtworks();
-        window.scrollTo(0, 0);
-    }, [category]);
-
-    // Check validity ONLY after config is loaded
-    useEffect(() => {
-        if (configLoaded && !isValidCategory) {
-            console.warn(`Invalid category: ${category}`);
+        if (!currentCategory) {
             navigate('/');
+            return;
         }
-    }, [configLoaded, isValidCategory, category, navigate]);
+        fetchArtworks();
+        fetchSettings();
+        window.scrollTo(0, 0);
+    }, [category, navigate, currentCategory]);
 
-
-    const fetchSettingsAndCategories = async () => {
+    const fetchSettings = async () => {
         try {
-            // Fetch Categories Config
-            const resCats = await fetch('/api/settings?id=categories_config');
-            if (resCats.ok) {
-                const data = await resCats.json();
-                if (data.value) {
-                    setCategoriesData(data.value);
-                }
-            }
-
-            // Fetch Priorities
             const res = await fetch('/api/settings?id=category_priorities');
             if (res.ok) {
                 const data = await res.json();
                 setCategoryPriorities(data.value || {});
             }
 
-            // Fetch Orders
             const resOrder = await fetch('/api/settings?id=artwork_orders');
             if (resOrder.ok) {
                 const data = await resOrder.json();
@@ -66,8 +56,6 @@ const FullGallery = () => {
             }
         } catch (err) {
             console.error('Failed to fetch settings:', err);
-        } finally {
-            setConfigLoaded(true);
         }
     };
 
@@ -108,8 +96,13 @@ const FullGallery = () => {
     });
 
     const getPrioritizedItems = (catId, items) => {
-        // catId is now the key itself
-        const prioritySub = categoryPriorities[catId];
+        const catMapping = {
+            'mandala': 'Mandala',
+            'miniature': 'Miniature',
+            'gift': 'Gift Material',
+            'diy': 'DIY Art'
+        };
+        const prioritySub = categoryPriorities[catMapping[catId]];
         if (!prioritySub) return items;
 
         const prioritized = items.filter(art => art.description?.includes(`[SubCategory: ${prioritySub}]`));
@@ -118,8 +111,13 @@ const FullGallery = () => {
     };
 
     const applyOrder = (items, category) => {
-        // category is the key
-        const orderKey = category;
+        const catMapping = {
+            'mandala': 'Mandala',
+            'miniature': 'Miniature',
+            'gift': 'Gift Material',
+            'diy': 'DIY Art'
+        };
+        const orderKey = catMapping[category];
         const order = artworkOrders[orderKey] || [];
         if (order.length === 0) return null;
 
@@ -157,10 +155,7 @@ const FullGallery = () => {
         displayArtworks = getPrioritizedItems(category, displayArtworks);
     }
 
-    if (!configLoaded) return <div className="min-h-screen bg-ghibli-cream/30 flex items-center justify-center">Loading...</div>;
-    if (!isValidCategory) return null;
-
-    const currentSubCategories = ['All', ...(categoriesData[category] || [])];
+    if (!currentCategory) return null;
 
     return (
         <div className="min-h-screen bg-ghibli-cream/30 pt-32 pb-24 px-4 md:px-8">
@@ -177,17 +172,17 @@ const FullGallery = () => {
                 {/* Header */}
                 <div className="mb-12">
                     <h1 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif mb-4">
-                        {category} Collection
+                        {currentCategory.label} Collection
                     </h1>
                     <p className="text-ghibli-charcoal/60 max-w-2xl text-lg">
-                        A curated selection of {category.toLowerCase()} pieces, each telling a story of patience and craftsmanship.
+                        A curated selection of {currentCategory.label.toLowerCase()} pieces, each telling a story of patience and craftsmanship.
                     </p>
                 </div>
 
                 {/* Sub-Category Tabs (Sticky) */}
                 <div className="sticky top-24 z-30 bg-ghibli-cream/95 backdrop-blur-sm -mx-4 px-4 md:-mx-8 md:px-8 py-4 mb-12 border-b border-ghibli-wood/10">
                     <div className="flex overflow-x-auto gap-3 no-scrollbar max-w-7xl mx-auto">
-                        {currentSubCategories.map((sub) => (
+                        {SUB_CATEGORIES[category]?.map((sub) => (
                             <button
                                 key={sub}
                                 onClick={() => setSelectedSubCategory(sub)}
