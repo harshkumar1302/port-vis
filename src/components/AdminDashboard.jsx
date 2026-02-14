@@ -254,6 +254,7 @@ const AdminDashboard = () => {
     // Site Settings State
     const [categoriesData, setCategoriesData] = useState(DEFAULT_CATEGORIES_DATA);
     const [loadingCategories, setLoadingCategories] = useState(false);
+    const [categorySaveStatus, setCategorySaveStatus] = useState('idle'); // 'idle', 'saving', 'saved', 'error'
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
     const [loadingSettings, setLoadingSettings] = useState(false);
@@ -359,8 +360,9 @@ const AdminDashboard = () => {
     };
 
     const saveCategories = async (newData) => {
+        setCategorySaveStatus('saving');
         try {
-            await fetch('/api/settings', {
+            const res = await fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -369,9 +371,18 @@ const AdminDashboard = () => {
                     value: newData
                 })
             });
+
+            if (res.ok) {
+                setCategorySaveStatus('saved');
+                setTimeout(() => setCategorySaveStatus('idle'), 2000);
+            } else {
+                setCategorySaveStatus('error');
+                setTimeout(() => setCategorySaveStatus('idle'), 3000);
+            }
         } catch (err) {
             console.error('Failed to save categories:', err);
-            alert('Failed to save category changes to server');
+            setCategorySaveStatus('error');
+            setTimeout(() => setCategorySaveStatus('idle'), 3000);
         }
     };
 
@@ -1366,7 +1377,38 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             {activeTab === 'categories' ? (
                                 <div className="space-y-6">
                                     <div className="bg-ghibli-wood/5 p-6 rounded-2xl border border-ghibli-wood/10">
-                                        <h3 className="text-lg font-bold text-ghibli-wood mb-4">Add Main Category</h3>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-lg font-bold text-ghibli-wood">Add Main Category</h3>
+                                            {categorySaveStatus !== 'idle' && (
+                                                <div className="flex items-center gap-2 text-sm font-medium">
+                                                    {categorySaveStatus === 'saving' && (
+                                                        <>
+                                                            <svg className="animate-spin h-4 w-4 text-ghibli-wood" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                            <span className="text-ghibli-wood">Saving...</span>
+                                                        </>
+                                                    )}
+                                                    {categorySaveStatus === 'saved' && (
+                                                        <>
+                                                            <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                            </svg>
+                                                            <span className="text-green-600">Saved!</span>
+                                                        </>
+                                                    )}
+                                                    {categorySaveStatus === 'error' && (
+                                                        <>
+                                                            <svg className="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                            </svg>
+                                                            <span className="text-red-600">Error saving</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                         <form onSubmit={handleAddMainCategory} className="flex gap-4">
                                             <input
                                                 type="text"
