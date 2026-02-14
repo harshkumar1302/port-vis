@@ -20,8 +20,8 @@ import { CSS } from '@dnd-kit/utilities';
 
 // Default Categories Data - Used for initial setup if DB is empty
 const DEFAULT_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
-    { id: 'miniature', label: 'Miniature', subCategories: ['Miniatures', 'Clay Sets'] },
+    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
+    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
     { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
     { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
 ];
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
     // Artwork form state
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
-    const [category, setCategory] = useState('Mandala');
+    const [category, setCategory] = useState('');
     const [subCategory, setSubCategory] = useState('');
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -217,6 +217,11 @@ const AdminDashboard = () => {
                 const data = await resCat.json();
                 if (data.value && Array.isArray(data.value) && data.value.length > 0) {
                     setCategoryDefinitions(data.value);
+                    // Initialize category/subcategory if not set
+                    setCategory(prev => {
+                        if (prev && data.value.some(c => c.label === prev)) return prev;
+                        return data.value[0].label;
+                    });
                 } else {
                     // Initialize with defaults if empty
                     setCategoryDefinitions(DEFAULT_CATEGORIES);
