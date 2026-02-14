@@ -172,6 +172,16 @@ const AdminDashboard = () => {
     const [newCategoryLabel, setNewCategoryLabel] = useState('');
     const [editingCategory, setEditingCategory] = useState(null);
 
+    // Collapsible Sections State
+    const [collapsedSections, setCollapsedSections] = useState({});
+
+    const toggleSection = (sectionId) => {
+        setCollapsedSections(prev => ({
+            ...prev,
+            [sectionId]: !prev[sectionId]
+        }));
+    };
+
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), // 5px movement required for drag
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -1299,6 +1309,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             <div className="space-y-10 pl-2">
                                                 {categoryDefinitions.map(catDef => {
                                                     const catLabel = catDef.label;
+                                                    const isCatCollapsed = collapsedSections[catLabel];
                                                     const catItems = artworks.filter(a => {
                                                         const isMatch = a.category?.trim().toLowerCase() === catLabel?.trim().toLowerCase() ||
                                                             a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase();
@@ -1330,38 +1341,62 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                                                     return (
                                                         <div key={catLabel} className="space-y-6">
-                                                            <h4 className="flex items-center gap-2 text-xs font-black text-ghibli-wood uppercase tracking-[0.3em] bg-ghibli-wood/5 p-3 rounded-xl border border-ghibli-wood/10">
+                                                            <button
+                                                                onClick={() => toggleSection(catLabel)}
+                                                                className="w-full flex items-center gap-2 text-xs font-black text-ghibli-wood uppercase tracking-[0.3em] bg-ghibli-wood/5 p-3 rounded-xl border border-ghibli-wood/10 hover:bg-ghibli-wood/10 transition-all text-left"
+                                                            >
+                                                                <span className={`transition-transform duration-300 ${isCatCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                                        <path d="M6 9l6 6 6-6" />
+                                                                    </svg>
+                                                                </span>
                                                                 <span className="w-1.5 h-1.5 rounded-full bg-ghibli-wood"></span>
                                                                 {catLabel}
                                                                 <span className="ml-auto text-[9px] opacity-40">{catItems.length} items</span>
-                                                            </h4>
+                                                            </button>
 
-                                                            <div className="space-y-8 pl-4 border-l border-ghibli-wood/10">
-                                                                {Object.entries(subGroups).map(([subLabel, subItems]) => (
-                                                                    <div key={subLabel}>
-                                                                        <h5 className="text-[10px] font-bold text-ghibli-wood/40 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                            <span className="w-3 h-[1px] bg-ghibli-wood/20"></span>
-                                                                            {subLabel} ({subItems.length})
-                                                                        </h5>
-                                                                        <SortableContext
-                                                                            items={subItems.map(a => a.id)}
-                                                                            strategy={verticalListSortingStrategy}
-                                                                        >
-                                                                            <div className="space-y-4">
-                                                                                {subItems.map(art => (
-                                                                                    <SortableArtworkRow
-                                                                                        key={art.id}
-                                                                                        art={art}
-                                                                                        isFeatured={false}
-                                                                                        handleEdit={handleEdit}
-                                                                                        handleDelete={handleDelete}
-                                                                                    />
-                                                                                ))}
+                                                            {!isCatCollapsed && (
+                                                                <div className="space-y-8 pl-4 border-l border-ghibli-wood/10 transition-all">
+                                                                    {Object.entries(subGroups).map(([subLabel, subItems]) => {
+                                                                        const subKey = `${catLabel}-${subLabel}`;
+                                                                        const isSubCollapsed = collapsedSections[subKey];
+                                                                        return (
+                                                                            <div key={subLabel}>
+                                                                                <button
+                                                                                    onClick={() => toggleSection(subKey)}
+                                                                                    className="w-full text-[10px] font-bold text-ghibli-wood/40 uppercase tracking-widest mb-4 flex items-center gap-2 hover:text-ghibli-wood/60 transition-colors text-left"
+                                                                                >
+                                                                                    <span className={`transition-transform duration-300 ${isSubCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                                                                                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                                                            <path d="M6 9l6 6 6-6" />
+                                                                                        </svg>
+                                                                                    </span>
+                                                                                    <span className="w-3 h-[1px] bg-ghibli-wood/20"></span>
+                                                                                    {subLabel} ({subItems.length})
+                                                                                </button>
+                                                                                {!isSubCollapsed && (
+                                                                                    <SortableContext
+                                                                                        items={subItems.map(a => a.id)}
+                                                                                        strategy={verticalListSortingStrategy}
+                                                                                    >
+                                                                                        <div className="space-y-4">
+                                                                                            {subItems.map(art => (
+                                                                                                <SortableArtworkRow
+                                                                                                    key={art.id}
+                                                                                                    art={art}
+                                                                                                    isFeatured={false}
+                                                                                                    handleEdit={handleEdit}
+                                                                                                    handleDelete={handleDelete}
+                                                                                                />
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </SortableContext>
+                                                                                )}
                                                                             </div>
-                                                                        </SortableContext>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
@@ -1370,104 +1405,124 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                                         {/* ⭐ FEATURED SECTION */}
                                         <div className="space-y-8 mt-16 pt-12 border-t-2 border-dashed border-ghibli-wood/10">
-                                            <div className="flex items-center gap-3 pb-2 border-b-2 border-yellow-500/10">
+                                            <button
+                                                onClick={() => toggleSection('Featured')}
+                                                className="w-full flex items-center gap-3 pb-2 border-b-2 border-yellow-500/10 hover:bg-yellow-500/5 transition-colors text-left"
+                                            >
                                                 <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-white flex items-center justify-center text-xl shadow-lg shadow-yellow-400/20">⭐</div>
                                                 <div>
                                                     <h3 className="text-lg font-bold text-ghibli-navy leading-none">Featured Artworks</h3>
                                                     <p className="text-[10px] text-yellow-600/60 font-bold uppercase tracking-widest mt-1">Highlighted highlights</p>
                                                 </div>
-                                            </div>
+                                                <span className={`ml-auto transition-transform duration-300 ${collapsedSections['Featured'] ? '-rotate-90' : 'rotate-0'}`}>
+                                                    <svg className="w-6 h-6 text-yellow-500/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M6 9l6 6 6-6" />
+                                                    </svg>
+                                                </span>
+                                            </button>
 
-                                            <div className="space-y-4 pt-2">
-                                                {(() => {
-                                                    const featuredItems = artworks.filter(a => a.category === 'Featured' || a.description?.includes('[FEATURED]'));
-                                                    if (featuredItems.length === 0) return (
-                                                        <div className="p-8 text-center bg-yellow-500/5 rounded-3xl border border-dashed border-yellow-500/10">
-                                                            <p className="text-[10px] font-bold text-yellow-600/40 uppercase tracking-[0.2em]">No featured items yet</p>
-                                                        </div>
-                                                    );
-
-                                                    const order = artworkOrders['Featured'] || [];
-                                                    const sortedItems = [...featuredItems].sort((a, b) => {
-                                                        const indexA = order.indexOf(a.id);
-                                                        const indexB = order.indexOf(b.id);
-                                                        const posA = indexA === -1 ? -Infinity : indexA;
-                                                        const posB = indexB === -1 ? -Infinity : indexB;
-                                                        if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
-                                                        return posA - posB;
-                                                    });
-
-                                                    return (
-                                                        <SortableContext
-                                                            items={sortedItems.map(a => a.id)}
-                                                            strategy={verticalListSortingStrategy}
-                                                        >
-                                                            <div className="space-y-4">
-                                                                {sortedItems.map(art => (
-                                                                    <SortableArtworkRow
-                                                                        key={art.id}
-                                                                        art={art}
-                                                                        isFeatured={true}
-                                                                        handleEdit={handleEdit}
-                                                                        handleDelete={handleDelete}
-                                                                    />
-                                                                ))}
+                                            {!collapsedSections['Featured'] && (
+                                                <div className="space-y-4 pt-2">
+                                                    {(() => {
+                                                        const featuredItems = artworks.filter(a => a.category === 'Featured' || a.description?.includes('[FEATURED]'));
+                                                        if (featuredItems.length === 0) return (
+                                                            <div className="p-8 text-center bg-yellow-500/5 rounded-3xl border border-dashed border-yellow-500/10">
+                                                                <p className="text-[10px] font-bold text-yellow-600/40 uppercase tracking-[0.2em]">No featured items yet</p>
                                                             </div>
-                                                        </SortableContext>
-                                                    );
-                                                })()}
-                                            </div>
+                                                        );
+
+                                                        const order = artworkOrders['Featured'] || [];
+                                                        const sortedItems = [...featuredItems].sort((a, b) => {
+                                                            const indexA = order.indexOf(a.id);
+                                                            const indexB = order.indexOf(b.id);
+                                                            const posA = indexA === -1 ? -Infinity : indexA;
+                                                            const posB = indexB === -1 ? -Infinity : indexB;
+                                                            if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
+                                                            return posA - posB;
+                                                        });
+
+                                                        return (
+                                                            <SortableContext
+                                                                items={sortedItems.map(a => a.id)}
+                                                                strategy={verticalListSortingStrategy}
+                                                            >
+                                                                <div className="space-y-4">
+                                                                    {sortedItems.map(art => (
+                                                                        <SortableArtworkRow
+                                                                            key={art.id}
+                                                                            art={art}
+                                                                            isFeatured={true}
+                                                                            handleEdit={handleEdit}
+                                                                            handleDelete={handleDelete}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </SortableContext>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* ⏳ UPCOMING SECTION */}
                                         <div className="space-y-8 mt-16 pt-12 border-t-2 border-dashed border-ghibli-wood/10">
-                                            <div className="flex items-center gap-3 pb-2 border-b-2 border-blue-500/10">
+                                            <button
+                                                onClick={() => toggleSection('Upcoming')}
+                                                className="w-full flex items-center gap-3 pb-2 border-b-2 border-blue-500/10 hover:bg-blue-500/5 transition-colors text-left"
+                                            >
                                                 <div className="w-10 h-10 rounded-2xl bg-blue-400 text-white flex items-center justify-center text-xl shadow-lg shadow-blue-400/20">⏳</div>
                                                 <div>
                                                     <h3 className="text-lg font-bold text-ghibli-navy leading-none">Upcoming Releases</h3>
                                                     <p className="text-[10px] text-blue-600/60 font-bold uppercase tracking-widest mt-1">Soon to be published</p>
                                                 </div>
-                                            </div>
+                                                <span className={`ml-auto transition-transform duration-300 ${collapsedSections['Upcoming'] ? '-rotate-90' : 'rotate-0'}`}>
+                                                    <svg className="w-6 h-6 text-blue-500/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M6 9l6 6 6-6" />
+                                                    </svg>
+                                                </span>
+                                            </button>
 
-                                            <div className="space-y-4 pt-2">
-                                                {(() => {
-                                                    const upcomingItems = artworks.filter(a => a.category === 'Upcoming');
-                                                    if (upcomingItems.length === 0) return (
-                                                        <div className="p-8 text-center bg-blue-500/5 rounded-3xl border border-dashed border-blue-500/10">
-                                                            <p className="text-[10px] font-bold text-blue-600/40 uppercase tracking-[0.2em]">No upcoming items scheduled</p>
-                                                        </div>
-                                                    );
-
-                                                    const order = artworkOrders['Upcoming'] || [];
-                                                    const sortedItems = [...upcomingItems].sort((a, b) => {
-                                                        const indexA = order.indexOf(a.id);
-                                                        const indexB = order.indexOf(b.id);
-                                                        const posA = indexA === -1 ? -Infinity : indexA;
-                                                        const posB = indexB === -1 ? -Infinity : indexB;
-                                                        if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
-                                                        return posA - posB;
-                                                    });
-
-                                                    return (
-                                                        <SortableContext
-                                                            items={sortedItems.map(a => a.id)}
-                                                            strategy={verticalListSortingStrategy}
-                                                        >
-                                                            <div className="space-y-4">
-                                                                {sortedItems.map(art => (
-                                                                    <SortableArtworkRow
-                                                                        key={art.id}
-                                                                        art={art}
-                                                                        isFeatured={false}
-                                                                        handleEdit={handleEdit}
-                                                                        handleDelete={handleDelete}
-                                                                    />
-                                                                ))}
+                                            {!collapsedSections['Upcoming'] && (
+                                                <div className="space-y-4 pt-2">
+                                                    {(() => {
+                                                        const upcomingItems = artworks.filter(a => a.category === 'Upcoming');
+                                                        if (upcomingItems.length === 0) return (
+                                                            <div className="p-8 text-center bg-blue-500/5 rounded-3xl border border-dashed border-blue-500/10">
+                                                                <p className="text-[10px] font-bold text-blue-600/40 uppercase tracking-[0.2em]">No upcoming items scheduled</p>
                                                             </div>
-                                                        </SortableContext>
-                                                    );
-                                                })()}
-                                            </div>
+                                                        );
+
+                                                        const order = artworkOrders['Upcoming'] || [];
+                                                        const sortedItems = [...upcomingItems].sort((a, b) => {
+                                                            const indexA = order.indexOf(a.id);
+                                                            const indexB = order.indexOf(b.id);
+                                                            const posA = indexA === -1 ? -Infinity : indexA;
+                                                            const posB = indexB === -1 ? -Infinity : indexB;
+                                                            if (posA === posB) return new Date(b.created_at) - new Date(a.created_at);
+                                                            return posA - posB;
+                                                        });
+
+                                                        return (
+                                                            <SortableContext
+                                                                items={sortedItems.map(a => a.id)}
+                                                                strategy={verticalListSortingStrategy}
+                                                            >
+                                                                <div className="space-y-4">
+                                                                    {sortedItems.map(art => (
+                                                                        <SortableArtworkRow
+                                                                            key={art.id}
+                                                                            art={art}
+                                                                            isFeatured={false}
+                                                                            handleEdit={handleEdit}
+                                                                            handleDelete={handleDelete}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </SortableContext>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Uncategorized / Unknown Section */}
