@@ -12,7 +12,7 @@ const MAIN_CATEGORIES = [
 ];
 
 const SUB_CATEGORIES = {
-    mandala: ['All', 'Generic Mandala', 'Wall Mandala'],
+    mandala: ['All', 'Flower Mandala', 'Generic Mandala', 'Wall Mandala'],
     miniature: ['All', 'Miniatures', 'Clay Sets'],
     gift: ['All', 'Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'],
     diy: ['All', 'Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'],
