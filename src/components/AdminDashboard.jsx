@@ -522,14 +522,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         </button>
                                     </div>
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95">
+                                <button type="submit" disabled={loading} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4 active:scale-95 disabled:opacity-50">
                                     {loading ? 'Logging in...' : 'Enter Studio'}
                                 </button>
                                 <div className="text-center mt-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowForgotModal(true)}
-                                        className="text-sm text-ghibli-wood hover:underline font-bold"
+                                        className="text-sm text-ghibli-wood hover:text-ghibli-navy underline font-bold transition-colors active:scale-95"
                                     >
                                         Forgot Password?
                                     </button>
@@ -691,21 +691,21 @@ Check your internet connection. If this is on Vercel, please ensure you have run
     return (
         <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream transition-colors duration-500">
             <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 sm:gap-0">
-                    <div className="flex flex-col">
-                        <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                    <div className="flex flex-col w-full sm:w-auto">
+                        <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group active:scale-95">
                             <span className="group-hover:-translate-x-1 transition-transform">←</span> Exit to Site
                         </a>
                         <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
                         <button
                             onClick={() => setShowChangePassword(true)}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
                         >
-                            <span>⚙️</span> Reset Password
+                            <span>⚙️</span> <span className="hidden xs:inline">Reset Password</span><span className="xs:hidden">Settings</span>
                         </button>
-                        <button onClick={handleSignOut} className="w-full sm:w-auto px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+                        <button onClick={handleSignOut} className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
                             <span>🚪</span> Sign Out
                         </button>
                     </div>
@@ -718,7 +718,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-bold text-ghibli-navy">{editingId ? 'Edit Artwork' : 'New Creation'}</h2>
                                 {editingId && (
-                                    <button onClick={resetForm} className="text-[10px] font-bold text-red-500 uppercase tracking-widest hover:underline">Cancel</button>
+                                    <button onClick={resetForm} className="text-[10px] font-bold text-red-500 uppercase tracking-widest hover:text-red-600 transition-colors active:scale-90">Cancel</button>
                                 )}
                             </div>
 
@@ -800,7 +800,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     </div>
                                 </div>
 
-                                <button disabled={uploading} className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg hover:-translate-y-1 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'}`}>
+                                <button disabled={uploading} className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 ${success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'}`}>
                                     {uploading ? 'Processing...' : success ? '✨ Done!' : editingId ? '✨ Update Artwork' : `✨ Add to ${uploadType === 'upcoming' ? 'Upcoming Art' : uploadType === 'featured' ? 'Highlights' : 'Gallery'}`}
                                 </button>
                             </form>
@@ -892,26 +892,28 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                     </div>
                                                     <h3 className="font-bold text-ghibli-charcoal truncate">{art.title || 'Untitled'}</h3>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
                                                     <button
                                                         onClick={() => handleEdit(art)}
-                                                        className="p-3 text-ghibli-wood/60 hover:text-ghibli-wood hover:bg-ghibli-wood/10 rounded-xl transition-all flex items-center justify-center"
+                                                        className="flex-1 sm:flex-none p-3 text-ghibli-wood/60 hover:text-ghibli-wood hover:bg-ghibli-wood/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-ghibli-wood/10"
                                                         title="Edit artwork"
                                                     >
                                                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                             <path d="M12 20h9" />
                                                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                                                         </svg>
+                                                        <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Edit</span>
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(art)}
-                                                        className="p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center"
+                                                        className="flex-1 sm:flex-none p-3 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center active:scale-90 border border-transparent hover:border-red-500/10"
                                                         title="Delete artwork"
                                                     >
                                                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                             <path d="M3 6h18" />
                                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                                         </svg>
+                                                        <span className="text-[10px] font-bold uppercase ml-2 sm:hidden tracking-widest">Delete</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -935,7 +937,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                 setNewPassword('');
                                 setConfirmNewPassword('');
                             }}
-                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl"
+                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
                         >
                             ✕
                         </button>
@@ -1043,7 +1045,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6"
+                                className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
                             >
                                 Update Password
                             </button>
