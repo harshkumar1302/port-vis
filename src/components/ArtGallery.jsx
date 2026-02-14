@@ -92,12 +92,15 @@ const ArtGallery = () => {
 
     // Helper to get items for a category
     const getCategoryItems = (catLabel) => {
-        return artworks.filter(art =>
-            art.category?.trim().toLowerCase() === catLabel?.trim().toLowerCase() &&
-            !art.category?.toLowerCase().includes('upcoming') &&
-            !art.description?.includes('[FEATURED]') &&
-            !art.title?.includes('[FEATURED]')
-        );
+        const catDef = categories.find(c => c.label === catLabel);
+        return artworks.filter(art => {
+            const artCat = art.category?.trim().toLowerCase();
+            const matches = artCat === catLabel?.trim().toLowerCase() || (catDef && artCat === catDef.id?.trim().toLowerCase());
+            return matches &&
+                !art.category?.toLowerCase().includes('upcoming') &&
+                !art.description?.includes('[FEATURED]') &&
+                !art.title?.includes('[FEATURED]')
+        });
     };
 
     // Helper to get Featured items

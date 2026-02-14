@@ -179,7 +179,10 @@ const AdminDashboard = () => {
 
     // Update sub-category when main category changes
     useEffect(() => {
-        const catDef = categoryDefinitions.find(c => c.label?.trim().toLowerCase() === category?.trim().toLowerCase());
+        const catDef = categoryDefinitions.find(c =>
+            c.label?.trim().toLowerCase() === category?.trim().toLowerCase() ||
+            c.id?.trim().toLowerCase() === category?.trim().toLowerCase()
+        );
         if (catDef && catDef.subCategories?.length > 0) {
             // Only auto-set if current subCategory isn't valid for this category
             if (!catDef.subCategories.includes(subCategory)) {
@@ -998,7 +1001,10 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
                                             <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
                                                 {(() => {
-                                                    const catDef = categoryDefinitions.find(c => c.label?.trim().toLowerCase() === category?.trim().toLowerCase());
+                                                    const catDef = categoryDefinitions.find(c =>
+                                                        c.label?.trim().toLowerCase() === category?.trim().toLowerCase() ||
+                                                        c.id?.trim().toLowerCase() === category?.trim().toLowerCase()
+                                                    );
                                                     return catDef?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>) || <option value="">No subcategories</option>;
                                                 })()}
                                             </select>
@@ -1272,12 +1278,19 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         collisionDetection={closestCenter}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        {[...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'].map(category => {
-                                            const catItems = artworks.filter(a => a.category === category);
+                                        {[...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'].map(catLabel => {
+                                            const catDef = categoryDefinitions.find(c => c.label === catLabel);
+                                            const catItems = artworks.filter(a => {
+                                                if (catLabel === 'Upcoming' || catLabel === 'Featured') return a.category === catLabel;
+                                                return (
+                                                    a.category?.trim().toLowerCase() === catDef?.label?.trim().toLowerCase() ||
+                                                    a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase()
+                                                );
+                                            });
                                             if (catItems.length === 0) return null;
 
                                             // Apply sorting
-                                            const order = artworkOrders[category] || [];
+                                            const order = artworkOrders[catLabel] || [];
                                             const sortedItems = [...catItems].sort((a, b) => {
                                                 const indexA = order.indexOf(a.id);
                                                 const indexB = order.indexOf(b.id);
@@ -1321,7 +1334,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                                         {/* Uncategorized / Unknown Section */}
                                         {(() => {
-                                            const knownLabels = [...categoryDefinitions.map(c => c.label?.trim().toLowerCase()), 'upcoming', 'featured'];
+                                            const knownLabels = [...categoryDefinitions.map(c => c.label?.trim().toLowerCase()), ...categoryDefinitions.map(c => c.id?.trim().toLowerCase()), 'upcoming', 'featured'];
                                             const uncategorizedItems = artworks.filter(a => !knownLabels.includes(a.category?.trim().toLowerCase()));
                                             if (uncategorizedItems.length === 0) return null;
 
