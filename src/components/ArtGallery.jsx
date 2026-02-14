@@ -6,11 +6,10 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { supabase } from '../lib/supabaseClient';
 
 // --- Constants ---
-// Categories now loaded dynamically from DB
-// Initial fallback categories
+// Default Categories Data - Used for initial setup if DB is empty
 const FALLBACK_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art' },
-    { id: 'miniature', label: 'Miniatures' },
+    { id: 'mandala', label: 'Mandala' },
+    { id: 'miniature', label: 'Miniature' },
     { id: 'gift', label: 'Gift Material' },
     { id: 'diy', label: 'DIY Art' },
 ];

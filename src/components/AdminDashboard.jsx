@@ -20,8 +20,8 @@ import { CSS } from '@dnd-kit/utilities';
 
 // Default Categories Data - Used for initial setup if DB is empty
 const DEFAULT_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
-    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
+    { id: 'mandala', label: 'Mandala', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
+    { id: 'miniature', label: 'Miniature', subCategories: ['Miniatures', 'Clay Sets'] },
     { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
     { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
 ];
@@ -1307,6 +1307,40 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 </div>
                                             );
                                         })}
+
+                                        {/* Uncategorized / Unknown Section */}
+                                        {(() => {
+                                            const knownCategories = [...categoryDefinitions.map(c => c.label), 'Upcoming', 'Featured'];
+                                            const uncategorizedItems = artworks.filter(a => !knownCategories.includes(a.category));
+                                            if (uncategorizedItems.length === 0) return null;
+
+                                            return (
+                                                <div className="mt-12 pt-8 border-t-2 border-dashed border-ghibli-wood/10">
+                                                    <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-2xl mb-6">
+                                                        <h3 className="text-sm font-bold text-yellow-700 uppercase tracking-widest flex items-center gap-2">
+                                                            ⚠️ Action Required: Uncategorized Items ({uncategorizedItems.length})
+                                                        </h3>
+                                                        <p className="text-[10px] text-yellow-600 font-bold mt-1 uppercase tracking-tight">
+                                                            These items have categories that don't match your current definitions. Edit them to correctly assign them.
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        {uncategorizedItems.map(art => {
+                                                            const isFeatured = art.description?.includes('[FEATURED]') || art.title?.includes('[FEATURED]');
+                                                            return (
+                                                                <SortableArtworkRow
+                                                                    key={art.id}
+                                                                    art={art}
+                                                                    isFeatured={isFeatured}
+                                                                    handleEdit={handleEdit}
+                                                                    handleDelete={handleDelete}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </DndContext>
                                 )}
                             </div>
