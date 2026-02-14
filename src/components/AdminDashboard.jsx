@@ -1329,8 +1329,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
             {/* Settings Modal (Replaces Change Password) */}
             {showSettingsModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-white/20">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] relative border border-white/20 flex flex-col">
                         <button
                             onClick={() => {
                                 setShowSettingsModal(false);
@@ -1341,152 +1341,158 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             ✕
                         </button>
 
-                        <h2 className="text-3xl font-bold text-ghibli-navy font-serif mb-8">Studio Settings</h2>
+                        <div className="p-6 sm:p-10 pb-4 flex-shrink-0">
+                            <h2 className="text-3xl font-bold text-ghibli-navy font-serif mb-2">Studio Settings</h2>
+                            <p className="text-sm text-ghibli-charcoal/60 mb-6">Manage your portfolio configuration</p>
 
-                        <div className="flex gap-4 mb-8 border-b border-ghibli-wood/10">
-                            <button
-                                onClick={() => setActiveTab('categories')}
-                                className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'text-ghibli-wood border-b-2 border-ghibli-wood' : 'text-ghibli-wood/40 hover:text-ghibli-wood/60'}`}
-                            >
-                                Categories
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('security')}
-                                className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'security' ? 'text-ghibli-wood border-b-2 border-ghibli-wood' : 'text-ghibli-wood/40 hover:text-ghibli-wood/60'}`}
-                            >
-                                Security
-                            </button>
+                            <div className="flex gap-4 border-b border-ghibli-wood/10">
+                                <button
+                                    onClick={() => setActiveTab('categories')}
+                                    className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'text-ghibli-wood border-b-2 border-ghibli-wood' : 'text-ghibli-wood/40 hover:text-ghibli-wood/60'}`}
+                                >
+                                    Categories
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('security')}
+                                    className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'security' ? 'text-ghibli-wood border-b-2 border-ghibli-wood' : 'text-ghibli-wood/40 hover:text-ghibli-wood/60'}`}
+                                >
+                                    Security
+                                </button>
+                            </div>
                         </div>
 
-                        {activeTab === 'categories' ? (
-                            <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2">
-                                <div className="bg-ghibli-wood/5 p-6 rounded-2xl border border-ghibli-wood/10 sticky top-0 z-10">
-                                    <h3 className="text-lg font-bold text-ghibli-wood mb-4">Add Main Category</h3>
-                                    <form onSubmit={handleAddMainCategory} className="flex gap-4">
-                                        <input
-                                            type="text"
-                                            value={newMainCategory}
-                                            onChange={(e) => setNewMainCategory(e.target.value)}
-                                            placeholder="e.g. Canvas Painting"
-                                            className="flex-1 p-3 rounded-xl border border-ghibli-wood/10 bg-white focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        />
-                                        <button type="submit" className="px-6 py-3 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold hover:bg-[#A0704F] transition-all shadow-lg active:scale-95">
-                                            Add
+                        <div className="overflow-y-auto flex-1 px-6 sm:px-10 pb-6 sm:pb-10">
+
+                            {activeTab === 'categories' ? (
+                                <div className="space-y-6">
+                                    <div className="bg-ghibli-wood/5 p-6 rounded-2xl border border-ghibli-wood/10">
+                                        <h3 className="text-lg font-bold text-ghibli-wood mb-4">Add Main Category</h3>
+                                        <form onSubmit={handleAddMainCategory} className="flex gap-4">
+                                            <input
+                                                type="text"
+                                                value={newMainCategory}
+                                                onChange={(e) => setNewMainCategory(e.target.value)}
+                                                placeholder="e.g. Canvas Painting"
+                                                className="flex-1 p-3 rounded-xl border border-ghibli-wood/10 bg-white focus:bg-white transition-all text-ghibli-wood font-bold"
+                                            />
+                                            <button type="submit" className="px-6 py-3 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold hover:bg-[#A0704F] transition-all shadow-lg active:scale-95">
+                                                Add
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleCategoryReorder}
+                                    >
+                                        <SortableContext
+                                            items={Object.keys(categoriesData)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            <div className="grid grid-cols-1 gap-6">
+                                                {Object.keys(categoriesData).map(mainCat => (
+                                                    <SortableCategoryCard
+                                                        key={mainCat}
+                                                        mainCat={mainCat}
+                                                        categoriesData={categoriesData}
+                                                        handleDeleteMainCategory={handleDeleteMainCategory}
+                                                        handleDeleteSubCategory={handleDeleteSubCategory}
+                                                        newSubCategory={newSubCategory}
+                                                        setNewSubCategory={setNewSubCategory}
+                                                        handleAddSubCategory={handleAddSubCategory}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </SortableContext>
+                                    </DndContext>
+                                </div>
+                            ) : (
+                                <div>
+                                    <h3 className="text-lg font-bold text-ghibli-wood mb-6">Change Password</h3>
+                                    <p className="text-ghibli-charcoal/60 mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm">
+                                        ℹ️ Updating your password will invalidate your current session on other devices.
+                                    </p>
+
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        if (newPassword !== confirmNewPassword) {
+                                            alert('New passwords do not match!');
+                                            return;
+                                        }
+                                        if (newPassword.length < 8) {
+                                            alert('New password must be at least 8 characters');
+                                            return;
+                                        }
+
+                                        try {
+                                            const res = await fetch('/api/change-password', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({ currentPassword, newPassword }),
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                                alert('✅ Password updated successfully!');
+                                                setCurrentPassword('');
+                                                setNewPassword('');
+                                                setConfirmNewPassword('');
+                                            } else {
+                                                alert(`❌ ${data.error || 'Failed to update password'}`);
+                                            }
+                                        } catch (err) {
+                                            console.error('Password change error:', err);
+                                            alert('Connection error.');
+                                        }
+                                    }} className="space-y-6 max-w-lg">
+
+                                        <div>
+                                            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
+                                            <input
+                                                type="password"
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                    className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                                    required
+                                                    minLength={8}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New</label>
+                                                <input
+                                                    type="password"
+                                                    value={confirmNewPassword}
+                                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                                    className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                                    required
+                                                    minLength={8}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            className="w-full py-4 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all shadow-lg active:scale-95"
+                                        >
+                                            Update Password
                                         </button>
                                     </form>
                                 </div>
-
-                                <DndContext
-                                    sensors={sensors}
-                                    collisionDetection={closestCenter}
-                                    onDragEnd={handleCategoryReorder}
-                                >
-                                    <SortableContext
-                                        items={Object.keys(categoriesData)}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        <div className="grid grid-cols-1 gap-6">
-                                            {Object.keys(categoriesData).map(mainCat => (
-                                                <SortableCategoryCard
-                                                    key={mainCat}
-                                                    mainCat={mainCat}
-                                                    categoriesData={categoriesData}
-                                                    handleDeleteMainCategory={handleDeleteMainCategory}
-                                                    handleDeleteSubCategory={handleDeleteSubCategory}
-                                                    newSubCategory={newSubCategory}
-                                                    setNewSubCategory={setNewSubCategory}
-                                                    handleAddSubCategory={handleAddSubCategory}
-                                                />
-                                            ))}
-                                        </div>
-                                    </SortableContext>
-                                </DndContext>
-                            </div>
-                        ) : (
-                            <div>
-                                <h3 className="text-lg font-bold text-ghibli-wood mb-6">Change Password</h3>
-                                <p className="text-ghibli-charcoal/60 mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm">
-                                    ℹ️ Updating your password will invalidate your current session on other devices.
-                                </p>
-
-                                <form onSubmit={async (e) => {
-                                    e.preventDefault();
-                                    if (newPassword !== confirmNewPassword) {
-                                        alert('New passwords do not match!');
-                                        return;
-                                    }
-                                    if (newPassword.length < 8) {
-                                        alert('New password must be at least 8 characters');
-                                        return;
-                                    }
-
-                                    try {
-                                        const res = await fetch('/api/change-password', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            credentials: 'include',
-                                            body: JSON.stringify({ currentPassword, newPassword }),
-                                        });
-                                        const data = await res.json();
-                                        if (res.ok) {
-                                            alert('✅ Password updated successfully!');
-                                            setCurrentPassword('');
-                                            setNewPassword('');
-                                            setConfirmNewPassword('');
-                                        } else {
-                                            alert(`❌ ${data.error || 'Failed to update password'}`);
-                                        }
-                                    } catch (err) {
-                                        console.error('Password change error:', err);
-                                        alert('Connection error.');
-                                    }
-                                }} className="space-y-6 max-w-lg">
-
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
-                                        <input
-                                            type="password"
-                                            value={currentPassword}
-                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                            className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
-                                            <input
-                                                type="password"
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
-                                                className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                                required
-                                                minLength={8}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New</label>
-                                            <input
-                                                type="password"
-                                                value={confirmNewPassword}
-                                                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                                className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-ghibli-paper/10 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                                required
-                                                minLength={8}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        className="w-full py-4 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all shadow-lg active:scale-95"
-                                    >
-                                        Update Password
-                                    </button>
-                                </form>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
