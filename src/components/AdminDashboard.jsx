@@ -812,7 +812,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         {/* Priority Management */}
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] mb-8">
                             <div className="flex flex-col gap-6">
-                                <div className="flex justify-between items-center bg-white/30 p-4 -m-4 sm:-m-6 sm:p-6 mb-2 rounded-t-[1.8rem] border-b border-ghibli-wood/10">
+                                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-6 bg-white/30 p-4 -m-4 sm:-m-6 sm:p-6 mb-2 rounded-t-[1.8rem] border-b border-ghibli-wood/10">
                                     <div>
                                         <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Category Priorities</h2>
                                         <p className="text-xs text-ghibli-charcoal/60">Choose a sub-category to show first in each section.</p>
@@ -820,7 +820,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     <button
                                         onClick={handleUpdatePriorities}
                                         disabled={loadingSettings}
-                                        className="px-6 py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all disabled:opacity-50 active:scale-95 shadow-lg flex items-center gap-2"
+                                        className="w-full sm:w-auto px-8 py-4 bg-ghibli-wood text-ghibli-cream rounded-xl font-bold hover:bg-[#A0704F] transition-all disabled:opacity-50 active:scale-[0.98] shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2"
                                     >
                                         {loadingSettings ? (
                                             <span className="animate-spin text-sm">⏳</span>
