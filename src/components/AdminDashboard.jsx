@@ -27,7 +27,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 // Sortable Item Component
-const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
+const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
     const {
         attributes,
         listeners,
@@ -35,7 +35,7 @@ const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
         transform,
         transition,
         isDragging
-    } = useSortable({ id: art.id });
+    } = useSortable({ id: art?.id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -54,7 +54,7 @@ const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
             <div
                 {...attributes}
                 {...listeners}
-                className="hidden sm:flex items-center justify-center p-2 cursor-grab active:cursor-grabbing text-ghibli-wood/30 hover:text-ghibli-wood/60"
+                className="hidden sm:flex items-center justify-center p-2 cursor-grab active:cursor-grabbing text-ghibli-wood/30 hover:text-ghibli-wood/60 touch-none"
             >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
@@ -86,7 +86,7 @@ const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete }) => {
                 <div
                     {...attributes}
                     {...listeners}
-                    className="sm:hidden p-3 text-ghibli-wood/30 active:text-ghibli-wood/60 cursor-grab active:cursor-grabbing"
+                    className="sm:hidden p-3 text-ghibli-wood/30 active:text-ghibli-wood/60 cursor-grab active:cursor-grabbing touch-none"
                 >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M8 6h8M8 12h8M8 18h8" strokeLinecap="round" />
@@ -174,6 +174,7 @@ const AdminDashboard = () => {
 
     // Collapsible Sections State
     const [collapsedSections, setCollapsedSections] = useState({});
+    const [activeId, setActiveId] = useState(null);
 
     const toggleSection = (sectionId) => {
         setCollapsedSections(prev => ({
@@ -298,16 +299,32 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
+
+    const handleDragCancel = () => {
+        setActiveId(null);
+    };
+
     const handleDragEnd = (event) => {
+        setActiveId(null);
         const { active, over } = event;
         if (!over || active.id === over.id) return;
 
         const activeArt = artworks.find(a => a.id === active.id);
         const overArt = artworks.find(a => a.id === over.id);
 
-        if (!activeArt || !overArt || activeArt.category !== overArt.category) return;
+        if (!activeArt || !overArt) return;
 
         const category = activeArt.category;
+        const overCategory = overArt.category;
+
+        // Ensure we're in the same top-level category or featured/upcoming buckets
+        if (category !== overCategory && !(
+            (category === 'Featured' || activeArt.description?.includes('[FEATURED]')) &&
+            (overCategory === 'Featured' || overArt.description?.includes('[FEATURED]'))
+        )) return;
 
         // Get current list of IDs for this category (sorted by current display order)
         const catItems = artworks.filter(a => a.category === category);
@@ -1129,12 +1146,30 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                             type="text"
                                                             value={cat.label}
                                                             onChange={(e) => {
+                                                                const oldLabel = cat.label;
+                                                                const newLabel = e.target.value;
                                                                 const updated = [...categoryDefinitions];
-                                                                updated[index].label = e.target.value;
+                                                                updated[index].label = newLabel;
                                                                 setCategoryDefinitions(updated);
+
+                                                                // Reflect rename in priorities and orders
+                                                                if (oldLabel !== newLabel) {
+                                                                    if (categoryPriorities[oldLabel]) {
+                                                                        const newPriorities = { ...categoryPriorities };
+                                                                        newPriorities[newLabel] = newPriorities[oldLabel];
+                                                                        delete newPriorities[oldLabel];
+                                                                        setCategoryPriorities(newPriorities);
+                                                                    }
+                                                                    if (artworkOrders[oldLabel]) {
+                                                                        const newOrders = { ...artworkOrders };
+                                                                        newOrders[newLabel] = newOrders[oldLabel];
+                                                                        delete newOrders[oldLabel];
+                                                                        setArtworkOrders(newOrders);
+                                                                    }
+                                                                }
                                                             }}
                                                             onBlur={() => saveCategoryDefinitions(categoryDefinitions)}
-                                                            className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg"
+                                                            className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg w-full"
                                                         />
                                                     </div>
                                                     <div className="flex gap-2">
@@ -1146,7 +1181,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                 saveCategoryDefinitions(updated);
                                                             }}
                                                             disabled={index === 0}
-                                                            className="p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20"
+                                                            className="p-3 sm:p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20 active:scale-90"
                                                         >
                                                             ↑
                                                         </button>
@@ -1158,7 +1193,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                 saveCategoryDefinitions(updated);
                                                             }}
                                                             disabled={index === categoryDefinitions.length - 1}
-                                                            className="p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20"
+                                                            className="p-3 sm:p-2 text-ghibli-wood/40 hover:text-ghibli-wood disabled:opacity-20 active:scale-90"
                                                         >
                                                             ↓
                                                         </button>
@@ -1169,7 +1204,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                 setCategoryDefinitions(updated);
                                                                 saveCategoryDefinitions(updated);
                                                             }}
-                                                            className="p-2 text-red-500/40 hover:text-red-500"
+                                                            className="p-3 sm:p-2 text-red-500/40 hover:text-red-500 active:scale-90"
                                                         >
                                                             ✕
                                                         </button>
@@ -1180,7 +1215,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 <div className="pl-6 space-y-2 border-l-2 border-ghibli-wood/10">
                                                     <div className="flex flex-wrap gap-2 mb-3">
                                                         {cat.subCategories?.map((sub, sIndex) => (
-                                                            <div key={sub} className="group flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-ghibli-wood/5 text-[10px] font-bold text-ghibli-wood uppercase">
+                                                            <div key={sub} className="group flex items-center gap-2 px-4 py-2 bg-white/50 rounded-full border border-ghibli-wood/5 text-[10px] sm:text-[9px] font-bold text-ghibli-wood uppercase shadow-sm">
                                                                 <span>{sub}</span>
                                                                 <button
                                                                     onClick={() => {
@@ -1189,29 +1224,32 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                                         setCategoryDefinitions(updated);
                                                                         saveCategoryDefinitions(updated);
                                                                     }}
-                                                                    className="opacity-0 group-hover:opacity-100 text-red-500 transition-opacity"
+                                                                    className="opacity-60 sm:opacity-0 group-hover:opacity-100 text-red-500 transition-opacity p-1"
                                                                 >
                                                                     ✕
                                                                 </button>
                                                             </div>
                                                         ))}
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex gap-2 items-center">
                                                         <input
                                                             type="text"
                                                             placeholder="Add Subcategory..."
-                                                            className="flex-grow bg-transparent border-b border-ghibli-wood/10 text-[10px] font-bold uppercase tracking-widest p-1 focus:border-ghibli-wood outline-none"
+                                                            className="flex-grow bg-white/30 border-b-2 border-ghibli-wood/10 text-xs font-bold uppercase tracking-widest p-3 focus:border-ghibli-wood outline-none rounded-t-lg"
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter' && e.target.value.trim()) {
+                                                                    const val = e.target.value.trim();
                                                                     const updated = [...categoryDefinitions];
                                                                     if (!updated[index].subCategories) updated[index].subCategories = [];
-                                                                    updated[index].subCategories.push(e.target.value.trim());
+                                                                    if (updated[index].subCategories.includes(val)) return;
+                                                                    updated[index].subCategories.push(val);
                                                                     setCategoryDefinitions(updated);
                                                                     saveCategoryDefinitions(updated);
                                                                     e.target.value = '';
                                                                 }
                                                             }}
                                                         />
+                                                        <div className="sm:hidden text-ghibli-wood/30 text-[9px] font-bold">↵</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1294,7 +1332,9 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     <DndContext
                                         sensors={sensors}
                                         collisionDetection={closestCenter}
+                                        onDragStart={handleDragStart}
                                         onDragEnd={handleDragEnd}
+                                        onDragCancel={handleDragCancel}
                                     >
                                         {/* 🖼️ GALLERY SECTION */}
                                         <div className="space-y-8">
@@ -1566,6 +1606,22 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 </div>
                                             );
                                         })()}
+                                        <DragOverlay zIndex={1000}>
+                                            {activeId ? (
+                                                <div className="w-full max-w-[calc(100vw-2rem)] opacity-90 shadow-2xl">
+                                                    <SortableArtworkRow
+                                                        art={artworks.find(a => a.id === activeId)}
+                                                        isFeatured={(() => {
+                                                            const a = artworks.find(i => i.id === activeId);
+                                                            return a?.category === 'Featured' || a?.description?.includes('[FEATURED]');
+                                                        })()}
+                                                        handleEdit={() => { }}
+                                                        handleDelete={() => { }}
+                                                        isOverlay={true}
+                                                    />
+                                                </div>
+                                            ) : null}
+                                        </DragOverlay>
                                     </DndContext>
                                 )}
                             </div>
