@@ -19,7 +19,7 @@ const Home = () => (
   <>
     <Hero />
     <About />
-    {/* <Skills /> */}
+    <Skills />
     <ArtGallery />
     <FromTheStudio />
     <Contact />

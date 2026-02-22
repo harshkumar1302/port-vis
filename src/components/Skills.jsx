@@ -1,33 +1,43 @@
 import { motion } from 'framer-motion';
 
 
+
 const Skills = () => {
     const tools = [
         {
             category: "Traditional",
             icon: "🎨",
             description: "Tangible mediums that breathe life into paper.",
-            items: ["Watercolor", "Gouache", "Ink & Pen", "Handmade Paper"],
+            items: ["Watercolor", "Gouache", "Gopi & Dot Work", "Acrylics", "Ink & Pen", "Mandala Dotting Tools", "Handmade Paper"],
             color: "from-amber-100/50 to-orange-100/50",
             border: "group-hover:border-amber-300/50"
         },
         {
-            category: "Miniature",
+            category: "Clay & Craft",
             icon: "🏡",
             description: "Crafting tiny worlds with immense precision.",
-            items: ["Polymer Clay", "Balsa Wood", "Moss & Foliage", "Acrylics"],
+            items: ["Polymer Clay", "MDF Board", "Resin & Casting", "Fabric & Tote Crafting", "Clay Sculpting Tools"],
             color: "from-emerald-100/50 to-teal-100/50",
             border: "group-hover:border-emerald-300/50"
         },
         {
+            category: "Surface & Object Art",
+            icon: "🏺",
+            description: "Every surface holds a canvas waiting to be found.",
+            items: ["Glass & Mirror", "Wooden Surfaces", "Bottle & Container Art", "Bookmark Making (Clay, Wood, Paper)", "Car Hanging & Decor", "Vintage Frame Decoration"],
+            color: "from-fuchsia-100/50 to-pink-100/50",
+            border: "group-hover:border-fuchsia-300/50"
+        },
+        {
             category: "Digital",
-            icon: "✨",
-            description: "Pixel-perfect artistry for the modern age.",
-            items: ["Procreate", "Canva", "Vector Art", "Digital Patterning"],
-            color: "from-blue-100/50 to-indigo-100/50",
-            border: "group-hover:border-blue-300/50"
+            icon: "🪄",
+            description: "Bringing handcrafted vision into the digital space.",
+            items: ["Procreate", "Canva", "Vector Art", "Digital Mandala Patterning", "Digital Bookmarks", "Photo Editing for Art"],
+            color: "from-sky-100/50 to-indigo-100/50",
+            border: "group-hover:border-sky-300/50"
         }
     ];
+
 
     const cardVariants = {
         hidden: { opacity: 0, y: 50 },
@@ -102,7 +112,7 @@ const Skills = () => {
                     </motion.p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-12 lg:gap-16">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 justify-center items-stretch">
                     {tools.map((group, idx) => (
                         <motion.div
                             key={idx}
@@ -113,20 +123,25 @@ const Skills = () => {
                             variants={cardVariants}
                             whileHover={{ y: -12, scale: 1.02 }}
                             className={`
-                                group relative p-10 rounded-[2.5rem] 
+                                group relative p-6 md:p-8 rounded-[2rem] 
                                 backdrop-blur-md bg-white/60 border border-white/80 shadow-lg 
                                 transition-all duration-500 overflow-hidden
                                 hover:shadow-2xl hover:bg-gradient-to-br ${group.color} ${group.border} hover:border-opacity-100
+                                flex-1 min-w-0 flex flex-col
                             `}
                         >
                             {/* Magical Floating Orb Background */}
                             <div className="absolute -top-20 -right-20 w-48 h-48 bg-white/40 rounded-full blur-3xl group-hover:bg-white/60 transition-all duration-700"></div>
 
                             {/* Icon Container */}
-                            <div className="relative mb-8">
-                                <div className="w-20 h-20 bg-white/60 rounded-full flex items-center justify-center text-4xl shadow-inner-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 will-change-transform">
+                            <div className="relative mb-6">
+                                <motion.div
+                                    whileHover={{ rotate: [0, 15, -10, 5, 0] }}
+                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                    className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center text-3xl shadow-md group-hover:shadow-lg transition-all duration-500 will-change-transform border border-white/50"
+                                >
                                     {group.icon}
-                                </div>
+                                </motion.div>
                                 {/* Sparkles */}
                                 <motion.div
                                     className="absolute -top-2 -right-2 text-xl text-ghibli-gold opacity-0 group-hover:opacity-100"
@@ -137,19 +152,19 @@ const Skills = () => {
                                 </motion.div>
                             </div>
 
-                            <h3 className="text-3xl font-bold text-ghibli-wood mb-3 font-serif group-hover:text-ghibli-charcoal transition-colors">
+                            <h3 className="text-[1.1rem] md:text-xl lg:text-2xl font-bold text-ghibli-wood mb-2 font-serif group-hover:text-ghibli-charcoal transition-colors leading-tight min-h-[3rem] flex items-center whitespace-nowrap">
                                 {group.category}
                             </h3>
 
-                            <p className="text-sm font-medium text-ghibli-wood/60 mb-8 italic">
+                            <p className="text-xs font-medium text-ghibli-wood/60 mb-6 italic line-clamp-2">
                                 {group.description}
                             </p>
 
-                            <ul className="space-y-4 relative z-10">
+                            <ul className="space-y-3 relative z-10 mt-auto">
                                 {group.items.map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-ghibli-charcoal/80 group-hover:text-ghibli-charcoal transition-colors">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-ghibli-wood/30 group-hover:bg-ghibli-wood transition-colors"></span>
-                                        <span className="text-base font-medium tracking-wide">{item}</span>
+                                    <li key={i} className="flex items-center gap-2 text-ghibli-charcoal/80 group-hover:text-ghibli-charcoal transition-colors">
+                                        <span className="w-1 h-1 rounded-full bg-ghibli-wood/30 group-hover:bg-ghibli-wood transition-colors flex-shrink-0"></span>
+                                        <span className="text-sm font-medium tracking-wide">{item}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -159,6 +174,8 @@ const Skills = () => {
                         </motion.div>
                     ))}
                 </div>
+
+
             </div>
         </section>
     );
