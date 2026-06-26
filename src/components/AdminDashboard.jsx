@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import {
     DndContext,
@@ -28,6 +28,8 @@ const DEFAULT_CATEGORIES = [
 
 // Sortable Item Component
 const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
+    if (!art) return null;
+
     const {
         attributes,
         listeners,
@@ -138,6 +140,7 @@ const AdminDashboard = () => {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [isFeatured, setIsFeatured] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const subCategoryOverrideRef = useRef(null);
 
     // Setup mode state
     const [loginMode, setLoginMode] = useState('login'); // 'login' or 'register'
@@ -190,6 +193,12 @@ const AdminDashboard = () => {
 
     // Update sub-category when main category changes
     useEffect(() => {
+        if (subCategoryOverrideRef.current !== null) {
+            setSubCategory(subCategoryOverrideRef.current);
+            subCategoryOverrideRef.current = null;
+            return;
+        }
+
         const catDef = categoryDefinitions.find(c =>
             c.label?.trim().toLowerCase() === category?.trim().toLowerCase() ||
             c.id?.trim().toLowerCase() === category?.trim().toLowerCase()
@@ -317,17 +326,17 @@ const AdminDashboard = () => {
 
         if (!activeArt || !overArt) return;
 
-        const category = activeArt.category;
-        const overCategory = overArt.category;
+        const category = activeArt.category === 'Featured' || activeArt.description?.includes('[FEATURED]') ? 'Featured' : activeArt.category;
+        const overCategory = overArt.category === 'Featured' || overArt.description?.includes('[FEATURED]') ? 'Featured' : overArt.category;
 
         // Ensure we're in the same top-level category or featured/upcoming buckets
-        if (category !== overCategory && !(
-            (category === 'Featured' || activeArt.description?.includes('[FEATURED]')) &&
-            (overCategory === 'Featured' || overArt.description?.includes('[FEATURED]'))
-        )) return;
+        if (category !== overCategory) return;
 
         // Get current list of IDs for this category (sorted by current display order)
-        const catItems = artworks.filter(a => a.category === category);
+        const catItems = artworks.filter(a => {
+            if (category === 'Featured') return a.category === 'Featured' || a.description?.includes('[FEATURED]');
+            return a.category === category;
+        });
 
         // Calculate the current order array based on existing state + any new items
         let currentOrder = artworkOrders[category] || [];
@@ -560,15 +569,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         // Determine mode and category
         if (art.category === 'Upcoming') {
             setUploadType('upcoming');
-            setCategory('Mandala'); // Reset category dropdown
+            setCategory(categoryDefinitions[0]?.label || ''); // Reset category dropdown
         } else if (art.category === 'Featured' || isFeaturedItem) {
             setUploadType('featured');
-            setCategory('Mandala');
+            setCategory(categoryDefinitions[0]?.label || '');
         } else {
             setUploadType('gallery');
-            setCategory(art.category || 'Mandala');
-            // Wait for category useEffect to set initial subCategory, then override it
-            setTimeout(() => setSubCategory(extractedSub), 0);
+            setCategory(art.category || (categoryDefinitions[0]?.label || ''));
+            subCategoryOverrideRef.current = extractedSub;
         }
 
         setPreviewUrl(art.image_url);
@@ -580,11 +588,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         if (!session) return;
         if (!file && !editingId) return;
 
+        let finalImageUrl = null;
         try {
             setUploading(true);
-            let finalImageUrl = null;
 
             if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    throw new Error("File size must be less than 10MB");
+                }
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
                 const filePath = `${fileName}`;
@@ -625,6 +636,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                 const res = await fetch('/api/manage-art', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         id: editingId,
                         title,
@@ -643,6 +655,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                 const res = await fetch('/api/manage-art', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         title,
                         description: finalDescription,
@@ -664,6 +677,11 @@ Check your internet connection. If this is on Vercel, please ensure you have run
             fetchArtworks();
         } catch (error) {
             alert(error.message);
+            // Cleanup orphaned image if DB insert/update failed
+            if (file && finalImageUrl) {
+                const fileName = finalImageUrl.split('/').pop();
+                supabase.storage.from('artworks').remove([fileName]).catch(console.error);
+            }
         } finally {
             setUploading(false);
         }
@@ -673,7 +691,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         setEditingId(null);
         setTitle('');
         setDesc('');
-        setCategory('Mandala');
+        setCategory(categoryDefinitions[0]?.label || '');
         setFile(null);
         setPreviewUrl(null);
         setUploadType('gallery');
@@ -708,6 +726,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
             const res = await fetch('/api/manage-art', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ id: art.id }),
             });
 
@@ -1145,30 +1164,57 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         <input
                                                             type="text"
                                                             value={cat.label}
+                                                            onFocus={(e) => {
+                                                                e.target.dataset.oldValue = e.target.value;
+                                                            }}
                                                             onChange={(e) => {
-                                                                const oldLabel = cat.label;
-                                                                const newLabel = e.target.value;
                                                                 const updated = [...categoryDefinitions];
-                                                                updated[index].label = newLabel;
+                                                                updated[index].label = e.target.value;
                                                                 setCategoryDefinitions(updated);
-
-                                                                // Reflect rename in priorities and orders
-                                                                if (oldLabel !== newLabel) {
-                                                                    if (categoryPriorities[oldLabel]) {
-                                                                        const newPriorities = { ...categoryPriorities };
+                                                            }}
+                                                            onBlur={async (e) => {
+                                                                saveCategoryDefinitions(categoryDefinitions);
+                                                                
+                                                                const oldLabel = e.target.dataset.oldValue;
+                                                                const newLabel = e.target.value;
+                                                                
+                                                                if (oldLabel && oldLabel !== newLabel) {
+                                                                    // Reflect rename in priorities and orders
+                                                                    const newPriorities = { ...categoryPriorities };
+                                                                    let prioritiesChanged = false;
+                                                                    if (newPriorities[oldLabel]) {
                                                                         newPriorities[newLabel] = newPriorities[oldLabel];
                                                                         delete newPriorities[oldLabel];
                                                                         setCategoryPriorities(newPriorities);
+                                                                        prioritiesChanged = true;
                                                                     }
-                                                                    if (artworkOrders[oldLabel]) {
-                                                                        const newOrders = { ...artworkOrders };
+                                                                    
+                                                                    const newOrders = { ...artworkOrders };
+                                                                    let ordersChanged = false;
+                                                                    if (newOrders[oldLabel]) {
                                                                         newOrders[newLabel] = newOrders[oldLabel];
                                                                         delete newOrders[oldLabel];
                                                                         setArtworkOrders(newOrders);
+                                                                        ordersChanged = true;
+                                                                    }
+
+                                                                    if (ordersChanged) saveArtworkOrder(newOrders);
+                                                                    // Priority save is manual, but we update state
+
+                                                                    // Update database asynchronously
+                                                                    try {
+                                                                        await fetch('/api/manage-art', {
+                                                                            method: 'PUT',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            credentials: 'include',
+                                                                            body: JSON.stringify({ action: 'rename_category', oldCategory: oldLabel, newCategory: newLabel })
+                                                                        });
+                                                                        fetchArtworks(); // refresh local state
+                                                                    } catch (err) {
+                                                                        console.error('Failed to rename artworks in DB:', err);
                                                                     }
                                                                 }
                                                             }}
-                                                            onBlur={() => saveCategoryDefinitions(categoryDefinitions)}
                                                             className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg w-full"
                                                         />
                                                     </div>
@@ -1199,7 +1245,12 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                if (!window.confirm(`Delete "${cat.label}" and all its subcategories?`)) return;
+                                                                const artworksCount = artworks.filter(a => a.category === cat.label || a.category === cat.id).length;
+                                                                let confirmMsg = `Delete "${cat.label}" and all its subcategories?`;
+                                                                if (artworksCount > 0) {
+                                                                    confirmMsg += `\n\nWARNING: ${artworksCount} artwork(s) currently belong to this category. They will become "Uncategorized" and you will need to manually reassign them!`;
+                                                                }
+                                                                if (!window.confirm(confirmMsg)) return;
                                                                 const updated = categoryDefinitions.filter((_, i) => i !== index);
                                                                 setCategoryDefinitions(updated);
                                                                 saveCategoryDefinitions(updated);

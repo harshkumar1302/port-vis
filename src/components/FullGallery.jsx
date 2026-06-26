@@ -26,14 +26,18 @@ const FullGallery = () => {
     const currentCategory = categories.find(c => c.id === category);
 
     useEffect(() => {
-        if (!currentCategory) {
-            navigate('/');
-            return;
-        }
+        // Only fetch data and scroll to top when the URL category changes
         fetchArtworks();
         fetchSettings();
         window.scrollTo(0, 0);
-    }, [category, navigate, currentCategory]);
+    }, [category]);
+
+    useEffect(() => {
+        // Redirect if category is invalid
+        if (!currentCategory) {
+            navigate('/');
+        }
+    }, [currentCategory, navigate]);
 
     const fetchSettings = async () => {
         try {

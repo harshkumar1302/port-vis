@@ -49,7 +49,18 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "PUT") {
-            const { id, title, description, category, image_url } = req.body;
+            const { action, oldCategory, newCategory, id, title, description, category, image_url } = req.body;
+            
+            if (action === 'rename_category') {
+                if (!oldCategory || !newCategory) return res.status(400).json({ error: "oldCategory and newCategory required" });
+                const { error } = await supabase
+                    .from("artworks")
+                    .update({ category: newCategory })
+                    .eq("category", oldCategory);
+                if (error) throw error;
+                return res.status(200).json({ success: true });
+            }
+
             if (!id) return res.status(400).json({ error: "ID is required for updates" });
 
             const { data, error } = await supabase
