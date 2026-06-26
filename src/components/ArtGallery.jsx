@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { EffectCoverflow, Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/effect-coverflow';
+import 'swiper/css/navigation';
 
 import { supabase } from '../lib/supabaseClient';
 
@@ -21,18 +27,6 @@ const ArtGallery = () => {
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
     const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
-
-    // Embla Carousels
-    const [featuredEmblaRef, featuredEmblaApi] = useEmblaCarousel({
-        loop: false,
-        align: 'start',
-        startIndex: 0,
-        containScroll: 'trimSnaps',
-        dragFree: true
-    });
-
-    const scrollPrev = () => featuredEmblaApi && featuredEmblaApi.scrollPrev();
-    const scrollNext = () => featuredEmblaApi && featuredEmblaApi.scrollNext();
 
     useEffect(() => {
         fetchCategories();
@@ -158,84 +152,105 @@ const ArtGallery = () => {
 
 
     const featuredItems = getFeaturedItems();
-    const displayFeatured = getDisplayItems(featuredItems, 8, 5); // Threshold of 5 for highlights
+    let displayFeatured = getDisplayItems(featuredItems, 8, 5); // Threshold of 5 for highlights
+    
+    // GUARANTEE INFINITE LOOP:
+    // Embla requires total slide width > viewport width to loop. 
+    // If there are only 5 slides, it might stop looping on ultra-wide monitors.
+    // We duplicate the array if there are fewer than 10 items to ensure it acts as an infinite wheel.
+    if (displayFeatured.length > 0 && displayFeatured.length < 10) {
+        displayFeatured = [...displayFeatured, ...displayFeatured, ...displayFeatured].slice(0, 15);
+    }
 
     return (
-        <section id="gallery" className="section-container relative min-h-screen py-12 bg-ghibli-cream/20 font-gallery">
-            <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <section id="gallery" className="relative py-24 md:py-32 bg-ghibli-cream/20 font-gallery overflow-hidden w-full scroll-mt-24">
+            <div className="w-full relative z-10">
 
-                {/* 1. Header */}
-                <div className="text-center mb-16 space-y-4">
-                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
+                {/* 1. Header — Creonnect centered alignment */}
+                <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 mb-16 space-y-4">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase">
                         Art  <span className="text-ghibli-wood italic font-serif">&</span> Craft
                     </span>
-                    <h2 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif">
+                    <h2 className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif tracking-tight">
                         An Evolving Collection
                     </h2>
-                    <p className="text-ghibli-charcoal/60 max-w-xl mx-auto">
+                    <p className="text-ghibli-charcoal/60 max-w-3xl text-lg leading-relaxed">
                         Curated artifacts of patience and love. Swipe to explore the highlights, or dive deep into the specific collections below.
                     </p>
                 </div>
 
-                {/* 2. Best Work Carousel (Embla) - Dynamic */}
-                <div className="mb-24 relative">
-                    <div className="flex items-center gap-2 mb-6 opacity-60">
+                {/* 2. Best Work Carousel (Embla) — Center Focus Coverflow */}
+                <div className="mb-24 relative w-full">
+                    <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 flex items-center gap-2 mb-6 opacity-60">
                         <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
                         <span className="text-xs uppercase tracking-widest font-bold">Featured Highlights</span>
                     </div>
 
-                    {/* Embla Viewport */}
-                    <div className="overflow-hidden mb-8 py-10 -my-10" ref={featuredEmblaRef}>
-                        <div className="flex gap-6 select-none touch-pan-y items-stretch"> {/* Embla Container */}
-                            {displayFeatured.map((work, index) => (
-                                <div
-                                    key={`${work.id || 'feat'}-${index}`}
-                                    onClick={() => !work.isPlaceholder && setSelectedArt(work)}
-                                    className={`relative flex-[0_0_280px] sm:flex-[0_0_350px] md:flex-[0_0_420px] aspect-[4/3] rounded-[2rem] overflow-hidden group shadow-lg hover:shadow-2xl transition-all mx-2 bg-white ${work.isPlaceholder ? '' : 'cursor-pointer'}`}
-                                >
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 z-10"></div>
-
-                                    {work.isPlaceholder ? (
-                                        <div className="w-full h-full bg-ghibli-paper/40 flex flex-col items-center justify-center gap-3">
-                                            <span className="text-4xl opacity-30">✨</span>
-                                            <span className="text-xs font-bold tracking-widest opacity-30 uppercase text-ghibli-wood">Coming Soon</span>
+                    {/* Swiper Viewport */}
+                    <Swiper
+                        key={displayFeatured.length}
+                        grabCursor={true}
+                        centeredSlides={false}
+                        loop={true}
+                        observer={true}
+                        observeParents={true}
+                        breakpoints={{
+                            320: { slidesPerView: 1.2, spaceBetween: 16 },
+                            640: { slidesPerView: 2.2, spaceBetween: 24 },
+                            1024: { slidesPerView: 4, spaceBetween: 32 }
+                        }}
+                        navigation={{
+                            nextEl: '.swiper-button-next-custom',
+                            prevEl: '.swiper-button-prev-custom',
+                        }}
+                        modules={[Navigation, Autoplay]}
+                        className="w-full py-10 pl-6 md:pl-[max(3rem,calc((100vw-80rem)/2+3rem))] pr-0"
+                    >
+                        {displayFeatured.map((work, index) => (
+                            <SwiperSlide 
+                                key={`${work.id || 'feat'}-${index}`}
+                                className="aspect-[4/3] rounded-[2rem] overflow-hidden bg-white shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                                onClick={() => !work.isPlaceholder && setSelectedArt(work)}
+                            >
+                                <div className="absolute inset-0 bg-black/10 hover:bg-black/0 transition-colors duration-300 z-10 pointer-events-none"></div>
+                                {work.isPlaceholder ? (
+                                    <div className="w-full h-full bg-ghibli-paper/40 flex flex-col items-center justify-center gap-3">
+                                        <span className="text-4xl opacity-30">✨</span>
+                                        <span className="text-xs font-bold tracking-widest opacity-30 uppercase text-ghibli-wood">Coming Soon</span>
+                                    </div>
+                                ) : (
+                                    (!work.image_url || work.image_url.trim() === '') ? (
+                                        <div className="w-full h-full bg-ghibli-paper/20 flex items-center justify-center">
+                                            <span className="text-2xl opacity-20">🎨</span>
                                         </div>
                                     ) : (
-                                        (!work.image_url || work.image_url.trim() === '') ? (
-                                            <div className="w-full h-full bg-ghibli-paper/20 flex items-center justify-center">
-                                                <span className="text-2xl opacity-20">🎨</span>
-                                            </div>
-                                        ) : (
-                                            <img
-                                                src={work.image_url}
-                                                alt={work.title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                            />
-                                        )
-                                    )}
+                                        <img
+                                            src={work.image_url}
+                                            alt={work.title}
+                                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                                        />
+                                    )
+                                )}
 
-                                    {!work.isPlaceholder && work.title && (
-                                        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <h3 className="text-white font-serif font-bold text-lg">{work.title}</h3>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                                {!work.isPlaceholder && work.title && (
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20">
+                                        <h3 className="text-white font-serif font-bold text-lg md:text-xl drop-shadow-md">{work.title}</h3>
+                                    </div>
+                                )}
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
 
                     {/* Navigation Buttons */}
-                    <div className="flex justify-end items-center gap-4 px-2">
+                    <div className="flex justify-end items-center gap-4 max-w-7xl mx-auto px-6 md:px-12 lg:px-16 mt-4 relative z-20">
                         <button
-                            onClick={scrollPrev}
-                            className="w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95"
+                            className="swiper-button-prev-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
                             aria-label="Previous Highlight"
                         >
                             <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
                         </button>
                         <button
-                            onClick={scrollNext}
-                            className="w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95"
+                            className="swiper-button-next-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
                             aria-label="Next Highlight"
                         >
                             <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
@@ -244,7 +259,7 @@ const ArtGallery = () => {
                 </div>
 
                 {/* 3. Category Sections - Embla Carousels */}
-                <div className="space-y-20">
+                <div className="space-y-20 w-full pb-20">
                     {categories.map((cat) => {
                         const rawItems = getCategoryItems(cat.label);
 
@@ -386,14 +401,14 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
         align: 'start',
         containScroll: 'trimSnaps',
         dragFree: true
-    });
+    }, [WheelGesturesPlugin()]);
 
     return (
         <div className="animate-fade-in-up">
-            {/* Section Header ... (keep existing) */}
-            <div className="flex items-end justify-between mb-8 px-2">
+            {/* Section Header */}
+            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 w-full flex flex-row items-end justify-between mb-8">
                 <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-ghibli-charcoal font-serif mb-2">
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-ghibli-charcoal font-serif mb-2 tracking-tight">
                         {cat.label}
                     </h3>
                     <span className="text-xs font-bold tracking-widest text-ghibli-wood/40 uppercase">
@@ -409,8 +424,8 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                 </Link>
             </div>
 
-            {/* Embla Viewport */}
-            <div className="overflow-hidden -mx-4 px-4 py-8 -my-8" ref={emblaRef}>
+            {/* Embla Viewport — Left aligned to grid, bleeding right */}
+            <div className="overflow-hidden py-8 -my-8 pl-6 md:pl-[max(3rem,calc((100vw-80rem)/2+3rem))]" ref={emblaRef}>
                 <div className="flex gap-4 select-none touch-pan-y items-stretch">
                     {items.map((item, index) => (
                         <div
@@ -419,7 +434,7 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                             className={`flex-[0_0_200px] sm:flex-[0_0_240px] rounded-[1.5rem] flex flex-col group ${item.isPlaceholder ? '' : 'cursor-pointer'}`}
                         >
                             {/* Card Image Area */}
-                            <div className="aspect-[4/5] bg-ghibli-paper/40 rounded-[1.5rem] mb-3 flex items-center justify-center relative overflow-hidden transition-transform duration-500 group-hover:-translate-y-1">
+                            <div className="aspect-[4/5] bg-ghibli-paper/40 rounded-[1.5rem] mb-3 flex items-center justify-center relative overflow-hidden transition-all duration-500 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 group-hover:shadow-black/10">
                                 {item.isPlaceholder ? (
                                     <div className="flex flex-col items-center gap-2 opacity-20">
                                         <span className="text-3xl">🎨</span>

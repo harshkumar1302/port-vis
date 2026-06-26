@@ -154,8 +154,8 @@ const FullGallery = () => {
     if (!currentCategory) return null;
 
     return (
-        <div className="min-h-screen bg-ghibli-cream/30 pt-32 pb-24 px-4 md:px-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-ghibli-cream/30 pt-32 pb-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
                 {/* Back Navigation */}
                 <Link
                     to="/"
@@ -167,7 +167,7 @@ const FullGallery = () => {
 
                 {/* Header */}
                 <div className="mb-12">
-                    <h1 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif mb-4">
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif mb-4 tracking-tight">
                         {currentCategory.label} Collection
                     </h1>
                     <p className="text-ghibli-charcoal/60 max-w-2xl text-lg">
@@ -177,7 +177,7 @@ const FullGallery = () => {
 
                 {/* Sub-Category Tabs (Sticky) */}
                 <div className="sticky top-24 z-30 bg-ghibli-cream/95 backdrop-blur-sm -mx-4 px-4 md:-mx-8 md:px-8 py-4 mb-12 border-b border-ghibli-wood/10">
-                    <div className="flex overflow-x-auto gap-3 no-scrollbar max-w-7xl mx-auto">
+                    <div className="flex overflow-x-auto gap-3 no-scrollbar w-full">
                         {['All', ...(currentCategory?.subCategories || [])].map((sub) => (
                             <button
                                 key={sub}

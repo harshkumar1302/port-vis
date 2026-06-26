@@ -101,9 +101,25 @@ body::before {
 
 /* 🧼 Components */
 .section-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 120px 24px;
+  width: 100%;
+  max-width: 80rem; /* max-w-7xl — Creonnect alignment */
+  margin-left: auto;
+  margin-right: auto;
+  padding: 120px 1.5rem; /* px-6 base */
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    padding-left: 3rem; /* md:px-12 */
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-container {
+    padding-left: 4rem; /* lg:px-16 */
+    padding-right: 4rem;
+  }
 }
 
 .card-glass {

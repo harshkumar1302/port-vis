@@ -2,7 +2,7 @@
 
 const About = () => {
     return (
-        <section id="about" className="section-container relative overflow-hidden bg-ghibli-paper/20 py-8 md:py-16 -mt-12 md:-mt-12 scroll-mt-24">
+        <section id="about" className="relative overflow-hidden bg-ghibli-paper/20 py-24 md:py-32 scroll-mt-24">
             {/* --- Organic Flow Backdrop --- */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* 1. Base Gradient - Soft Creamy White */}
@@ -20,30 +20,28 @@ const About = () => {
 
 
 
-            <div className="max-w-4xl mx-auto relative z-10 px-6">
-                {/*<h2 className="text-4xl md:text-6xl font-bold text-center mb-16 text-ghibli-charcoal drop-shadow-sm">
-                    <span className="italic text-ghibli-wood">Why Visheshkala - beyond beauty, beyond art?</span>
-                </h2>*/}
-                <div className="text-center mb-16 space-y-4">
-                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
+            <div className="max-w-7xl mx-auto relative z-10 px-6 md:px-12 lg:px-16">
+                {/* Section Header — Creonnect pattern: tag + title + subtitle */}
+                <div className="mb-16 space-y-4">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase">
                         Why Visheshkala
                     </span>
-                    <h2 className="text-4xl md:text-6xl font-bold text-ghibli-charcoal font-serif">
+                    <h2 className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif tracking-tight">
                         Beyond beauty, beyond art
                     </h2>
-                    <p className="text-ghibli-charcoal/60 max-w-xl mx-auto">
+                    <p className="text-ghibli-charcoal/60 max-w-3xl text-lg leading-relaxed">
                         Rooted in tradition, refined with care. Artifacts crafted slowly with patience and love, designed to carry meaning and endure with purpose.
                     </p>
                 </div>
                 <div className="space-y-12">
                     {/* Genesis Card */}
-                    <div className="card-glass p-6 sm:p-10 bg-white/60 backdrop-blur-3xl shadow-xl text-center relative overflow-hidden group">
+                    <div className="card-glass p-6 sm:p-10 bg-white/60 backdrop-blur-3xl shadow-xl relative overflow-hidden group w-full">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ghibli-wood via-ghibli-gold to-ghibli-wood opacity-50"></div>
 
-                        <p className="text-xl text-ghibli-charcoal/90 leading-relaxed font-serif italic mb-6">
+                        <p className="text-xl text-ghibli-charcoal/90 leading-relaxed font-serif italic mb-6 max-w-5xl">
                             "I create with a belief that small details carry meaning. As an artist, I value patience, balance, and intention in every step of the process."
                         </p>
-                        <p className="text-lg text-ghibli-charcoal/70 leading-relaxed font-sans max-w-2xl mx-auto">
+                        <p className="text-lg text-ghibli-charcoal/70 leading-relaxed font-sans max-w-4xl">
                             At Visheshkala, this is reflected in art and handcrafted pieces shaped with care, simple creations made to feel personal and lasting.
                         </p>
                     </div>
@@ -51,21 +49,21 @@ const About = () => {
                     {/* Values Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                         <div className="card-glass p-6 sm:p-8 hover:border-ghibli-gold group transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl bg-white/40 backdrop-blur-md">
-                            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6 flex justify-center text-center">
+                            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6 flex">
                                 <span className="group-hover:scale-110 transition-transform duration-300 block">🎁</span>
                             </div>
-                            <h4 className="text-xl sm:text-2xl font-bold text-center text-ghibli-wood mb-3 transition-colors">Meaningful Gifting</h4>
-                            <p className="text-ghibli-charcoal/70 font-serif text-sm leading-relaxed text-center">
+                            <h4 className="text-xl sm:text-2xl font-bold text-ghibli-wood mb-3 transition-colors">Meaningful Gifting</h4>
+                            <p className="text-ghibli-charcoal/70 font-serif text-sm leading-relaxed max-w-2xl">
                                 Each creation is shaped by hand, never rushed, and made to be cherished, shared, and remembered.
                             </p>
                         </div>
 
                         <div className="card-glass p-6 sm:p-8 hover:border-ghibli-gold group transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl bg-white/40 backdrop-blur-md">
-                            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6 flex justify-center text-center">
+                            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6 flex">
                                 <span className="group-hover:scale-110 transition-transform duration-300 block">✨</span>
                             </div>
-                            <h4 className="text-xl sm:text-2xl font-bold text-center text-ghibli-wood mb-3 transition-colors">Detailing</h4>
-                            <p className="text-ghibli-charcoal/70 font-serif text-sm leading-relaxed text-center">
+                            <h4 className="text-xl sm:text-2xl font-bold text-ghibli-wood mb-3 transition-colors">Detailing</h4>
+                            <p className="text-ghibli-charcoal/70 font-serif text-sm leading-relaxed max-w-2xl">
                                 Thoughtful finishes, balanced patterns, and careful attention to every line and texture make each creation feel refined and personal.
                             </p>
                         </div>

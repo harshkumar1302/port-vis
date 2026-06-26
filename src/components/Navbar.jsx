@@ -5,6 +5,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [activeSection, setActiveSection] = useState('home');
     const audioRef = useRef(null);
 
     const toggleAudio = () => {
@@ -22,15 +23,42 @@ const Navbar = () => {
         document.documentElement.classList.remove('dark');
         localStorage.removeItem('theme');
 
-        return () => window.removeEventListener('scroll', handleScroll);
+        // Setup Intersection Observer for active section highlighting
+        const observerOptions = {
+            root: null,
+            rootMargin: '-50% 0px -50% 0px',
+            threshold: 0
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setActiveSection(entry.target.id || 'home');
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        
+        // Observe sections
+        const sections = ['home', 'about', 'gallery', 'fromthestudio', 'contact'];
+        sections.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el);
+        });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            observer.disconnect();
+        };
     }, []);
 
     const navLinks = [
-        { name: 'Home', href: '#' },
-        { name: 'About', href: '#about' },
-        { name: 'Gallery', href: '#gallery' },
-        { name: 'From the Studio', href: '#fromthestudio' },
-        { name: 'Contact', href: '#contact' },
+        { name: 'Home', href: '#home', id: 'home' },
+        { name: 'About', href: '#about', id: 'about' },
+        { name: 'Gallery', href: '#gallery', id: 'gallery' },
+        { name: 'From the Studio', href: '#fromthestudio', id: 'fromthestudio' },
+        { name: 'Contact', href: '#contact', id: 'contact' },
     ];
 
     return (
@@ -51,15 +79,14 @@ const Navbar = () => {
                     </a>
 
                     {/* Desktop Links */}
-                    <div className="hidden md:flex items-center gap-8">
+                    <div className="hidden md:flex items-center gap-1">
                         {navLinks.map((link) => (
                             <a
                                 key={link.name}
                                 href={link.href}
-                                className="text-sm font-semibold text-ghibli-charcoal/70 hover:text-ghibli-wood transition-colors relative group"
+                                className={`text-sm font-semibold transition-all duration-300 relative px-4 py-2 rounded-full ${activeSection === link.id ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal/60 hover:text-ghibli-charcoal hover:bg-ghibli-charcoal/5'}`}
                             >
                                 {link.name}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-ghibli-gold transition-all duration-300 group-hover:w-full"></span>
                             </a>
                         ))}
                     </div>

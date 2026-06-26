@@ -41,14 +41,13 @@ const Layout = ({ children }) => {
       {children}
 
       {!isAdmin && !isResetPassword && (
-        <footer className="py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none">
-          <div className="flex items-center justify-center gap-2">
-
-
-            <span>Where devotion meets detail.
-
-              VisheshKala
-              © 2026 </span>
+        <footer className="py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none border-t border-ghibli-wood/10">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
+            <div className="flex items-center justify-center gap-2">
+              <span>Where devotion meets detail.
+                VisheshKala
+                © 2026 </span>
+            </div>
           </div>
           <a href="/admin" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500" title="Admin Gate">
             🗝️
@@ -81,12 +80,13 @@ import Lenis from 'lenis';
 const SmoothScroll = () => {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.0, // slightly faster
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      touchMultiplier: 2,
+      smoothTouch: true,
+      touchMultiplier: 1.5,
     });
 
     function raf(time) {

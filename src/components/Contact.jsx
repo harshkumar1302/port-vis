@@ -47,7 +47,7 @@ const Contact = () => {
     ];
 
     return (
-        <section id="contact" className="section-container relative overflow-hidden py-16 -mt-12 md:mt-0 scroll-mt-24">
+        <section id="contact" className="relative overflow-hidden py-24 md:py-32 scroll-mt-24">
             {/* --- Message / Connection Backdrop --- */}
             {false && (
                 <div className="absolute inset-0 pointer-events-none">
@@ -69,15 +69,15 @@ const Contact = () => {
 
             {/* Right Side Glow */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-ghibli-gold/20 blur-[80px] rounded-full pointer-events-none"></div>
-            <div className="max-w-3xl mx-auto text-center relative z-10 px-6">
+            <div className="max-w-7xl mx-auto relative z-10 px-6 md:px-12 lg:px-16">
 
-                <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs mb-6 block">
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase mb-6">
                     Have an idea?
                 </span>
 
-                <h2 className="text-4xl md:text-5xl font-bold mb-8 text-ghibli-charcoal font-serif">
-                    Let's create something <br />
-                    <span className="text-ghibli-wood italic">beautiful together.</span>
+                <h2 className="text-4xl md:text-5xl font-extrabold mb-8 text-ghibli-charcoal font-serif tracking-tight">
+                    Let's create something
+                    <span className="text-ghibli-wood "> beautiful together.</span>
                 </h2>
 
                 <p className="text-lg text-ghibli-charcoal/80 mb-16 font-sans leading-loose">
@@ -87,7 +87,7 @@ const Contact = () => {
                 <div className="flex flex-col items-center gap-10">
 
                     {/* Socials & Email */}
-                    <div className="flex flex-wrap gap-3 md:gap-6 items-center justify-center">
+                    <div className="flex flex-wrap gap-3 md:gap-6 items-center justify-start">
                         {socialLinks.map((link) => (
                             <a
                                 key={link.name}

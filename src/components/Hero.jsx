@@ -31,7 +31,7 @@ const Hero = () => {
     };
 
     return (
-        <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-transparent">
+        <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-transparent">
             {/* 🌌 Starry Night Background */}
             <div className="absolute inset-0 pointer-events-none z-0">
                 {/* Night Sky Gradients */}
@@ -70,8 +70,14 @@ const Hero = () => {
 
             </div>
 
-            <div className="section-container relative z-10 text-center pt-24 md:pt-64">
-                <div className="animate-fade-in space-y-8 max-w-2xl mx-auto">
+            <div className="section-container relative z-10 pt-32 md:pt-48">
+                <div className="animate-fade-in space-y-8 w-full flex flex-col items-center text-center">
+
+                    {/* Pill Tag — Creonnect style */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-ghibli-gold animate-pulse"></span>
+                        Handcrafted Art & Gifts
+                    </div>
 
                     {/* Avatar Element */}
                     <div className="relative inline-block mb-2 group">
@@ -79,33 +85,39 @@ const Hero = () => {
                         <img
                             src="/ghibli-avatar.png"
                             alt="Vishakha"
-                            className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[6px] border-white/40 shadow-2xl object-cover animate-float relative z-10"
+                            className="w-36 h-36 md:w-44 md:h-44 rounded-full border-[6px] border-white/40 shadow-2xl object-cover animate-float relative z-10"
                         />
                         {/* Little sparkle decoration */}
                         <span className="absolute -top-2 -right-2 text-4xl animate-bounce delay-700 select-none">✨</span>
                     </div>
 
-                    {/* Poetic Headline */}
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-medium tracking-tight text-ghibli-charcoal leading-tight drop-shadow-sm select-none">
+                    {/* Poetic Headline — Creonnect tighter tracking */}
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-ghibli-charcoal leading-[1.1] drop-shadow-sm select-none max-w-4xl">
                         {wordWrap("Visheshkala")} <br />
-                        <span className="text-ghibli-wood italic font-serif mt-2 block tracking-normal text-3xl md:text-4xl">
+                        <span className="text-ghibli-wood italic font-serif mt-2 block tracking-tight text-3xl sm:text-4xl md:text-5xl">
                             {wordWrap("Matchless offerings, from us to you.")}
                         </span>
                     </h1>
 
                     {/* Soft Description */}
-                    <p className="text-lg md:text-xl text-ghibli-charcoal/80 font-sans leading-relaxed select-none">
-                        {wordWrap("Thoughtfully created to celebrate emotions, memories, and moments that matter. Every artwork is carefully envisioned and lovingly brought to life. Visheshkala is not just art; it is a feeling you can hold.")}
+                    <p className="text-lg md:text-xl text-ghibli-charcoal/70 font-sans leading-relaxed select-none max-w-2xl">
+                        {wordWrap("Thoughtfully created to celebrate emotions, memories, and moments that matter. Every artwork is carefully envisioned and lovingly brought to life.")}
                     </p>
 
-                    {/* Action */}
-                    <div className="pt-8 relative z-30 flex justify-center">
+                    {/* Action — Pill buttons like Creonnect */}
+                    <div className="pt-4 relative z-30 flex items-center gap-4">
                         <a
                             href="#gallery"
-                            className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F] hover:scale-105 active:scale-95 transition-all duration-300 font-bold tracking-widest text-xs md:text-sm shadow-lg hover:shadow-xl ring-4 ring-transparent hover:ring-ghibli-gold/20 cursor-pointer"
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F] hover:scale-105 active:scale-95 transition-all duration-300 font-bold tracking-widest text-xs shadow-lg hover:shadow-xl ring-4 ring-transparent hover:ring-ghibli-gold/20 cursor-pointer"
                         >
                             <span>EXPLORE THE COLLECTION</span>
                             <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </a>
+                        <a
+                            href="#contact"
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white/80 text-ghibli-wood border border-ghibli-wood/20 hover:bg-ghibli-paper hover:scale-105 active:scale-95 transition-all duration-300 font-bold tracking-widest text-xs shadow-sm hover:shadow-md cursor-pointer"
+                        >
+                            <span>GET IN TOUCH</span>
                         </a>
                     </div>
 

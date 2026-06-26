@@ -82,13 +82,13 @@ const Skills = () => {
                 <div className="absolute top-[15%] left-[25%] w-1.5 h-1.5 rounded-full bg-ghibli-wood/10"></div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="text-center mb-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 relative z-10">
+                <div className="mb-24">
                     <motion.span
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-ghibli-wood font-bold tracking-[0.3em] uppercase text-xs mb-4 block"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase"
                     >
                         What I Work With
                     </motion.span>
@@ -97,7 +97,7 @@ const Skills = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-5xl md:text-6xl font-bold text-ghibli-charcoal font-serif mb-6"
+                        className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-6"
                     >
                         My <span className="italic text-ghibli-wood">Creative Toolkit</span>
                     </motion.h2>
@@ -106,7 +106,7 @@ const Skills = () => {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-ghibli-charcoal/60 max-w-2xl mx-auto text-lg leading-relaxed"
+                        className="text-ghibli-charcoal/60 max-w-3xl text-lg leading-relaxed mt-4"
                     >
                         A curated selection of instruments that help bridge the gap between imagination and reality.
                     </motion.p>

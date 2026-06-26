@@ -32,20 +32,20 @@ const FromTheStudio = () => {
     }, []);
 
     return (
-        <section id="fromthestudio" className="section-container relative overflow-hidden py-12 -mt-12 md:mt-0 scroll-mt-24">
-            <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+        <section id="fromthestudio" className="relative overflow-hidden py-24 md:py-32 scroll-mt-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 space-y-12 relative z-10">
                 {/* Header Section */}
-                <div className="text-center space-y-4 max-w-2xl mx-auto">
-                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-xs">
+                <div className="space-y-4 mb-16">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase">
                         From the Studio
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-bold text-ghibli-charcoal leading-tight">
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-ghibli-charcoal leading-tight tracking-tight">
                         Handmade with <br />
                         <span className="text-ghibli-wood italic font-serif">
                             <a href="/admin" className="cursor-text text-inherit decoration-0 outline-none">patience</a> & love
                         </span>
                     </h2>
-                    <p className="text-ghibli-charcoal/70 font-sans leading-relaxed">
+                    <p className="text-ghibli-charcoal/70 font-sans leading-relaxed max-w-3xl">
                         Beyond the digital screen, I run a small creative shop where I craft physical mandalas and miniature sets.
                         Each piece is a labor of love, designed to bring magic into your home.
                     </p>
