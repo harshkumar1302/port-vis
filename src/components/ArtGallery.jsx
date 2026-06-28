@@ -181,10 +181,32 @@ const ArtGallery = () => {
 
                 {/* 2. Best Work Carousel (Embla) — Center Focus Coverflow */}
                 <div className="mb-24 relative w-full">
-                    <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 flex items-center gap-2 mb-6 opacity-60">
-                        <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
-                        <span className="text-xs uppercase tracking-widest font-bold">Featured Highlights</span>
+                    <div className="px-5 md:px-10 lg:px-14 flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2 opacity-60">
+                            <span className="w-8 h-[1px] bg-ghibli-charcoal"></span>
+                            <span className="text-xs uppercase tracking-widest font-bold">Featured Highlights</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                className="swiper-button-prev-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
+                                aria-label="Previous Highlight"
+                            >
+                                <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
+                            </button>
+                            <button
+                                className="swiper-button-next-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
+                                aria-label="Next Highlight"
+                            >
+                                <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Right-edge fade — blurs last slide into the page background */}
+                    <div
+                        className="absolute right-0 top-16 bottom-0 w-20 sm:w-36 md:w-56 z-20 pointer-events-none"
+                        style={{ background: 'linear-gradient(to left, #FFFDF5 15%, rgba(255,253,245,0) 100%)' }}
+                    />
 
                     {/* Swiper Viewport */}
                     <Swiper
@@ -204,7 +226,7 @@ const ArtGallery = () => {
                             prevEl: '.swiper-button-prev-custom',
                         }}
                         modules={[Navigation, Autoplay]}
-                        className="w-full py-10 pl-6 md:pl-[max(3rem,calc((100vw-80rem)/2+3rem))] pr-0"
+                        className="w-full py-8 pl-5 md:pl-10 lg:pl-14 pr-0"
                     >
                         {displayFeatured.map((work, index) => (
                             <SwiperSlide 
@@ -241,21 +263,7 @@ const ArtGallery = () => {
                         ))}
                     </Swiper>
 
-                    {/* Navigation Buttons */}
-                    <div className="flex justify-end items-center gap-4 max-w-7xl mx-auto px-6 md:px-12 lg:px-16 mt-4 relative z-20">
-                        <button
-                            className="swiper-button-prev-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
-                            aria-label="Previous Highlight"
-                        >
-                            <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
-                        </button>
-                        <button
-                            className="swiper-button-next-custom w-10 h-10 rounded-full border border-ghibli-wood/20 bg-white shadow-sm flex items-center justify-center text-ghibli-wood hover:bg-ghibli-paper transition-all group active:scale-95 cursor-pointer"
-                            aria-label="Next Highlight"
-                        >
-                            <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
-                    </div>
+
                 </div>
 
                 {/* 3. Category Sections - Embla Carousels */}
@@ -275,7 +283,7 @@ const ArtGallery = () => {
                         // This moves prioritized items to the front, preserving their relative manual/date order.
                         const finalItems = getPrioritizedItems(cat.id, sortedItems);
 
-                        const displayItems = getDisplayItems(finalItems, 8, 5); // Threshold of 5 for categories
+                        const displayItems = getDisplayItems(finalItems, 4, 4); // Show max 4 placeholder slots
 
                         return (
                             <CategorySlider
@@ -406,9 +414,9 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
     return (
         <div className="animate-fade-in-up">
             {/* Section Header */}
-            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 w-full flex flex-row items-end justify-between mb-8">
+            <div className="px-5 md:px-10 lg:px-14 w-full flex flex-row items-end justify-between mb-7">
                 <div>
-                    <h3 className="text-2xl md:text-3xl font-extrabold text-ghibli-charcoal font-serif mb-2 tracking-tight">
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-ghibli-charcoal font-serif mb-1 tracking-tight">
                         {cat.label}
                     </h3>
                     <span className="text-xs font-bold tracking-widest text-ghibli-wood/40 uppercase">
@@ -424,48 +432,67 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                 </Link>
             </div>
 
-            {/* Embla Viewport — Left aligned to grid, bleeding right */}
-            <div className="overflow-hidden py-8 -my-8 pl-6 md:pl-[max(3rem,calc((100vw-80rem)/2+3rem))]" ref={emblaRef}>
-                <div className="flex gap-4 select-none touch-pan-y items-stretch">
-                    {items.map((item, index) => (
-                        <div
-                            key={`${item.id || 'cat'}-${index}`}
-                            onClick={() => !item.isPlaceholder && onCardClick(item)}
-                            className={`flex-[0_0_200px] sm:flex-[0_0_240px] rounded-[1.5rem] flex flex-col group ${item.isPlaceholder ? '' : 'cursor-pointer'}`}
-                        >
-                            {/* Card Image Area */}
-                            <div className="aspect-[4/5] bg-ghibli-paper/40 rounded-[1.5rem] mb-3 flex items-center justify-center relative overflow-hidden transition-all duration-500 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 group-hover:shadow-black/10">
-                                {item.isPlaceholder ? (
-                                    <div className="flex flex-col items-center gap-2 opacity-20">
-                                        <span className="text-3xl">🎨</span>
-                                        <span className="text-[9px] font-bold tracking-widest uppercase">In Progress</span>
-                                    </div>
-                                ) : (
-                                    (item && item.image_url) ? (
-                                        <img
-                                            src={item.image_url}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-2 opacity-20">
-                                            <span className="text-3xl">🎨</span>
-                                            <span className="text-[9px] font-bold tracking-widest uppercase">In Progress</span>
-                                        </div>
-                                    )
-                                )}
-                            </div>
+            {/* Carousel wrapper */}
+            <div className="relative">
+                {/* Right-edge gradient — last card dissolves into the page */}
+                <div
+                    className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 md:w-48 z-10 pointer-events-none"
+                    style={{ background: 'linear-gradient(to left, #FFFDF5 15%, rgba(255,253,245,0) 100%)' }}
+                />
 
-                            {/* Card Footer - Minimal */}
-                            <div className="px-1">
-                                {(item.isPlaceholder || item.title) && (
-                                    <h4 className={`font-bold text-sm font-serif truncate transition-colors ${item.isPlaceholder ? 'text-ghibli-charcoal/20' : 'text-ghibli-charcoal/70 group-hover:text-ghibli-charcoal'}`}>
-                                        {item.isPlaceholder ? 'Gallery Slot' : item.title}
-                                    </h4>
+                {/* Embla Viewport */}
+                <div className="overflow-hidden py-8 -my-8 pl-5 md:pl-10 lg:pl-14" ref={emblaRef}>
+                    <div className="flex gap-4 md:gap-5 select-none touch-pan-y items-start">
+                        {items.map((item, index) => (
+                            <div
+                                key={`${item.id || 'cat'}-${index}`}
+                                onClick={() => !item.isPlaceholder && onCardClick(item)}
+                                className={`flex-[0_0_175px] sm:flex-[0_0_210px] md:flex-[0_0_240px] flex flex-col group ${item.isPlaceholder ? '' : 'cursor-pointer'}`}
+                            >
+                                {/* Card Image */}
+                                <div className={`aspect-[3/4] rounded-2xl mb-3 relative overflow-hidden transition-all duration-500 ${
+                                    item.isPlaceholder
+                                        ? 'bg-ghibli-paper/25 border border-dashed border-ghibli-wood/15'
+                                        : 'bg-ghibli-paper/40 shadow-sm group-hover:shadow-2xl group-hover:-translate-y-2 group-hover:shadow-black/10'
+                                }`}>
+                                    {item.isPlaceholder ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center gap-3 opacity-20">
+                                            <div className="w-9 h-9 rounded-full border border-ghibli-wood/60 flex items-center justify-center">
+                                                <span className="text-xs text-ghibli-wood leading-none">✦</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        (item && item.image_url) ? (
+                                            <>
+                                                <img
+                                                    src={item.image_url}
+                                                    alt={item.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+                                                {/* Hover reveal gradient */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            </>
+                                        ) : (
+                                            <div className="w-full h-full bg-ghibli-paper/40 flex flex-col items-center justify-center gap-2 opacity-20">
+                                                <div className="w-9 h-9 rounded-full border border-ghibli-wood/60 flex items-center justify-center">
+                                                    <span className="text-xs text-ghibli-wood leading-none">✦</span>
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+
+                                {/* Card title — real artworks only */}
+                                {!item.isPlaceholder && item.title && (
+                                    <div className="px-0.5">
+                                        <h4 className="font-semibold text-sm font-serif truncate text-ghibli-charcoal/60 group-hover:text-ghibli-charcoal transition-colors duration-200">
+                                            {item.title}
+                                        </h4>
+                                    </div>
                                 )}
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
