@@ -206,7 +206,7 @@ const AdminDashboard = () => {
         if (catDef && catDef.subCategories?.length > 0) {
             // Only auto-set if current subCategory isn't valid for this category
             if (!catDef.subCategories.includes(subCategory)) {
-                setSubCategory(catDef.subCategories[0]);
+                setSubCategory('');
             }
         } else {
             setSubCategory('');
@@ -223,7 +223,6 @@ const AdminDashboard = () => {
             if (res.ok) {
                 const data = await res.json();
                 setSession({ user: { id: 'admin-master', email: 'owner' } });
-                fetchSettings();
             } else {
                 setSession(null);
             }
@@ -243,7 +242,7 @@ const AdminDashboard = () => {
                     // Initialize category/subcategory if not set
                     setCategory(prev => {
                         if (prev && data.value.some(c => c.label === prev)) return prev;
-                        return data.value[0].label;
+                        return '';
                     });
                 } else {
                     // Initialize with defaults if empty
@@ -397,6 +396,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         if (session) {
+            fetchSettings();
             fetchArtworks();
         }
     }, [session]);
@@ -569,13 +569,13 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         // Determine mode and category
         if (art.category === 'Upcoming') {
             setUploadType('upcoming');
-            setCategory(categoryDefinitions[0]?.label || ''); // Reset category dropdown
+            setCategory(''); // Reset category dropdown
         } else if (art.category === 'Featured' || isFeaturedItem) {
             setUploadType('featured');
-            setCategory(categoryDefinitions[0]?.label || '');
+            setCategory('');
         } else {
             setUploadType('gallery');
-            setCategory(art.category || (categoryDefinitions[0]?.label || ''));
+            setCategory(art.category || '');
             subCategoryOverrideRef.current = extractedSub;
         }
 
@@ -691,7 +691,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         setEditingId(null);
         setTitle('');
         setDesc('');
-        setCategory(categoryDefinitions[0]?.label || '');
+        setCategory('');
         setFile(null);
         setPreviewUrl(null);
         setUploadType('gallery');
@@ -1040,18 +1040,20 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Main Category</label>
                                             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
+                                                <option value="" disabled>Select a category</option>
                                                 {categoryDefinitions.map(cat => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
                                             <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
+                                                <option value="" disabled>Select a sub-category</option>
                                                 {(() => {
                                                     const catDef = categoryDefinitions.find(c =>
                                                         c.label?.trim().toLowerCase() === category?.trim().toLowerCase() ||
                                                         c.id?.trim().toLowerCase() === category?.trim().toLowerCase()
                                                     );
-                                                    return catDef?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>) || <option value="">No subcategories</option>;
+                                                    return catDef?.subCategories?.map(sub => <option key={sub} value={sub}>{sub}</option>) || null;
                                                 })()}
                                             </select>
                                         </div>
