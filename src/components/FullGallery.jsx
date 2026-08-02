@@ -3,13 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
+import { FALLBACK_CATEGORIES } from '../constants/categories';
+import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
+import { buildWhatsAppUrl } from '../lib/enquire';
+import useSiteSetting from '../hooks/useSiteSettings';
+
 // --- Constants ---
-const FALLBACK_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
-    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
-    { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
-    { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
-];
+const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
 const FullGallery = () => {
     const { category } = useParams();
@@ -20,7 +20,8 @@ const FullGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
-    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+    const [categories, setCategories] = useState(FALLBACK_CATEGORIES_LOCAL);
+    const { value: channels } = useSiteSetting('contact_channels', {});
 
     // Validate category
     const currentCategory = categories.find(c => c.id === category);
@@ -230,6 +231,14 @@ const FullGallery = () => {
                                         <h4 className="font-bold text-ghibli-charcoal text-xl font-serif group-hover:text-ghibli-wood transition-colors line-clamp-1">
                                             {art.title}
                                         </h4>
+                                        {art.price && (
+                                            <div className="mt-2 flex items-baseline gap-2">
+                                                <span className="font-extrabold text-ghibli-charcoal">{formatPrice(art.price)}</span>
+                                                {art.original_price && getDiscountPct(art) && (
+                                                    <span className="text-sm text-ghibli-charcoal/40 line-through">{formatPrice(art.original_price)}</span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -311,12 +320,21 @@ const FullGallery = () => {
                                     <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[11px] bg-ghibli-paper/30 px-3 py-1 rounded-full">
                                         {category?.toUpperCase() || 'COLLECTION'}
                                     </span>
-                                    {selectedArt.description?.includes('[SubCategory:') && (
+                                    {getSubCategory(selectedArt) && (
                                         <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px]">
-                                            • {selectedArt.description.match(/\[SubCategory:\s*(.*?)\]/)?.[1] || ''}
+                                            • {getSubCategory(selectedArt)}
                                         </span>
                                     )}
                                 </div>
+
+                                {(selectedArt.price || selectedArt.original_price) && (
+                                    <div className="flex items-baseline gap-3 mb-6">
+                                        {selectedArt.price && <span className="text-2xl font-extrabold text-ghibli-charcoal">{formatPrice(selectedArt.price)}</span>}
+                                        {selectedArt.original_price && getDiscountPct(selectedArt) && (
+                                            <span className="text-lg text-ghibli-charcoal/40 line-through">{formatPrice(selectedArt.original_price)}</span>
+                                        )}
+                                    </div>
+                                )}
 
                                 {(selectedArt.title || (selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim())) && (
                                     <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
@@ -340,13 +358,23 @@ const FullGallery = () => {
                                     </div>
                                 )}
 
-                                <a
-                                    href="/#contact"
-                                    onClick={() => setSelectedArt(null)}
-                                    className="px-8 py-4 bg-[#8D6E63] text-ghibli-cream rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#A0704F] transition-all self-start shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 text-center w-full md:w-auto"
-                                >
-                                    Inquire
-                                </a>
+                                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                    <a
+                                        href={buildWhatsAppUrl(selectedArt, channels)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-8 py-4 bg-[#25D366] text-white rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:scale-105 transition-all self-start shadow-lg text-center flex-1"
+                                    >
+                                        Enquire on WhatsApp
+                                    </a>
+                                    <a
+                                        href="/#contact"
+                                        onClick={() => setSelectedArt(null)}
+                                        className="px-8 py-4 bg-[#8D6E63] text-ghibli-cream rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#A0704F] transition-all self-start shadow-lg text-center flex-1"
+                                    >
+                                        Contact
+                                    </a>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>

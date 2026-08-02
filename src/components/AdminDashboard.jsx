@@ -17,14 +17,11 @@ import {
     useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-// Default Categories Data - Used for initial setup if DB is empty
-const DEFAULT_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art', subCategories: ['Flower Mandala', 'Creative Mandala', 'Wall Mandala', 'Arc Mini Mandalas'] },
-    { id: 'miniature', label: 'Miniatures', subCategories: ['Miniatures', 'Clay Sets'] },
-    { id: 'gift', label: 'Gift Material', subCategories: ['Vintage Frame', 'Fridge Magnet', 'Key Chains', 'Brooch', 'Garlands', 'Gopi Dots', 'Bottle Arts', 'Tote Bags', 'Car Hanging'] },
-    { id: 'diy', label: 'DIY Art', subCategories: ['Bookmarks', 'Stick Bookmarks (Clay)', 'Wooden Bookmarks', 'MDF Boards', 'Backdrops'] },
-];
+import { FALLBACK_CATEGORIES as DEFAULT_CATEGORIES } from '../constants/categories';
+import { artMatchesCategory, getProductsUrl } from '../lib/categoryUtils';
+import ReviewsTab from './admin/tabs/ReviewsTab';
+import LeadsTab from './admin/tabs/LeadsTab';
+import SiteTab from './admin/tabs/SiteTab';
 
 // Sortable Item Component
 const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
@@ -139,6 +136,11 @@ const AdminDashboard = () => {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [isFeatured, setIsFeatured] = useState(false);
+    const [isBestseller, setIsBestseller] = useState(false);
+    const [isNew, setIsNew] = useState(false);
+    const [price, setPrice] = useState('');
+    const [originalPrice, setOriginalPrice] = useState('');
+    const [adminTab, setAdminTab] = useState('artworks');
     const [editingId, setEditingId] = useState(null);
     const subCategoryOverrideRef = useRef(null);
 
@@ -565,18 +567,23 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         cleanDesc = cleanDesc.replace(/\[FEATURED\]/g, '').trim();
 
         setDesc(cleanDesc);
+        setPrice(art.price ?? '');
+        setOriginalPrice(art.original_price ?? '');
+        setIsFeatured(art.is_featured || isFeaturedItem);
+        setIsBestseller(art.is_bestseller || false);
+        setIsNew(art.is_new || false);
 
         // Determine mode and category
         if (art.category === 'Upcoming') {
             setUploadType('upcoming');
-            setCategory(''); // Reset category dropdown
-        } else if (art.category === 'Featured' || isFeaturedItem) {
+            setCategory('');
+        } else if (art.category === 'Featured' || isFeaturedItem || art.is_featured) {
             setUploadType('featured');
             setCategory('');
         } else {
             setUploadType('gallery');
             setCategory(art.category || '');
-            subCategoryOverrideRef.current = extractedSub;
+            subCategoryOverrideRef.current = extractedSub || art.sub_category || '';
         }
 
         setPreviewUrl(art.image_url);
@@ -625,14 +632,30 @@ Check your internet connection. If this is on Vercel, please ensure you have run
             if (uploadType === 'upcoming') {
                 finalCategory = 'Upcoming';
             } else if (uploadType === 'featured') {
-                finalCategory = 'Featured';
-                finalDescription += `\n\n[FEATURED]`;
+                // Keep the real shop category — featured is a flag, not a category bucket
+                if (!category) {
+                    throw new Error('Please pick a category for this product (e.g. Mandala Art).');
+                }
+                finalCategory = category;
+                if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
             } else {
+                if (!category) {
+                    throw new Error('Please pick a category for this product.');
+                }
+                finalCategory = category;
                 if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
             }
 
+            const marketplaceFields = {
+                price: price ? Number(price) : null,
+                original_price: originalPrice ? Number(originalPrice) : null,
+                is_featured: uploadType === 'featured' || isFeatured,
+                is_bestseller: isBestseller,
+                is_new: isNew,
+                sub_category: subCategory || null,
+            };
+
             if (editingId) {
-                // Update Existing via Private API
                 const res = await fetch('/api/manage-art', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -643,6 +666,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         description: finalDescription,
                         category: finalCategory,
                         image_url: finalImageUrl,
+                        ...marketplaceFields,
                     }),
                 });
 
@@ -662,6 +686,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         category: finalCategory,
                         image_url: finalImageUrl,
                         user_id: session.user.id,
+                        ...marketplaceFields,
                     }),
                 });
 
@@ -692,9 +717,15 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         setTitle('');
         setDesc('');
         setCategory('');
+        setSubCategory('');
         setFile(null);
         setPreviewUrl(null);
         setUploadType('gallery');
+        setPrice('');
+        setOriginalPrice('');
+        setIsFeatured(false);
+        setIsBestseller(false);
+        setIsNew(false);
     };
 
     const handleFileChange = (e) => {
@@ -976,6 +1007,29 @@ Check your internet connection. If this is on Vercel, please ensure you have run
     return (
         <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream transition-colors duration-500">
             <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12">
+                <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-4">
+                    {[
+                        { id: 'artworks', label: 'Artworks' },
+                        { id: 'reviews', label: 'Reviews' },
+                        { id: 'leads', label: 'Leads' },
+                        { id: 'site', label: 'Site Settings' },
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setAdminTab(tab.id)}
+                            className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${adminTab === tab.id ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {adminTab === 'reviews' && <ReviewsTab />}
+                {adminTab === 'leads' && <LeadsTab />}
+                {adminTab === 'site' && <SiteTab />}
+
+                {adminTab === 'artworks' && (<>
+
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                     <div className="flex flex-col w-full sm:w-auto">
                         <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group active:scale-95">
@@ -1013,7 +1067,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     onClick={() => setUploadType('gallery')}
                                     className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'gallery' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
                                 >
-                                    Gallery
+                                    Product
                                 </button>
                                 <button
                                     onClick={() => setUploadType('featured')}
@@ -1035,11 +1089,11 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" />
                                 </div>
 
-                                {uploadType === 'gallery' ? (
+                                {(uploadType === 'gallery' || uploadType === 'featured') ? (
                                     <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Main Category</label>
-                                            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
+                                            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer" required>
                                                 <option value="" disabled>Select a category</option>
                                                 {categoryDefinitions.map(cat => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
                                             </select>
@@ -1047,7 +1101,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                         <div>
                                             <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Sub-Category</label>
                                             <select value={subCategory} onChange={(e) => setSubCategory(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold cursor-pointer">
-                                                <option value="" disabled>Select a sub-category</option>
+                                                <option value="">None</option>
                                                 {(() => {
                                                     const catDef = categoryDefinitions.find(c =>
                                                         c.label?.trim().toLowerCase() === category?.trim().toLowerCase() ||
@@ -1057,11 +1111,16 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 })()}
                                             </select>
                                         </div>
+                                        {uploadType === 'featured' && (
+                                            <p className="text-[10px] text-ghibli-wood/70 font-bold uppercase tracking-wider">
+                                                ★ Will appear in Featured Picks and under Products
+                                            </p>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="p-4 rounded-xl bg-ghibli-wood/5 border border-ghibli-wood/10 text-center">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-ghibli-wood opacity-60">
-                                            {uploadType === 'featured' ? '★ FOR TOP HIGHLIGHTS' : '🌿 FOR UPCOMING ART'}
+                                            🌿 FOR UPCOMING ART
                                         </span>
                                     </div>
                                 )}
@@ -1069,6 +1128,32 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Story</label>
                                     <textarea value={desc} onChange={(e) => setDesc(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood h-24" />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Price (₹)</label>
+                                        <input type="number" min="0" step="1" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" placeholder="799" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Original Price (₹)</label>
+                                        <input type="number" min="0" step="1" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" placeholder="999" />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-4">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
+                                        <input type="checkbox" checked={isFeatured || uploadType === 'featured'} onChange={(e) => setIsFeatured(e.target.checked)} disabled={uploadType === 'featured'} />
+                                        Featured
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
+                                        <input type="checkbox" checked={isBestseller} onChange={(e) => setIsBestseller(e.target.checked)} />
+                                        Bestseller
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
+                                        <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} />
+                                        New Launch
+                                    </label>
                                 </div>
 
                                 <div>
@@ -1219,6 +1304,13 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                             }}
                                                             className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg w-full"
                                                         />
+                                                        <p className="text-[10px] text-ghibli-wood/50 font-bold mt-1">
+                                                            /products?category={cat.id}
+                                                            {' · '}
+                                                            <a href={getProductsUrl(cat.id)} target="_blank" rel="noopener noreferrer" className="text-ghibli-wood hover:underline">
+                                                                View on site →
+                                                            </a>
+                                                        </p>
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button
@@ -1247,7 +1339,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                const artworksCount = artworks.filter(a => a.category === cat.label || a.category === cat.id).length;
+                                                                const artworksCount = artworks.filter(a => artMatchesCategory(a, cat.id, categoryDefinitions)).length;
                                                                 let confirmMsg = `Delete "${cat.label}" and all its subcategories?`;
                                                                 if (artworksCount > 0) {
                                                                     confirmMsg += `\n\nWARNING: ${artworksCount} artwork(s) currently belong to this category. They will become "Uncategorized" and you will need to manually reassign them!`;
@@ -1394,8 +1486,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             <div className="flex items-center gap-3 pb-2 border-b-2 border-ghibli-wood/10">
                                                 <div className="w-10 h-10 rounded-2xl bg-ghibli-wood text-ghibli-cream flex items-center justify-center text-xl shadow-lg shadow-ghibli-wood/20">🏞️</div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-ghibli-navy leading-none">The Gallery</h3>
-                                                    <p className="text-[10px] text-ghibli-wood/50 font-bold uppercase tracking-widest mt-1">Organized by category & subcategory</p>
+                                                    <h3 className="text-lg font-bold text-ghibli-navy leading-none">Products by Category</h3>
+                                                    <p className="text-[10px] text-ghibli-wood/50 font-bold uppercase tracking-widest mt-1">Same layout as /products page</p>
                                                 </div>
                                             </div>
 
@@ -1404,10 +1496,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                     const catLabel = catDef.label;
                                                     const isCatCollapsed = collapsedSections[catLabel];
                                                     const catItems = artworks.filter(a => {
-                                                        const isMatch = a.category?.trim().toLowerCase() === catLabel?.trim().toLowerCase() ||
-                                                            a.category?.trim().toLowerCase() === catDef?.id?.trim().toLowerCase();
-                                                        // Only show in Gallery if NOT marked as Featured or Upcoming category
-                                                        return isMatch && a.category !== 'Upcoming' && a.category !== 'Featured' && !a.description?.includes('[FEATURED]');
+                                                        const isMatch = artMatchesCategory(a, catDef.id, categoryDefinitions);
+                                                        return isMatch && a.category !== 'Upcoming';
                                                     });
 
                                                     if (catItems.length === 0) return null;
@@ -1681,6 +1771,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         </div>
                     </div>
                 </div>
+
+                </>)}
 
                 {/* Change Password Modal */}
                 {showChangePassword && (

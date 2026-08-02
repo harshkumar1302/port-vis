@@ -11,14 +11,10 @@ import 'swiper/css/navigation';
 
 import { supabase } from '../lib/supabaseClient';
 
+import { FALLBACK_CATEGORIES } from '../constants/categories';
+
 // --- Constants ---
-// Default Categories Data - Used for initial setup if DB is empty
-const FALLBACK_CATEGORIES = [
-    { id: 'mandala', label: 'Mandala Art' },
-    { id: 'miniature', label: 'Miniatures' },
-    { id: 'gift', label: 'Gift Material' },
-    { id: 'diy', label: 'DIY Art' },
-];
+const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
 const ArtGallery = () => {
     const [artworks, setArtworks] = useState([]);
@@ -26,7 +22,7 @@ const ArtGallery = () => {
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
-    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+    const [categories, setCategories] = useState(FALLBACK_CATEGORIES_LOCAL);
 
     useEffect(() => {
         fetchCategories();
@@ -424,7 +420,7 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                     </span>
                 </div>
                 <Link
-                    to={`/gallery/${cat.id}`}
+                    to={`/products?category=${cat.id}`}
                     className="text-ghibli-wood/80 font-bold text-xs uppercase tracking-widest hover:text-ghibli-wood transition-colors group flex items-center gap-2"
                 >
                     See All

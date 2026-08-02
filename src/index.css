@@ -45,6 +45,13 @@
   --color-ghibli-moss: var(--ghibli-moss);
   --color-ghibli-wood: var(--ghibli-wood);
   --color-ghibli-salmon: var(--ghibli-salmon);
+  --color-blush-dark: #E8B4B8;
+  --color-blush-light: #FCEBEB;
+  --color-gold-dark: #B5931C;
+
+  --background-image-gold-gradient: linear-gradient(to right, var(--ghibli-gold), var(--gold-dark));
+  --box-shadow-soft: 0 4px 14px 0 rgba(0, 0, 0, 0.05);
+  --box-shadow-luxe: 0 10px 30px 0 rgba(0, 0, 0, 0.08);
 
   --font-serif: var(--font-heading);
   --font-sans: var(--font-body);
@@ -55,9 +62,9 @@
 
 /* 🌿 Reset & Base */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-padding-top: 100px;
-  /* Offset for fixed navbar */
+  /* Offset for fixed navbar + announcement bar */
 }
 
 body {
@@ -66,6 +73,7 @@ body {
   color: var(--ghibli-charcoal);
   line-height: 1.8;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   transition: background-color 0.8s ease-in-out, color 0.8s ease-in-out;
   cursor: auto;
 }
@@ -335,4 +343,30 @@ body::before {
 
 .wave-element {
   animation: waveMove 2s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 35s linear infinite;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
