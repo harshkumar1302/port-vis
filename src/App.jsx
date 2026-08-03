@@ -3,13 +3,13 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import SiteHeader from './components/SiteHeader';
 import PageWayfinding from './components/PageWayfinding';
 import Hero from './components/Hero';
+import ShopByCategory from './components/ShopByCategory';
+import FeaturedPicks from './components/FeaturedPicks';
 import RouteSEO from './components/RouteSEO';
 
 import { StoreProvider } from './context/StoreContext';
 import { ProductsRedirect, ProductSlugRedirect } from './pages/LegacyRedirects';
 
-const ShopByCategory = lazy(() => import('./components/ShopByCategory'));
-const FeaturedPicks = lazy(() => import('./components/FeaturedPicks'));
 const HomeAbout = lazy(() => import('./components/HomeAbout'));
 const WhyUs = lazy(() => import('./components/WhyUs'));
 const Reviews = lazy(() => import('./components/Reviews'));
@@ -35,9 +35,9 @@ const BelowFold = ({ children }) => (
 const Home = () => (
   <>
     <Hero />
+    <ShopByCategory />
+    <FeaturedPicks />
     <BelowFold>
-      <ShopByCategory />
-      <FeaturedPicks />
       <HomeAbout />
       <WhyUs />
       <Reviews />
