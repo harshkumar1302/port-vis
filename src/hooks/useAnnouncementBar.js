@@ -29,10 +29,26 @@ export const useAnnouncementBar = () => {
   }, []);
 
   useEffect(() => {
-    reload();
+    let cancelled = false;
+
+    const run = () => {
+      if (!cancelled) reload();
+    };
+
+    const idleId =
+      typeof requestIdleCallback === 'function'
+        ? requestIdleCallback(run, { timeout: 4000 })
+        : window.setTimeout(run, 1500);
+
     const onUpdate = () => reload();
     window.addEventListener(ANNOUNCEMENT_UPDATE_EVENT, onUpdate);
-    return () => window.removeEventListener(ANNOUNCEMENT_UPDATE_EVENT, onUpdate);
+
+    return () => {
+      cancelled = true;
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
+      window.removeEventListener(ANNOUNCEMENT_UPDATE_EVENT, onUpdate);
+    };
   }, [reload]);
 
   const isVisible =

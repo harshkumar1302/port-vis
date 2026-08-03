@@ -73,7 +73,7 @@ const ShopByCategory = () => {
   }, [inView]);
 
   return (
-    <section ref={sectionRef} id="shop" className="relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
+    <section ref={sectionRef} id="shop" className="defer-section relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
       <div className="page-container max-w-[1400px]">
         
         {/* Header */}

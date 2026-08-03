@@ -24,7 +24,7 @@ const ProductCardGrid = ({
 
   useEffect(() => {
     if (!dataLoading && urls.length > 0) {
-      preloadImagesBackground(urls.slice(0, 8));
+      preloadImagesBackground(urls.slice(0, 4));
     }
   }, [urls, dataLoading]);
 
@@ -49,7 +49,7 @@ const ProductCardGrid = ({
     <div className={className}>
       {items.map((art, i) => (
         <div key={art.id} className="flex flex-col h-full">
-           <ProductCard art={art} priority={i < 4} />
+           <ProductCard art={art} priority={i < 2} />
         </div>
       ))}
     </div>

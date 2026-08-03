@@ -1,32 +1,40 @@
 import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 
+const AUDIO_SRC = '/radhekrishna-96k.mp3';
+
 const AudioPlayer = forwardRef((props, ref) => {
-    const [playing, setPlaying] = useState(false);
-    const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef(null);
 
-    useImperativeHandle(ref, () => ({
-        toggle: () => {
-            if (playing) {
-                audioRef.current.pause();
-            } else {
-                audioRef.current.play().catch(e => console.log("Audio play failed:", e));
-            }
-            setPlaying(!playing);
-        },
-        isPlaying: playing
-    }));
+  useImperativeHandle(ref, () => ({
+    toggle: () => {
+      const audio = audioRef.current;
+      if (!audio) return;
 
-    useEffect(() => {
-        // Optional: Loop
-        if (audioRef.current) {
-            audioRef.current.loop = true;
-            audioRef.current.volume = 0.5;
-        }
-    }, []);
+      if (!audio.src) {
+        audio.src = AUDIO_SRC;
+      }
 
-    return (
-        <audio ref={audioRef} src="/radhekrishna.mp3" />
-    );
+      if (playing) {
+        audio.pause();
+        setPlaying(false);
+      } else {
+        audio.play().catch((e) => console.log('Audio play failed:', e));
+        setPlaying(true);
+      }
+    },
+    isPlaying: playing,
+  }));
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.loop = true;
+    audio.volume = 0.5;
+    audio.preload = 'none';
+  }, []);
+
+  return <audio ref={audioRef} preload="none" />;
 });
 
 export default AudioPlayer;

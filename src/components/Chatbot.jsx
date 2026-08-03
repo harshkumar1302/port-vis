@@ -53,10 +53,12 @@ const Chatbot = () => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     fetchSiteSetting('category_definitions', null).then((catValue) => {
       if (catValue?.length) setCategories(catValue);
     });
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (scrollRef.current) {

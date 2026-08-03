@@ -39,7 +39,7 @@ const ClosingCTA = () => {
   const { value: channels } = useSiteSetting('contact_channels', {});
 
   return (
-    <section id="contact" className="relative py-16 md:py-32 scroll-mt-28 overflow-hidden">
+    <section id="contact" className="defer-section relative py-16 md:py-32 scroll-mt-28 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-ghibli-paper/30 to-ghibli-cream pointer-events-none" />
       <div className="max-w-7xl mx-auto page-container relative z-10 text-center">
         <Link to="/admin" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase mb-6 cursor-default">

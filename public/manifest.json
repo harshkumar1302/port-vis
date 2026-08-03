@@ -5,18 +5,13 @@
   "lang": "en-IN",
   "icons": [
     {
-      "src": "ghibli-avatar.png",
-      "type": "image/png",
-      "sizes": "64x64 32x32 24x24 16x16"
-    },
-    {
-      "src": "ghibli-avatar.png",
-      "type": "image/png",
+      "src": "icon-192.jpg",
+      "type": "image/jpeg",
       "sizes": "192x192"
     },
     {
-      "src": "ghibli-avatar.png",
-      "type": "image/png",
+      "src": "icon-512.jpg",
+      "type": "image/jpeg",
       "sizes": "512x512"
     }
   ],

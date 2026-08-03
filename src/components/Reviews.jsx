@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useInView } from '../hooks/useInView';
 
 const MOCK_REVIEWS = [
@@ -93,7 +92,7 @@ const Reviews = () => {
   );
 
   return (
-    <section ref={sectionRef} id="reviews" className="relative py-20 sm:py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden isolate">
+    <section ref={sectionRef} id="reviews" className="defer-section relative py-20 sm:py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden isolate">
       
       {/* Background Ornaments */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-[#D88A92]/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -101,30 +100,13 @@ const Reviews = () => {
 
       <div className="page-container max-w-7xl mb-16 sm:mb-20">
         <div className="text-center space-y-6">
-          <motion.span 
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block text-[#D88A92] text-[11px] font-extrabold tracking-[0.3em] uppercase"
-          >
+          <span className="reveal-up inline-block text-[#D88A92] text-[11px] font-extrabold tracking-[0.3em] uppercase">
             Loved by the Visheshkala Family
-          </motion.span>
-          <motion.h2 
-            initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif tracking-tight"
-          >
+          </span>
+          <h2 className="reveal-up text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif tracking-tight" style={{ animationDelay: '80ms' }}>
             What Our Customers Say
-          </motion.h2>
-          <motion.div 
-            initial={false}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="h-0.5 w-24 bg-[#D88A92]/30 mx-auto rounded-full" 
-          />
+          </h2>
+          <div className="reveal-up h-0.5 w-24 bg-[#D88A92]/30 mx-auto rounded-full" style={{ animationDelay: '160ms' }} />
         </div>
       </div>
 

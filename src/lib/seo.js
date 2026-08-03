@@ -2,7 +2,7 @@
 export const SITE_URL = 'https://www.visheshkala.com';
 export const SITE_NAME = 'Visheshkala';
 export const SITE_TAGLINE = 'Handmade Mandalas, Miniatures & Gifts by Vishakha Garg';
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-preview.png`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-preview.jpg`;
 
 /** Brand + product keywords including common user misspellings & search variants */
 export const SEO_KEYWORDS = [

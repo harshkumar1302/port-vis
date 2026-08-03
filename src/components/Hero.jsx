@@ -345,6 +345,7 @@ const Hero = () => {
                     <g
                       key={i}
                       data-hero-orbit-line={i}
+                      className={i >= 6 ? 'hidden md:block' : undefined}
                       style={{ transformOrigin: '200px 200px' }}
                     >
                       <ellipse

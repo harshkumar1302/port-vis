@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { optimizeImageUrl } from '../lib/imageUrl';
+import { optimizeImageUrl, getOriginalImageUrl } from '../lib/imageUrl';
 import { isImageLoaded, markImageLoaded } from '../lib/imageCache';
 
 const ArtworkImage = ({
@@ -14,27 +14,27 @@ const ArtworkImage = ({
   onLoad,
   onError,
 }) => {
-  const displaySrc = optimizeImageUrl(src, size);
-  const fallbackSrc = displaySrc;
+  const optimizedSrc = optimizeImageUrl(src, size);
+  const originalSrc = getOriginalImageUrl(src);
 
+  const [currentSrc, setCurrentSrc] = useState(optimizedSrc);
   const [phase, setPhase] = useState(() =>
-    displaySrc && isImageLoaded(displaySrc) ? 'loaded' : 'loading'
+    optimizedSrc && isImageLoaded(optimizedSrc) ? 'loaded' : 'loading'
   );
-  const [currentSrc, setCurrentSrc] = useState(displaySrc);
   const imgRef = useRef(null);
 
   useEffect(() => {
-    setCurrentSrc(displaySrc);
-    if (!displaySrc) {
+    setCurrentSrc(optimizedSrc);
+    if (!optimizedSrc) {
       setPhase('error');
       return;
     }
-    if (isImageLoaded(displaySrc)) {
+    if (isImageLoaded(optimizedSrc)) {
       setPhase('loaded');
       return;
     }
     setPhase('loading');
-  }, [displaySrc]);
+  }, [optimizedSrc]);
 
   useEffect(() => {
     const img = imgRef.current;
@@ -51,6 +51,11 @@ const ArtworkImage = ({
   };
 
   const handleError = () => {
+    if (currentSrc !== originalSrc && originalSrc) {
+      setCurrentSrc(originalSrc);
+      setPhase('loading');
+      return;
+    }
     setPhase('error');
     onError?.();
   };

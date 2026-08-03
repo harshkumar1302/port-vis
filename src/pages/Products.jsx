@@ -40,7 +40,7 @@ const Shop = () => {
 
         const { data, error } = await supabase
           .from('artworks')
-          .select('*')
+          .select('id, title, description, category, sub_category, image_url, price, original_price, is_bestseller, is_new, is_featured, sort_order, created_at')
           .order('created_at', { ascending: false });
         if (error) throw error;
         setArtworks(data || []);
