@@ -5,6 +5,7 @@ import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getProductsUrl } from '../lib/categoryUtils';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import ArtworkImage from './ArtworkImage';
+import { useInView } from '../hooks/useInView';
 
 // Fallbacks if no product image is found in a category
 const CATEGORY_ASSETS = {
@@ -22,16 +23,18 @@ const CATEGORY_ICONS = {
 };
 
 const ShopByCategory = () => {
+  const [sectionRef, inView] = useInView('320px');
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [categoryImages, setCategoryImages] = useState({});
   const [imagesFetched, setImagesFetched] = useState(false);
 
   useEffect(() => {
+    if (!inView) return;
+
     fetchSiteSetting('category_definitions', null).then((value) => {
       if (value?.length) setCategories(value);
     });
 
-    // Fetch latest uploaded product images for each category
     const fetchCategoryImages = async () => {
       try {
         const { data, error } = await supabase
@@ -67,10 +70,10 @@ const ShopByCategory = () => {
     };
 
     fetchCategoryImages();
-  }, []);
+  }, [inView]);
 
   return (
-    <section id="shop" className="relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
+    <section ref={sectionRef} id="shop" className="relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
       <div className="page-container max-w-[1400px]">
         
         {/* Header */}

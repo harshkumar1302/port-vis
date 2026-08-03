@@ -41,10 +41,22 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- LCP: hero portrait — preloaded before JS bundle -->
+  <link rel="preload" as="image" href="/ghibli-avatar-576.jpg" fetchpriority="high"
+    imagesrcset="/ghibli-avatar-384.jpg 384w, /ghibli-avatar-576.jpg 576w"
+    imagesizes="(max-width: 640px) 176px, (max-width: 768px) 240px, 288px" />
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=block"
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"
+    media="print"
+    onload="this.media='all'"
   />
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap"
+    />
+  </noscript>
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Visheshkala | Handmade Art by Vishakha Garg" />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useInView } from '../hooks/useInView';
 
 const MOCK_REVIEWS = [
   { id: 1, name: "Priya Sharma", rating: 5, message: "The attention to detail on the floral wall decor is just mind-blowing. It completely transformed my living room. Highly recommend!", avatar_url: null, verified: true },
@@ -17,10 +18,13 @@ const StarRating = ({ rating }) => (
 );
 
 const Reviews = () => {
+  const [sectionRef, inView] = useInView('400px');
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!inView) return;
+
     const fetchReviews = async () => {
       try {
         const res = await fetch('/api/manage-reviews');
@@ -38,9 +42,9 @@ const Reviews = () => {
       }
     };
     fetchReviews();
-  }, []);
+  }, [inView]);
 
-  if (loading) return null;
+  if (!inView || loading) return <section ref={sectionRef} id="reviews" className="py-20 md:py-28" aria-hidden />;
 
   // Use mockReviews if reviews state is somehow empty
   const displayReviews = reviews.length > 0 ? reviews : MOCK_REVIEWS;
@@ -89,7 +93,7 @@ const Reviews = () => {
   );
 
   return (
-    <section id="reviews" className="relative py-20 sm:py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden isolate">
+    <section ref={sectionRef} id="reviews" className="relative py-20 sm:py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden isolate">
       
       {/* Background Ornaments */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-[#D88A92]/10 rounded-full blur-[100px] pointer-events-none"></div>

@@ -3,18 +3,23 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { isFeatured } from '../lib/artwork';
 import ProductCardGrid, { FEATURED_GRID_CLASS } from './ProductCardGrid';
+import { useInView } from '../hooks/useInView';
 
 const FeaturedPicks = () => {
+  const [sectionRef, inView] = useInView('400px');
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!inView) return;
+
     const fetchArtworks = async () => {
       try {
         const { data, error } = await supabase
           .from('artworks')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('id, title, image_url, price, original_price, category, is_featured, is_bestseller, is_new, created_at')
+          .order('created_at', { ascending: false })
+          .limit(24);
         if (error) throw error;
 
         const featured = (data || []).filter((a) => isFeatured(a));
@@ -26,10 +31,10 @@ const FeaturedPicks = () => {
       }
     };
     fetchArtworks();
-  }, []);
+  }, [inView]);
 
   return (
-    <section id="featured" className="relative py-20 md:py-28 scroll-mt-28 overflow-hidden bg-ghibli-cream/20 border-b border-ghibli-wood/5">
+    <section ref={sectionRef} id="featured" className="relative py-20 md:py-28 scroll-mt-28 overflow-hidden bg-ghibli-cream/20 border-b border-ghibli-wood/5">
       <div className="page-container max-w-[1400px]">
         <div className="text-center mb-12">
           <span className="text-ghibli-wood/70 text-[10px] font-bold tracking-[0.2em] uppercase mb-3 block">

@@ -1,7 +1,5 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 
 const TITLE = 'Visheshkala';
 const TAGLINE_WORDS = 'Matchless offerings, from us to you.'.split(' ');
@@ -25,102 +23,87 @@ const ORBIT_LINES = [
 const Hero = () => {
   const rootRef = useRef(null);
 
-  useGSAP(
-    () => {
-      const root = rootRef.current;
-      if (!root) return;
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
 
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduceMotion) {
-        gsap.set(root.querySelectorAll('[data-hero-animate]'), { opacity: 1, clearProps: 'all' });
-        ORBIT_LINES.forEach((line, i) => {
-          gsap.set(`[data-hero-orbit-line="${i}"] ellipse`, { opacity: line.opacity * 0.6 });
-        });
-        return;
-      }
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      ORBIT_LINES.forEach((line, i) => {
+        const ellipse = root.querySelector(`[data-hero-orbit-line="${i}"] ellipse`);
+        if (ellipse) ellipse.setAttribute('opacity', String(line.opacity * 0.6));
+      });
+      return;
+    }
 
-      gsap.set('[data-hero-char]', { y: 110, rotateX: -75, opacity: 0, transformOrigin: '50% 100%' });
-      gsap.set('[data-hero-word]', { y: '100%', opacity: 0 });
+    let cancelled = false;
+    let gsapInstance = null;
+
+    const runAnimations = async () => {
+      const { default: gsap } = await import('gsap');
+      if (cancelled) return;
+      gsapInstance = gsap;
+
+      // Decorative-only initial states — LCP text + avatar stay visible
       gsap.set('[data-hero-badge]', { y: 36, opacity: 0 });
       gsap.set('[data-hero-btn]', { y: 36, opacity: 0 });
       gsap.set('[data-hero-desc]', { y: 36, opacity: 0 });
-      gsap.set('[data-hero-scale]', { scale: 0, opacity: 0 });
       gsap.set('[data-hero-blob]', { scale: 0.2, opacity: 0 });
-      gsap.set('[data-hero-curtain]', { scaleY: 1 });
       gsap.set('[data-hero-line]', { scaleX: 0 });
       gsap.set('[data-hero-ring]', { strokeDashoffset: 880, opacity: 0 });
       gsap.set('[data-hero-orbit-line] ellipse', { opacity: 0, strokeDashoffset: 0 });
       gsap.set('[data-hero-spark]', { scale: 0, opacity: 0, rotation: -90 });
       gsap.set('[data-hero-scroll]', { opacity: 0, y: 16 });
 
-      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' }, delay: 0.05 });
 
-      tl.to('[data-hero-curtain]', {
-        scaleY: 0,
-        duration: 1.1,
-        ease: 'power3.inOut',
-        transformOrigin: 'top center',
-      })
-        .to(
-          '[data-hero-blob]',
-          { scale: 1, opacity: 1, duration: 1.4, stagger: 0.12, ease: 'power2.out' },
-          0.15
-        )
-        .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.7, ease: 'back.out(1.7)' }, 0.45)
-        .to(
+      tl.to(
+        '[data-hero-blob]',
+        { scale: 1, opacity: 1, duration: 1.4, stagger: 0.12, ease: 'power2.out' },
+        0
+      )
+        .from(
           '[data-hero-char]',
           {
-            y: 0,
-            rotateX: 0,
-            opacity: 1,
-            duration: 0.95,
-            stagger: { each: 0.035, from: 'start' },
+            y: 20,
+            duration: 0.75,
+            stagger: { each: 0.025, from: 'start' },
             ease: 'back.out(1.4)',
           },
-          0.55
+          0.15
         )
-        .to('[data-hero-line]', { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, 0.95)
-        .to(
+        .from(
           '[data-hero-word]',
-          {
-            y: '0%',
-            opacity: 1,
-            duration: 0.65,
-            stagger: 0.06,
-            ease: 'power3.out',
-          },
-          1.05
+          { y: 14, duration: 0.55, stagger: 0.05, ease: 'power3.out' },
+          0.35
         )
-        .to('[data-hero-desc]', { y: 0, opacity: 1, duration: 0.75 }, 1.35)
-        .to('[data-hero-ring]', { strokeDashoffset: 0, opacity: 1, duration: 1.6, ease: 'power2.inOut' }, 1.2)
+        .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' }, 0.4)
+        .to('[data-hero-line]', { scaleX: 1, duration: 0.8, ease: 'power3.inOut' }, 0.45)
+        .from('[data-hero-avatar-wrap]', { scale: 0.94, duration: 0.85, ease: 'back.out(1.5)' }, 0.35)
+        .to('[data-hero-ring]', { strokeDashoffset: 0, opacity: 1, duration: 1.4, ease: 'power2.inOut' }, 0.5)
         .to(
           '[data-hero-orbit-line] ellipse',
           {
             opacity: (i) => ORBIT_LINES[i]?.opacity ?? 0.2,
-            duration: 1.8,
-            stagger: 0.06,
+            duration: 1.6,
+            stagger: 0.05,
             ease: 'power2.out',
           },
-          1.3
+          0.55
         )
-        .to(
-          '[data-hero-avatar-wrap]',
-          { scale: 1, opacity: 1, duration: 1.1, ease: 'back.out(1.6)' },
-          1.25
-        )
+        .to('[data-hero-desc]', { y: 0, opacity: 1, duration: 0.65 }, 0.65)
         .to(
           '[data-hero-spark]',
-          { scale: 1, opacity: 1, rotation: 0, duration: 0.55, stagger: 0.08, ease: 'back.out(2.5)' },
-          1.55
+          { scale: 1, opacity: 1, rotation: 0, duration: 0.5, stagger: 0.08, ease: 'back.out(2.5)' },
+          0.75
         )
         .to(
           '[data-hero-btn]',
-          { y: 0, opacity: 1, duration: 0.65, stagger: 0.1, ease: 'back.out(1.8)' },
-          1.65
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.8)' },
+          0.85
         )
-        .to('[data-hero-scroll]', { opacity: 1, y: 0, duration: 0.6 }, 2.0);
+        .to('[data-hero-scroll]', { opacity: 1, y: 0, duration: 0.5 }, 1.05);
 
-      // Continuous ambient motion
       gsap.to('[data-hero-blob="1"]', {
         x: 30,
         y: -20,
@@ -176,7 +159,7 @@ const Hero = () => {
         repeat: -1,
         yoyo: true,
         ease: 'sine.inOut',
-        delay: 2.2,
+        delay: 2,
       });
 
       gsap.to('[data-hero-glow]', {
@@ -188,7 +171,6 @@ const Hero = () => {
         ease: 'sine.inOut',
       });
 
-      // Mouse parallax on avatar column
       const parallax = root.querySelector('[data-hero-parallax]');
       const onMove = (e) => {
         const rect = root.getBoundingClientRect();
@@ -213,9 +195,19 @@ const Hero = () => {
         root.removeEventListener('mousemove', onMove);
         root.removeEventListener('mouseleave', onLeave);
       };
-    },
-    { scope: rootRef }
-  );
+    };
+
+    let cleanupParallax = () => {};
+    runAnimations().then((cleanup) => {
+      if (typeof cleanup === 'function') cleanupParallax = cleanup;
+    });
+
+    return () => {
+      cancelled = true;
+      cleanupParallax();
+      gsapInstance?.killTweensOf(root.querySelectorAll('*'));
+    };
+  }, []);
 
   return (
     <section
@@ -223,20 +215,9 @@ const Hero = () => {
       id="home"
       className="hero-section relative overflow-hidden flex items-center pt-16 pb-24 md:pt-24 md:pb-32 lg:pt-32 lg:pb-40 min-h-[500px]"
     >
-      {/* Opening curtain */}
-      <div
-        data-hero-curtain
-        className="absolute inset-0 z-[60] bg-gradient-to-b from-ghibli-cream via-ghibli-paper/90 to-ghibli-cream origin-top pointer-events-none"
-        aria-hidden
-      />
-
-
-
-      {/* Subtle grain */}
       <div className="hero-grain absolute inset-0 z-[1] pointer-events-none opacity-[0.35]" aria-hidden />
 
       <div className="max-w-7xl mx-auto page-container relative z-10 w-full">
-        {/* Ambient blobs locked to content */}
         <div className="absolute inset-0 pointer-events-none z-0" aria-hidden>
           <div
             data-hero-blob="1"
@@ -252,7 +233,6 @@ const Hero = () => {
           />
         </div>
         <div className="flex flex-col lg:flex-row items-center gap-10 sm:gap-12 lg:gap-20">
-          {/* Left — copy */}
           <div className="w-full lg:w-1/2 flex flex-col items-start text-left pt-4 sm:pt-10 [perspective:900px]">
             <div data-hero-badge data-hero-fade className="mb-5 opacity-0 translate-y-9">
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/75 border border-ghibli-gold/35 text-ghibli-wood text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase shadow-sm backdrop-blur-md">
@@ -318,7 +298,6 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Right — avatar stage */}
           <div
             data-hero-parallax
             className="w-full lg:w-1/2 relative flex flex-col items-center justify-center mt-12 lg:mt-0 min-h-[340px] sm:min-h-[420px] will-change-transform"
@@ -334,7 +313,6 @@ const Hero = () => {
             </div>
 
             <div className="relative flex items-center justify-center w-[min(100%,22rem)] sm:w-[26rem] md:w-[28rem] aspect-square">
-              {/* Foggy orbital lines */}
               <svg
                 className="absolute inset-[-8%] w-[116%] h-[116%] pointer-events-none z-[4] hero-orbit-fog"
                 viewBox="0 0 400 400"
@@ -387,7 +365,6 @@ const Hero = () => {
                 </g>
               </svg>
 
-              {/* Inner ring draw */}
               <svg
                 className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
                 viewBox="0 0 400 400"
@@ -417,19 +394,21 @@ const Hero = () => {
                 </defs>
               </svg>
 
-              <div
-                data-hero-avatar-wrap
-                data-hero-scale
-                className="relative z-10 scale-0 opacity-0"
-              >
+              <div data-hero-avatar-wrap className="relative z-10">
                 <div
                   data-hero-glow
                   className="absolute -inset-6 rounded-full bg-ghibli-gold/35 blur-2xl"
                 />
                 <img
                   data-hero-avatar
-                  src="/ghibli-avatar.png"
+                  src="/ghibli-avatar-576.jpg"
+                  srcSet="/ghibli-avatar-384.jpg 384w, /ghibli-avatar-576.jpg 576w"
+                  sizes="(max-width: 640px) 176px, (max-width: 768px) 240px, 288px"
+                  width={576}
+                  height={576}
                   alt="Vishakha Garg — founder of Visheshkala handmade art studio"
+                  fetchPriority="high"
+                  decoding="async"
                   className="relative w-44 h-44 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full border-[6px] sm:border-8 border-white/70 shadow-[0_25px_60px_rgba(139,94,60,0.25)] object-cover"
                 />
                 <span
@@ -456,7 +435,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Scroll cue */}
       <div
         data-hero-scroll
         className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none opacity-0"

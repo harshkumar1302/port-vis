@@ -1,41 +1,48 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import SiteHeader from './components/SiteHeader';
 import PageWayfinding from './components/PageWayfinding';
 import Hero from './components/Hero';
-import ShopByCategory from './components/ShopByCategory';
-import FeaturedPicks from './components/FeaturedPicks';
-import Reviews from './components/Reviews';
-import ClosingCTA from './components/ClosingCTA';
-import Chatbot from './components/Chatbot';
-import AdminDashboard from './components/AdminDashboard';
-import ResetPassword from './components/ResetPassword';
-
-import HomeAbout from './components/HomeAbout';
-import WhyUs from './components/WhyUs';
+import RouteSEO from './components/RouteSEO';
 
 import { StoreProvider } from './context/StoreContext';
-import Shop from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Gallery from './pages/Gallery';
-import FullGallery from './components/FullGallery';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Wishlist from './pages/Wishlist';
-import Cart from './pages/Cart';
 import { ProductsRedirect, ProductSlugRedirect } from './pages/LegacyRedirects';
-import RouteSEO from './components/RouteSEO';
-import NotFound from './pages/NotFound';
+
+const ShopByCategory = lazy(() => import('./components/ShopByCategory'));
+const FeaturedPicks = lazy(() => import('./components/FeaturedPicks'));
+const HomeAbout = lazy(() => import('./components/HomeAbout'));
+const WhyUs = lazy(() => import('./components/WhyUs'));
+const Reviews = lazy(() => import('./components/Reviews'));
+const ClosingCTA = lazy(() => import('./components/ClosingCTA'));
+const Chatbot = lazy(() => import('./components/Chatbot'));
+
+const Shop = lazy(() => import('./pages/Products'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const FullGallery = lazy(() => import('./components/FullGallery'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Cart = lazy(() => import('./pages/Cart'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+const BelowFold = ({ children }) => (
+  <Suspense fallback={null}>{children}</Suspense>
+);
 
 const Home = () => (
   <>
     <Hero />
-    <ShopByCategory />
-    <FeaturedPicks />
-    <HomeAbout />
-    <WhyUs />
-    <Reviews />
-    <ClosingCTA />
+    <BelowFold>
+      <ShopByCategory />
+      <FeaturedPicks />
+      <HomeAbout />
+      <WhyUs />
+      <Reviews />
+      <ClosingCTA />
+    </BelowFold>
   </>
 );
 
@@ -50,7 +57,7 @@ const Layout = ({ children }) => {
 
       <main className={!isAdmin && !isResetPassword ? 'pt-[var(--site-header-height,72px)]' : ''}>
         {!isAdmin && !isResetPassword && <PageWayfinding />}
-        {children}
+        <Suspense fallback={null}>{children}</Suspense>
       </main>
 
       {!isAdmin && !isResetPassword && (
@@ -65,7 +72,11 @@ const Layout = ({ children }) => {
           </a>
         </footer>
       )}
-      {!isAdmin && !isResetPassword && <Chatbot />}
+      {!isAdmin && !isResetPassword && (
+        <Suspense fallback={null}>
+          <Chatbot />
+        </Suspense>
+      )}
     </div>
   );
 };
@@ -104,7 +115,6 @@ const App = () => {
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/cart" element={<Cart />} />
 
-            {/* Legacy URLs */}
             <Route path="/products" element={<ProductsRedirect />} />
             <Route path="/product/:slug" element={<ProductSlugRedirect />} />
 
