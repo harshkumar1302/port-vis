@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { collectImageUrls, preloadImagesBackground } from '../lib/preloadImages';
 
 const StoreContext = createContext();
 
@@ -29,6 +30,14 @@ export const StoreProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('visheshkala_wishlist', JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  useEffect(() => {
+    preloadImagesBackground(collectImageUrls(cart, 'image_url', 'thumb'));
+  }, [cart]);
+
+  useEffect(() => {
+    preloadImagesBackground(collectImageUrls(wishlist, 'image_url', 'card'));
   }, [wishlist]);
 
   const addToCart = (product, quantity = 1) => {

@@ -2,16 +2,15 @@ import AudioPlayer from './AudioPlayer';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import useAnnouncementBar from '../hooks/useAnnouncementBar';
+import { collectImageUrls, preloadImagesBackground } from '../lib/preloadImages';
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const { isVisible: announcementVisible } = useAnnouncementBar();
     const audioRef = useRef(null);
     const location = useLocation();
-    const { cartCount, wishlistCount } = useStore();
+    const { cart, wishlist, cartCount, wishlistCount } = useStore();
 
     const toggleAudio = () => {
         if (audioRef.current) {
@@ -33,34 +32,55 @@ const Navbar = () => {
     }, []);
 
     useEffect(() => {
-        document.documentElement.style.setProperty(
-            '--announcement-offset',
-            announcementVisible ? '28px' : '0px'
-        );
-    }, [announcementVisible]);
+        setMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileMenuOpen]);
 
     const navLinks = [
         { name: 'Home', href: '/' },
-        { name: 'Products', href: '/products' },
+        { name: 'Shop', href: '/shop' },
+        { name: 'Gallery', href: '/gallery' },
         { name: 'About', href: '/about' },
         { name: 'Contact', href: '/contact' },
     ];
 
-    const topOffset = announcementVisible ? 'top-7' : 'top-0';
+    const isNavActive = (href) => {
+        if (href === '/') return location.pathname === '/';
+        return location.pathname === href || location.pathname.startsWith(`${href}/`);
+    };
+
+    const prefetchWishlist = () => {
+        preloadImagesBackground(collectImageUrls(wishlist, 'image_url', 'card'));
+    };
+
+    const prefetchCart = () => {
+        preloadImagesBackground(collectImageUrls(cart, 'image_url', 'thumb'));
+    };
 
     return (
         <>
-            <nav className={`fixed ${topOffset} left-0 right-0 z-[100] transition-all duration-300 w-full`}>
+            <nav className="relative w-full transition-all duration-300">
                 <div className={`
-                relative flex items-center justify-between px-6 md:px-12 py-4 
+                relative flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-14 py-3 sm:py-4
                 bg-white/95 backdrop-blur-xl 
                 border-b border-ghibli-wood/10 shadow-sm
                 transition-all duration-300
-                ${scrolled ? 'py-2.5 shadow-md bg-white/98' : ''}
+                ${scrolled ? 'py-2 sm:py-2.5 shadow-md bg-white/98' : ''}
             `}>
-                    <Link to="/" className="font-bold text-xl tracking-tighter text-ghibli-wood hover:scale-105 transition-transform flex items-center gap-1.5">
-                        <span className="text-2xl">✨</span>
-                        Visheshkala
+                    <Link to="/" className="font-bold text-lg sm:text-xl tracking-tighter text-ghibli-wood hover:scale-105 transition-transform flex items-center gap-1.5">
+                        <span className="text-xl sm:text-2xl">✨</span>
+                        <span className="hidden xs:inline">Visheshkala</span>
+                        <span className="inline xs:hidden">VK</span>
                     </Link>
 
                     <div className="hidden md:flex items-center gap-1">
@@ -68,7 +88,7 @@ const Navbar = () => {
                             <Link
                                 key={link.name}
                                 to={link.href}
-                                className={`text-sm font-semibold transition-all duration-300 relative px-4 py-2 rounded-full ${location.pathname === link.href ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal/60 hover:text-ghibli-charcoal hover:bg-ghibli-charcoal/5'}`}
+                                className={`text-sm font-semibold transition-all duration-300 relative px-4 py-2 rounded-full ${isNavActive(link.href) ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal/60 hover:text-ghibli-charcoal hover:bg-ghibli-charcoal/5'}`}
                             >
                                 {link.name}
                             </Link>
@@ -77,7 +97,13 @@ const Navbar = () => {
 
                     <div className="flex items-center gap-3">
                         
-                        <Link to="/wishlist" className="relative w-10 h-10 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors">
+                        <Link
+                            to="/wishlist"
+                            onMouseEnter={prefetchWishlist}
+                            onFocus={prefetchWishlist}
+                            onTouchStart={prefetchWishlist}
+                            className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                             {wishlistCount > 0 && (
                                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center">
@@ -86,7 +112,13 @@ const Navbar = () => {
                             )}
                         </Link>
 
-                        <Link to="/cart" className="relative w-10 h-10 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors">
+                        <Link
+                            to="/cart"
+                            onMouseEnter={prefetchCart}
+                            onFocus={prefetchCart}
+                            onTouchStart={prefetchCart}
+                            className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                             {cartCount > 0 && (
                                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center">
@@ -110,9 +142,10 @@ const Navbar = () => {
                         <AudioPlayer ref={audioRef} />
 
                         <button
-                            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-ghibli-charcoal hover:bg-ghibli-paper focus:outline-none"
+                            className="md:hidden min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal hover:bg-ghibli-paper focus:outline-none"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-label="Toggle menu"
+                            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                            aria-expanded={mobileMenuOpen}
                         >
                             {mobileMenuOpen ? '✕' : '☰'}
                         </button>
@@ -120,18 +153,41 @@ const Navbar = () => {
                 </div>
             </nav>
 
-            <div className={`fixed inset-0 z-[90] bg-ghibli-cream/95 backdrop-blur-3xl transition-all duration-500 flex flex-col items-center justify-center gap-8 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`fixed inset-0 z-[120] bg-ghibli-cream/98 backdrop-blur-3xl transition-all duration-500 flex flex-col items-center justify-center gap-8 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="absolute top-5 right-5 min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 text-ghibli-charcoal flex items-center justify-center text-lg shadow-sm active:scale-95 transition-transform"
+                    aria-label="Close menu"
+                >
+                    ✕
+                </button>
+                
+                <div className="absolute top-6 left-6">
+                    <span className="text-2xl">✨</span>
+                </div>
+
                 {navLinks.map((link, idx) => (
                     <Link
                         key={link.name}
                         to={link.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`text-2xl font-serif font-bold text-ghibli-wood hover:text-ghibli-wood/80 transition-all duration-300 transform ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
-                        style={{ transitionDelay: `${idx * 100}ms` }}
+                        className={`text-2xl font-serif font-bold transition-all duration-500 transform py-2 px-8 rounded-2xl ${isNavActive(link.href) ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal hover:text-ghibli-wood'} ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+                        style={{ transitionDelay: `${idx * 80 + 100}ms` }}
                     >
                         {link.name}
                     </Link>
                 ))}
+                
+                {/* Mobile social row */}
+                <div className={`flex gap-4 mt-4 transition-all duration-500 ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${navLinks.length * 80 + 100}ms` }}>
+                    <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    </Link>
+                    <Link to="/cart" onClick={() => setMobileMenuOpen(false)} className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </Link>
+                </div>
             </div>
         </>
     );

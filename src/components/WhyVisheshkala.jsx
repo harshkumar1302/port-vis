@@ -17,7 +17,7 @@ const WhyVisheshkala = () => {
 
   return (
     <section id="why" className="relative py-24 md:py-32 scroll-mt-28 bg-ghibli-cream/40">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
+      <div className="page-container max-w-7xl">
         <div className="text-center mb-16 space-y-4">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase">
             Why Visheshkala

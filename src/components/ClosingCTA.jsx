@@ -15,7 +15,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: 'YouTube',
-    url: 'https://www.youtube.com/@Vishesh-kala',
+    url: 'https://www.youtube.com/@Visheshkalaa',
     color: 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -39,13 +39,13 @@ const ClosingCTA = () => {
   const { value: channels } = useSiteSetting('contact_channels', {});
 
   return (
-    <section id="contact" className="relative py-24 md:py-32 scroll-mt-28 overflow-hidden">
+    <section id="contact" className="relative py-16 md:py-32 scroll-mt-28 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-ghibli-paper/30 to-ghibli-cream pointer-events-none" />
-      <div className="max-w-7xl mx-auto relative z-10 px-6 md:px-12 lg:px-16 text-center">
+      <div className="max-w-7xl mx-auto page-container relative z-10 text-center">
         <Link to="/admin" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase mb-6 cursor-default">
           Handmade, just for you
         </Link>
-        <h2 className="text-3xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-6 max-w-3xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4 sm:mb-6 max-w-3xl mx-auto px-2 sm:px-0">
           Looking for Something Special?
         </h2>
         <p className="text-lg text-ghibli-charcoal/70 mb-10 max-w-2xl mx-auto">
@@ -53,14 +53,14 @@ const ClosingCTA = () => {
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center mb-12">
-          <a href="#featured" className="px-8 py-4 rounded-full bg-ghibli-wood text-ghibli-cream font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-lg">
+          <a href="#featured" className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform shadow-lg">
             Shop Collection
           </a>
           <a
             href={buildInstagramUrl(channels)}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-4 rounded-full bg-white border border-ghibli-wood/20 text-ghibli-wood font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform"
+            className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white border border-ghibli-wood/20 text-ghibli-wood font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform"
           >
             @visheshkalaa
           </a>
@@ -81,7 +81,7 @@ const ClosingCTA = () => {
           ))}
           <a
             href="mailto:visheshkalaofficial@gmail.com"
-            className="px-6 py-3 bg-ghibli-wood text-ghibli-cream font-bold text-xs uppercase tracking-widest rounded-full shadow-lg hover:bg-[#A0704F] hover:scale-105 transition-all"
+            className="px-5 sm:px-6 py-3 bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest rounded-full shadow-lg hover:bg-[#A0704F] hover:scale-105 transition-all"
           >
             Order Now
           </a>

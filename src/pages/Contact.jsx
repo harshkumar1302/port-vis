@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { buildInstagramUrl } from '../lib/enquire';
+import WhatsAppButton from '../components/WhatsAppButton';
 
 const Contact = () => {
   const { value: channels } = useSiteSetting('contact_channels', {});
@@ -9,7 +10,6 @@ const Contact = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const whatsappUrl = `https://wa.me/${channels?.whatsapp?.replace(/[^0-9]/g, '') || '919027814424'}`;
   const instaUrl = buildInstagramUrl(channels);
 
   const handleSubmit = (e) => {
@@ -19,8 +19,8 @@ const Contact = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-ghibli-cream/40">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
+    <div className="pt-8 pb-24 min-h-screen bg-ghibli-cream/40">
+      <div className="page-container max-w-7xl">
         
         <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4">
@@ -37,14 +37,9 @@ const Contact = () => {
           <div className="w-full lg:w-1/3 space-y-8">
             <div className="card-glass p-8 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-ghibli-wood/10">
               <h3 className="font-serif font-bold text-xl text-ghibli-charcoal mb-6">Fastest Reply</h3>
-              <a 
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full text-center py-4 rounded-xl bg-[#25D366] text-white font-bold tracking-widest uppercase text-sm shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 mb-4"
-              >
+              <WhatsAppButton className="w-full text-center py-4 rounded-xl bg-[#25D366]/80 text-white font-bold tracking-widest uppercase text-sm shadow-sm mb-4">
                 Chat on WhatsApp
-              </a>
+              </WhatsAppButton>
               <a 
                 href={instaUrl}
                 target="_blank"
@@ -105,7 +100,7 @@ const Contact = () => {
               
               <div className="border-b border-ghibli-wood/10 pb-4">
                 <h4 className="font-bold text-ghibli-charcoal mb-2">Do you accept custom orders?</h4>
-                <p className="text-ghibli-charcoal/70 text-sm leading-relaxed">Yes! We love bringing your ideas to life. Reach out via WhatsApp or the contact form to discuss your vision, sizing, and pricing.</p>
+                <p className="text-ghibli-charcoal/70 text-sm leading-relaxed">Yes! We love bringing your ideas to life. Reach out via the contact form or Instagram to discuss your vision, sizing, and pricing.</p>
               </div>
               
               <div className="pb-4">

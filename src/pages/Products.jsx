@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
-import ProductCard from '../components/ProductCard';
+import ProductCardGrid from '../components/ProductCardGrid';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import {
   resolveCategoryLabel,
@@ -12,7 +12,7 @@ import {
   isProductListing,
 } from '../lib/categoryUtils';
 
-const Products = () => {
+const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [artworks, setArtworks] = useState([]);
@@ -26,7 +26,6 @@ const Products = () => {
   const [activeSubCategory, setActiveSubCategory] = useState(subParam);
   const [sortBy, setSortBy] = useState('featured');
 
-  // Sync state when URL changes (e.g. /gallery/mandala redirect, back button)
   useEffect(() => {
     const label = resolveCategoryLabel(categoryParam, categories);
     setActiveCategory(label);
@@ -79,8 +78,12 @@ const Products = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const catalogItems = useMemo(() => {
+    return artworks.filter(isProductListing);
+  }, [artworks]);
+
   const getFilteredAndSorted = () => {
-    let filtered = artworks.filter(isProductListing);
+    let filtered = catalogItems;
 
     if (activeCategory !== 'All') {
       filtered = filtered.filter(
@@ -101,16 +104,16 @@ const Products = () => {
   const activeCatDef = categories.find((c) => c.label === activeCategory);
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-ghibli-cream/40">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
+    <div className="pt-6 sm:pt-8 pb-20 sm:pb-24 min-h-screen bg-ghibli-cream/40">
+      <div className="page-container max-w-[1400px]">
 
         <div className="mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4">
-            {activeCategory === 'All' ? 'Our Collection' : activeCategory}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4">
+            {activeCategory === 'All' ? 'Shop' : activeCategory}
           </h1>
-          <p className="text-ghibli-charcoal/70 max-w-2xl text-lg">
+          <p className="text-ghibli-charcoal/70 max-w-2xl text-base sm:text-lg">
             {activeCategory === 'All'
-              ? 'Every piece here is made by hand — browse by category or explore everything.'
+              ? 'Handmade art and studio merchandise — everything available to order.'
               : activeSubCategory
                 ? `${activeSubCategory} within ${activeCategory}.`
                 : `All ${activeCategory} pieces in one place.`}
@@ -119,7 +122,7 @@ const Products = () => {
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
 
-          <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-32">
+          <div className="w-full lg:w-64 flex-shrink-0 lg:sticky sticky-below-header-padded self-start">
             <div className="hidden lg:block bg-white/50 backdrop-blur-md rounded-3xl p-6 border border-ghibli-wood/10 shadow-sm">
               <h3 className="font-bold text-ghibli-charcoal uppercase tracking-widest text-xs mb-6 text-ghibli-wood/80">
                 Categories
@@ -168,7 +171,7 @@ const Products = () => {
               <div className="flex gap-2 min-w-max">
                 <button
                   onClick={() => handleCategoryClick('All')}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all whitespace-nowrap border ${
+                  className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all whitespace-nowrap border min-h-[44px] ${
                     activeCategory === 'All'
                       ? 'bg-ghibli-wood text-white border-ghibli-wood shadow-md'
                       : 'bg-white text-ghibli-charcoal/70 border-ghibli-wood/10'
@@ -180,7 +183,7 @@ const Products = () => {
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryClick(cat.label)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all whitespace-nowrap border ${
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all whitespace-nowrap border min-h-[44px] ${
                       activeCategory === cat.label && !activeSubCategory
                         ? 'bg-ghibli-wood text-white border-ghibli-wood shadow-md'
                         : 'bg-white text-ghibli-charcoal/70 border-ghibli-wood/10'
@@ -213,12 +216,12 @@ const Products = () => {
           <div className="flex-1 w-full">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-ghibli-wood/10">
               <div className="text-sm font-bold text-ghibli-charcoal/60 uppercase tracking-widest">
-                {displayArtworks.length} {displayArtworks.length === 1 ? 'piece' : 'pieces'}
+                {!loading ? `${displayArtworks.length} ${displayArtworks.length === 1 ? 'piece' : 'pieces'}` : 'Loading…'}
               </div>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2.5 rounded-full bg-white border border-ghibli-wood/10 text-sm font-bold text-ghibli-charcoal focus:outline-none cursor-pointer shadow-sm w-full sm:w-auto"
+                className="px-4 py-2.5 rounded-full bg-white border border-ghibli-wood/10 text-sm font-bold text-ghibli-charcoal focus:outline-none cursor-pointer shadow-sm w-full sm:w-auto min-h-[44px]"
               >
                 <option value="featured">Newest first</option>
                 <option value="price_asc">Price: low to high</option>
@@ -226,33 +229,27 @@ const Products = () => {
               </select>
             </div>
 
-            {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <div key={n} className="aspect-[4/5] bg-ghibli-wood/10 rounded-3xl" />
-                ))}
-              </div>
-            ) : displayArtworks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 gap-y-8">
-                {displayArtworks.map((art) => (
-                  <ProductCard key={art.id} art={art} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-24 bg-white/50 backdrop-blur-sm rounded-3xl border border-ghibli-wood/10">
-                <div className="text-5xl mb-4 opacity-50">🎨</div>
-                <h3 className="text-xl font-bold text-ghibli-charcoal font-serif mb-2">Nothing here yet</h3>
-                <p className="text-ghibli-charcoal/60 mb-6">
-                  No pieces in this category right now — check back soon, or browse everything.
-                </p>
-                <button
-                  onClick={() => handleCategoryClick('All')}
-                  className="px-6 py-2 rounded-full bg-ghibli-wood text-white font-bold text-sm hover:bg-ghibli-wood/80 transition-all"
-                >
-                  View all products
-                </button>
-              </div>
-            )}
+            <div className="min-h-[500px]">
+              <ProductCardGrid
+                items={displayArtworks}
+                dataLoading={loading}
+                empty={
+                  <div className="text-center py-24 bg-white/50 backdrop-blur-sm rounded-3xl border border-ghibli-wood/10">
+                    <div className="text-5xl mb-4 opacity-50">🎨</div>
+                    <h3 className="text-xl font-bold text-ghibli-charcoal font-serif mb-2">Nothing here yet</h3>
+                    <p className="text-ghibli-charcoal/60 mb-6">
+                      No pieces in this category right now — check back soon, or browse everything.
+                    </p>
+                    <button
+                      onClick={() => handleCategoryClick('All')}
+                      className="px-6 py-2 rounded-full bg-ghibli-wood text-white font-bold text-sm hover:bg-ghibli-wood/80 transition-all"
+                    >
+                      View all products
+                    </button>
+                  </div>
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -260,4 +257,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Shop;

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 const WhyUs = () => {
   return (
     <section className="py-24 relative overflow-hidden bg-ghibli-cream/20 border-y border-ghibli-wood/5">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-8 relative z-10">
+      <div className="page-container max-w-[1400px] relative z-10">
         <div className="text-center mb-16">
           <span className="text-[#D88A92] text-[11px] font-extrabold tracking-[0.3em] uppercase mb-4 block">
             The Essence of Our Craft

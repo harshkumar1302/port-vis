@@ -1,6 +1,8 @@
 {
   "short_name": "Visheshkala",
-  "name": "Visheshkala",
+  "name": "Visheshkala — Handmade Art by Vishakha Garg",
+  "description": "Handmade mandala art, miniatures, vintage frames, Gopi dots and gifts from Visheshkala, India.",
+  "lang": "en-IN",
   "icons": [
     {
       "src": "ghibli-avatar.png",
@@ -18,8 +20,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#FFFDF5",
+  "background_color": "#FFFDF5"
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getProductsUrl } from '../lib/categoryUtils';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import ArtworkImage from './ArtworkImage';
 
 // Fallbacks if no product image is found in a category
 const CATEGORY_ASSETS = {
@@ -24,6 +24,7 @@ const CATEGORY_ICONS = {
 const ShopByCategory = () => {
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [categoryImages, setCategoryImages] = useState({});
+  const [imagesFetched, setImagesFetched] = useState(false);
 
   useEffect(() => {
     fetchSiteSetting('category_definitions', null).then((value) => {
@@ -60,6 +61,8 @@ const ShopByCategory = () => {
         }
       } catch (err) {
         console.error('Error fetching category thumbnails:', err);
+      } finally {
+        setImagesFetched(true);
       }
     };
 
@@ -68,7 +71,7 @@ const ShopByCategory = () => {
 
   return (
     <section id="shop" className="relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+      <div className="page-container max-w-[1400px]">
         
         {/* Header */}
         <div className="text-center mb-12">
@@ -83,18 +86,21 @@ const ShopByCategory = () => {
 
         {/* Scrollable Container for Cards */}
         <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 snap-x snap-mandatory scrollbar-hide overscroll-x-contain -mx-6 px-6 md:mx-0 md:px-0">
-          {categories.map((cat, i) => {
+          {!imagesFetched
+            ? categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="snap-start shrink-0 w-[280px] md:w-[320px] lg:w-[calc(25%-1.125rem)] aspect-[4/3] rounded-3xl bg-ghibli-wood/10 animate-pulse"
+                />
+              ))
+            : categories.map((cat) => {
             const asset = CATEGORY_ASSETS[cat.id] || CATEGORY_ASSETS.gift;
             // Use dynamically fetched product image (prefer exact match on label, fall back to id keywords)
             const displayImage = categoryImages[cat.label.toLowerCase()] || categoryImages[cat.id];
 
             return (
-              <motion.div
+              <div
                 key={cat.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
                 className="snap-start shrink-0 w-[280px] md:w-[320px] lg:w-[calc(25%-1.125rem)]"
               >
                 <Link
@@ -104,14 +110,11 @@ const ShopByCategory = () => {
                   {/* Background Image or Placeholder */}
                   <div className="absolute inset-0 bg-ghibli-paper">
                     {displayImage ? (
-                      <img 
-                        src={displayImage} 
-                        alt={cat.label} 
-                        className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
+                      <ArtworkImage
+                        src={displayImage}
+                        alt={cat.label}
+                        size="category"
+                        imgClassName="transition-transform duration-500 ease-out group-hover:scale-105"
                       />
                     ) : null}
                     
@@ -138,7 +141,7 @@ const ShopByCategory = () => {
                     </span>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -146,7 +149,7 @@ const ShopByCategory = () => {
         {/* View All Products Button */}
         <div className="mt-6 flex justify-center">
           <Link
-            to="/products"
+            to="/shop"
             className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-transparent border border-ghibli-charcoal/20 text-ghibli-charcoal font-bold text-sm hover:bg-white hover:border-ghibli-charcoal/30 hover:shadow-sm transition-all active:scale-95 cursor-pointer"
           >
             <span>View All Products</span>

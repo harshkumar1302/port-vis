@@ -22,6 +22,7 @@ import { artMatchesCategory, getProductsUrl } from '../lib/categoryUtils';
 import ReviewsTab from './admin/tabs/ReviewsTab';
 import LeadsTab from './admin/tabs/LeadsTab';
 import SiteTab from './admin/tabs/SiteTab';
+import ShopTab from './admin/tabs/ShopTab';
 
 // Sortable Item Component
 const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
@@ -1019,7 +1020,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             onClick={() => setShowChangePassword(true)}
                             className="flex-1 sm:flex-none px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
                         >
-                            <span>⚙️</span> <span className="hidden xs:inline">Reset Password</span><span className="xs:hidden">Settings</span>
+                            <span>⚙️</span> <span className="hidden sm:inline">Reset Password</span><span className="sm:hidden">Settings</span>
                         </button>
                         <button onClick={handleSignOut} className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
                             <span>🚪</span> Sign Out
@@ -1027,9 +1028,10 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                     </div>
                 </div>
 
-                <div className="flex bg-ghibli-paper/20 p-1 rounded-xl">
+                <div className="flex overflow-x-auto no-scrollbar bg-ghibli-paper/20 p-1 rounded-xl gap-1">
                     {[
                         { id: 'artworks', label: 'Artworks' },
+                        { id: 'shop', label: 'Products' },
                         { id: 'reviews', label: 'Reviews' },
                         { id: 'leads', label: 'Leads' },
                         { id: 'site', label: 'Site Settings' },
@@ -1037,13 +1039,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         <button
                             key={tab.id}
                             onClick={() => setAdminTab(tab.id)}
-                            className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${adminTab === tab.id ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                            className={`flex-shrink-0 min-w-[88px] sm:flex-1 py-2.5 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${adminTab === tab.id ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
                         >
                             {tab.label}
                         </button>
                     ))}
                 </div>
 
+                {adminTab === 'shop' && <ShopTab />}
                 {adminTab === 'reviews' && <ReviewsTab />}
                 {adminTab === 'leads' && <LeadsTab />}
                 {adminTab === 'site' && <SiteTab />}
@@ -1305,7 +1308,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                             className="bg-transparent border-none font-bold text-ghibli-navy focus:ring-0 p-0 text-lg w-full"
                                                         />
                                                         <p className="text-[10px] text-ghibli-wood/50 font-bold mt-1">
-                                                            /products?category={cat.id}
+                                                            /shop?category={cat.id}
                                                             {' · '}
                                                             <a href={getProductsUrl(cat.id)} target="_blank" rel="noopener noreferrer" className="text-ghibli-wood hover:underline">
                                                                 View on site →
@@ -1487,7 +1490,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                                 <div className="w-10 h-10 rounded-2xl bg-ghibli-wood text-ghibli-cream flex items-center justify-center text-xl shadow-lg shadow-ghibli-wood/20">🏞️</div>
                                                 <div>
                                                     <h3 className="text-lg font-bold text-ghibli-navy leading-none">Products by Category</h3>
-                                                    <p className="text-[10px] text-ghibli-wood/50 font-bold uppercase tracking-widest mt-1">Same layout as /products page</p>
+                                                    <p className="text-[10px] text-ghibli-wood/50 font-bold uppercase tracking-widest mt-1">Same layout as /shop page</p>
                                                 </div>
                                             </div>
 

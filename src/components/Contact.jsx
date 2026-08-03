@@ -15,7 +15,7 @@ const Contact = () => {
 
         {
             name: "YouTube",
-            url: "https://www.youtube.com/@Vishesh-kala", // Add YouTube Link Here
+            url: "https://www.youtube.com/@Visheshkalaa",
             color: "hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]",
             icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">

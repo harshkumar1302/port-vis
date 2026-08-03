@@ -55,7 +55,7 @@ const Reviews = () => {
 
   const ReviewCard = ({ review, index, tilt }) => (
     <div 
-      className={`min-w-[280px] md:min-w-[340px] relative group bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-8 border border-ghibli-wood/10 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 ${tilt % 2 === 0 ? 'hover:rotate-1' : 'hover:-rotate-1'}`}
+      className={`min-w-[240px] sm:min-w-[280px] md:min-w-[340px] relative group bg-white/80 backdrop-blur-xl rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-6 md:p-8 border border-ghibli-wood/10 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 ${tilt % 2 === 0 ? 'hover:rotate-1' : 'hover:-rotate-1'}`}
     >
       {/* Watermark Quote Icon */}
       <div className="absolute top-4 right-8 text-[100px] font-serif leading-none text-[#D88A92]/5 select-none pointer-events-none transform group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700">
@@ -89,16 +89,16 @@ const Reviews = () => {
   );
 
   return (
-    <section id="reviews" className="relative py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden">
+    <section id="reviews" className="relative py-20 sm:py-32 md:py-40 bg-gradient-to-b from-ghibli-cream via-[#FAF8F5] to-ghibli-cream overflow-hidden isolate">
       
       {/* Background Ornaments */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-[#D88A92]/10 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-ghibli-gold/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 mb-20">
+      <div className="page-container max-w-7xl mb-16 sm:mb-20">
         <div className="text-center space-y-6">
           <motion.span 
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="inline-block text-[#D88A92] text-[11px] font-extrabold tracking-[0.3em] uppercase"
@@ -106,7 +106,7 @@ const Reviews = () => {
             Loved by the Visheshkala Family
           </motion.span>
           <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
@@ -115,7 +115,7 @@ const Reviews = () => {
             What Our Customers Say
           </motion.h2>
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={false}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
@@ -125,7 +125,7 @@ const Reviews = () => {
       </div>
 
       {/* Infinite Marquee Rows */}
-      <div className="relative w-full flex flex-col gap-8 md:gap-10 overflow-hidden py-10 -my-10 mask-image-gradient">
+      <div className="relative w-full flex flex-col gap-8 md:gap-10 overflow-hidden py-10 -my-10 mask-image-gradient contain-paint">
         
         {/* Row 1 - Scrolling Left */}
         <div className="w-full flex overflow-hidden">

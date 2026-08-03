@@ -16,7 +16,7 @@ export const TOPICS = {
     label: '🎨 Browse the collections',
     reply: "We have mandalas, miniatures, gift pieces, and DIY art — each made by hand. Tap a collection below, or scroll to Shop on the home page.",
     actions: [
-      { type: 'link', label: 'See all categories', href: '/products' },
+      { type: 'link', label: 'See all categories', href: '/shop' },
       { type: 'link', label: 'Featured pieces', href: '#featured' },
     ],
   },
@@ -32,7 +32,7 @@ export const TOPICS = {
     reply: "Every order comes with a little gift from us. Free delivery on orders above ₹799. Each piece is packed with care so it reaches you safely.",
     actions: [
       { type: 'topic', label: 'How do I place an order?', topic: 'order' },
-      { type: 'link', label: 'Browse gift ideas', href: '/products?category=gift' },
+      { type: 'link', label: 'Browse gift ideas', href: '/shop?category=gift' },
     ],
   },
   order: {

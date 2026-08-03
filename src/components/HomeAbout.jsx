@@ -8,14 +8,14 @@ const HomeAbout = () => {
   return (
     <section className={`relative ${isAboutPage ? 'pt-8 pb-12' : 'py-24 md:py-32'} bg-[#FAF8F5] overflow-hidden`}>
       {/* Abstract Background Elements */}
-      <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-ghibli-wood/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4"></div>
-      <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-ghibli-gold/5 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4"></div>
+      <div className="absolute top-0 right-0 w-[50vw] max-w-[600px] h-[50vw] max-h-[600px] bg-ghibli-wood/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4"></div>
+      <div className="absolute bottom-0 left-0 w-[40vw] max-w-[500px] h-[40vw] max-h-[500px] bg-ghibli-gold/5 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4"></div>
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 relative z-10">
+      <div className="page-container max-w-[1400px] relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
           
           {/* Left: The Editorial Collage */}
-          <div className="w-full lg:w-1/2 relative h-[500px] md:h-[600px] w-full flex items-center justify-center">
+          <div className="w-full lg:w-1/2 relative h-[380px] sm:h-[450px] md:h-[600px] flex items-center justify-center">
             
             {/* Main Center Image */}
             <motion.div 

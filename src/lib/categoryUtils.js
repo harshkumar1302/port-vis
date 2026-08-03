@@ -40,11 +40,29 @@ export const getCategoryId = (ref, categories = FALLBACK_CATEGORIES) => {
 };
 
 export const getProductsUrl = (categoryRef, subCategory = null) => {
-  if (!categoryRef || categoryRef === 'All') return '/products';
+  if (!categoryRef || categoryRef === 'All') return '/shop';
   const id = typeof categoryRef === 'object' ? categoryRef.id : getCategoryId(categoryRef);
   const params = new URLSearchParams({ category: id });
   if (subCategory) params.set('sub', subCategory);
-  return `/products?${params.toString()}`;
+  return `/shop?${params.toString()}`;
+};
+
+/** @deprecated alias — use getProductsUrl */
+export const getShopUrl = getProductsUrl;
+
+export const getGalleryCategoryUrl = (categoryRef) => {
+  if (!categoryRef || categoryRef === 'All') return '/gallery';
+  const id = typeof categoryRef === 'object' ? categoryRef.id : getCategoryId(categoryRef);
+  return `/gallery/${encodeURIComponent(id)}`;
+};
+
+export const titleToSlug = (title, fallbackId = '') => {
+  const raw = title || fallbackId || 'piece';
+  const slug = String(raw)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  return slug || String(fallbackId || 'piece');
 };
 
 /** Legacy uploads used category "Featured" — infer shop category from metadata */
@@ -110,7 +128,7 @@ export const artMatchesSubCategory = (art, subCategory) => {
   );
 };
 
-/** Products on /products — only hide upcoming studio previews */
+/** Shop listings on /shop — only hide upcoming studio previews */
 export const isProductListing = (art) => {
   const cat = (art.category || '').trim().toLowerCase();
   return cat !== 'upcoming';

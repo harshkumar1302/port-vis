@@ -1,11 +1,11 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { normalizeCategoryRef } from '../lib/categoryUtils';
 
-/** Old /gallery/mandala URLs → /products?category=mandala */
+/** Legacy /gallery/:id when used as product filter → category gallery view */
 const GalleryRedirect = () => {
   const { categoryId } = useParams();
   const id = normalizeCategoryRef(categoryId || '');
-  return <Navigate to={`/products?category=${encodeURIComponent(id)}`} replace />;
+  return <Navigate to={`/gallery/${encodeURIComponent(id)}`} replace />;
 };
 
 export default GalleryRedirect;

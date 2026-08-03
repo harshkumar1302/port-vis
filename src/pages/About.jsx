@@ -68,10 +68,10 @@ const About = () => {
   }, []);
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-ghibli-cream/30">
+    <div className="pt-8 pb-24 min-h-screen bg-ghibli-cream/30">
       
       {/* 1. Page Header */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 text-center mb-4">
+      <div className="page-container max-w-7xl text-center mb-4">
         <h1 className="text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4">
           The Visheshkala Story
         </h1>
@@ -88,7 +88,7 @@ const About = () => {
 
       {/* 4. My Creative Toolkit (Bento Box) */}
       <section className="py-24">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+        <div className="page-container max-w-[1400px]">
           <div className="text-center mb-16">
             <span className="text-ghibli-wood/70 text-[10px] font-bold tracking-[0.2em] uppercase mb-3 block">
               What I Work With
@@ -203,7 +203,7 @@ const About = () => {
           
           <div className="mt-20 text-center">
             <Link 
-              to="/products"
+              to="/shop"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-full bg-ghibli-wood hover:bg-ghibli-wood/80 text-white font-bold tracking-[0.1em] text-sm uppercase transition-all shadow-md hover:shadow-xl hover:-translate-y-1"
             >
               Explore Our Collection

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { buildWhatsAppUrl } from '../lib/enquire';
-import useSiteSetting from '../hooks/useSiteSettings';
+import WhatsAppButton from './WhatsAppButton';
 import {
   MITHI_NAME,
   MITHI_TAGLINE,
@@ -13,6 +12,8 @@ import {
   getTopicActions,
 } from '../lib/mithiBrain';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
+import { fetchSiteSetting } from '../lib/fetchSettings';
+import { getProductsUrl } from '../lib/categoryUtils';
 
 const TypingDots = () => (
   <div className="flex gap-1 px-1 py-2">
@@ -50,13 +51,11 @@ const Chatbot = () => {
   const [hasGreeted, setHasGreeted] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const scrollRef = useRef(null);
-  const { value: channels } = useSiteSetting('contact_channels', {});
 
   useEffect(() => {
-    fetch('/api/settings?id=category_definitions')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.value?.length) setCategories(data.value); })
-      .catch(() => {});
+    fetchSiteSetting('category_definitions', null).then((catValue) => {
+      if (catValue?.length) setCategories(catValue);
+    });
   }, []);
 
   useEffect(() => {
@@ -107,7 +106,8 @@ const Chatbot = () => {
     } else if (action.type === 'topic') {
       handleTopic(TOPICS[action.topic]);
     } else if (action.type === 'whatsapp') {
-      window.open(buildWhatsAppUrl({ title: 'your work' }, channels), '_blank', 'noopener,noreferrer');
+      userSay(action.label);
+      mithiSay("WhatsApp is coming soon! For now, leave a note below or DM us on Instagram — we'd love to hear from you.");
     }
   };
 
@@ -224,17 +224,20 @@ const Chatbot = () => {
                         >
                           → {action.label}
                         </a>
+                      ) : action.type === 'whatsapp' ? (
+                        <WhatsAppButton
+                          key={i}
+                          className="p-2.5 text-sm border rounded-xl bg-green-50/80 border-green-200 text-green-800 w-full text-left font-medium"
+                        >
+                          {action.label}
+                        </WhatsAppButton>
                       ) : (
                         <button
                           key={i}
                           onClick={() => handleAction(action)}
-                          className={`p-2.5 text-sm border rounded-xl transition-colors text-left font-medium ${
-                            action.type === 'whatsapp'
-                              ? 'bg-green-50 border-green-200 text-green-800 hover:bg-green-600 hover:text-white'
-                              : 'bg-white border-ghibli-wood/15 hover:bg-ghibli-wood hover:text-white'
-                          }`}
+                          className="p-2.5 text-sm border rounded-xl transition-colors text-left font-medium bg-white border-ghibli-wood/15 hover:bg-ghibli-wood hover:text-white"
                         >
-                          {action.type === 'whatsapp' ? '💬' : '→'} {action.label}
+                          → {action.label}
                         </button>
                       )
                     )}
@@ -322,14 +325,9 @@ const Chatbot = () => {
           {/* Footer quick bar */}
           {step === 'chat' && !typing && (
             <div className="px-3 py-2 bg-white border-t border-ghibli-wood/10 flex gap-2">
-              <a
-                href={buildWhatsAppUrl({ title: 'your work' }, channels)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 text-center py-1.5 text-[11px] font-bold bg-green-50 text-green-700 rounded-lg hover:bg-green-600 hover:text-white transition-colors"
-              >
+              <WhatsAppButton className="flex-1 text-center py-1.5 text-[11px] font-bold bg-green-50/80 text-green-700 rounded-lg">
                 WhatsApp
-              </a>
+              </WhatsAppButton>
               <button
                 onClick={() => openForm('note')}
                 className="flex-1 text-center py-1.5 text-[11px] font-bold bg-ghibli-paper text-ghibli-wood rounded-lg hover:bg-ghibli-wood hover:text-white transition-colors"

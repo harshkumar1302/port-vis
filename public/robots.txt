@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /reset-password
 
-Sitemap: https://visheshkala.com/sitemap.xml
+Sitemap: https://www.visheshkala.com/sitemap.xml

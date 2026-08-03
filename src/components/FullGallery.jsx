@@ -5,10 +5,9 @@ import { supabase } from '../lib/supabaseClient';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
-import { buildWhatsAppUrl } from '../lib/enquire';
-import useSiteSetting from '../hooks/useSiteSettings';
+import WhatsAppButton from './WhatsAppButton';
+import { fetchSiteSetting } from '../lib/fetchSettings';
 
-// --- Constants ---
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
 const FullGallery = () => {
@@ -21,49 +20,30 @@ const FullGallery = () => {
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
     const [categories, setCategories] = useState(FALLBACK_CATEGORIES_LOCAL);
-    const { value: channels } = useSiteSetting('contact_channels', {});
 
-    // Validate category
     const currentCategory = categories.find(c => c.id === category);
 
     useEffect(() => {
-        // Only fetch data and scroll to top when the URL category changes
         fetchArtworks();
         fetchSettings();
         window.scrollTo(0, 0);
     }, [category]);
 
     useEffect(() => {
-        // Redirect if category is invalid
         if (!currentCategory) {
-            navigate('/');
+            navigate('/gallery');
         }
     }, [currentCategory, navigate]);
 
     const fetchSettings = async () => {
-        try {
-            const resCat = await fetch('/api/settings?id=category_definitions');
-            if (resCat.ok) {
-                const data = await resCat.json();
-                if (data.value && Array.isArray(data.value) && data.value.length > 0) {
-                    setCategories(data.value);
-                }
-            }
+        const catValue = await fetchSiteSetting('category_definitions', null);
+        if (catValue?.length) setCategories(catValue);
 
-            const res = await fetch('/api/settings?id=category_priorities');
-            if (res.ok) {
-                const data = await res.json();
-                setCategoryPriorities(data.value || {});
-            }
+        const priorities = await fetchSiteSetting('category_priorities', {});
+        setCategoryPriorities(priorities || {});
 
-            const resOrder = await fetch('/api/settings?id=artwork_orders');
-            if (resOrder.ok) {
-                const data = await resOrder.json();
-                setArtworkOrders(data.value || {});
-            }
-        } catch (err) {
-            console.error('Failed to fetch settings:', err);
-        }
+        const orders = await fetchSiteSetting('artwork_orders', {});
+        setArtworkOrders(orders || {});
     };
 
     const fetchArtworks = async () => {
@@ -83,16 +63,13 @@ const FullGallery = () => {
         }
     };
 
-    // Filter Logic
     const filteredArtworks = artworks.filter(art => {
         if (!category) return false;
 
-        // 1. Main Category Match
         const artCat = art.category?.trim().toLowerCase();
         const catMatch = artCat === currentCategory.label?.trim().toLowerCase() || artCat === currentCategory.id?.trim().toLowerCase();
         if (!catMatch) return false;
 
-        // 2. Sub-Category Match
         if (selectedSubCategory !== 'All') {
             const subMatch =
                 art.description?.toLowerCase().includes(selectedSubCategory.toLowerCase()) ||
@@ -125,7 +102,6 @@ const FullGallery = () => {
         return [...items].sort((a, b) => {
             const indexA = order.indexOf(a.id);
             const indexB = order.indexOf(b.id);
-
             const posA = indexA === -1 ? -Infinity : indexA;
             const posB = indexB === -1 ? -Infinity : indexB;
 
@@ -136,22 +112,13 @@ const FullGallery = () => {
         });
     };
 
-    // Apply Sorting: Manual -> Priority -> Filtered (wait, filter first!)
-    // If user selects specific subcategory in FullGallery, manual reorder for THAT sub-subset might look weird if items are scattered.
-    // But usually FullGallery shows ALL items for a main category by default.
-    // Let's sort the 'filteredArtworks' before rendering.
-
     let displayArtworks = [...filteredArtworks];
 
-    // Only apply manual order if showing "All" subcategories or if the order makes sense.
-    // Actually, manual order is global for the category.
-    // 1. Manual Order
     const manualSorted = applyOrder(displayArtworks, category);
     if (manualSorted) {
         displayArtworks = manualSorted;
     }
 
-    // 2. Priority Subcategory (Only if "All" is selected)
     if (selectedSubCategory === 'All') {
         displayArtworks = getPrioritizedItems(category, displayArtworks);
     }
@@ -159,37 +126,82 @@ const FullGallery = () => {
     if (!currentCategory) return null;
 
     return (
-        <div className="min-h-screen bg-ghibli-cream/30 pt-32 pb-24">
-            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
+        <div className="min-h-screen bg-[#FDFBF7] text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
+            <div className="page-container max-w-[1400px]">
+                
                 {/* Back Navigation */}
                 <Link
-                    to="/"
-                    className="text-ghibli-wood hover:text-ghibli-charcoal font-bold text-sm tracking-widest uppercase flex items-center gap-2 mb-12 transition-colors group w-fit"
+                    to="/gallery"
+                    className="px-4 sm:px-6 py-2 rounded-full bg-white hover:bg-ghibli-cream border border-ghibli-wood/10 text-ghibli-charcoal/60 hover:text-ghibli-charcoal font-bold text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase flex items-center gap-2 sm:gap-3 mb-10 sm:mb-16 transition-all group w-fit shadow-sm"
                 >
                     <span className="group-hover:-translate-x-1 transition-transform">←</span>
-                    Back to Studio
+                    <span className="hidden sm:inline">Return to Grand Exhibition</span>
+                    <span className="sm:hidden">Back to Gallery</span>
                 </Link>
 
                 {/* Header */}
-                <div className="mb-12">
-                    <h1 className="text-4xl md:text-6xl font-extrabold text-ghibli-charcoal font-serif mb-4 tracking-tight">
-                        {currentCategory.label} Collection
-                    </h1>
-                    <p className="text-ghibli-charcoal/60 max-w-2xl text-lg">
-                        A curated selection of {currentCategory.label.toLowerCase()} pieces, each telling a story of patience and craftsmanship.
-                    </p>
-                </div>
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="mb-10 sm:mb-16"
+                >
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 0.7, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="flex items-center gap-4 mb-4"
+                    >
+                        <span className="w-8 h-[1px] bg-ghibli-wood"></span>
+                        <span className="text-xs uppercase tracking-[0.3em] font-black text-ghibli-wood">Curated Collection</span>
+                    </motion.div>
+                    
+                    <motion.h1 
+                        className="text-3xl sm:text-5xl md:text-7xl font-black text-ghibli-charcoal font-serif tracking-tighter drop-shadow-sm mb-4 sm:mb-6 flex flex-wrap gap-x-2 sm:gap-x-3 md:gap-x-4"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: { staggerChildren: 0.15, delayChildren: 0.4 }
+                            }
+                        }}
+                    >
+                        {currentCategory.label.split(' ').map((word, i) => (
+                            <motion.span 
+                                key={i}
+                                variants={{
+                                    hidden: { opacity: 0, y: 40, rotateX: -20 },
+                                    visible: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+                                }}
+                                className="inline-block origin-bottom"
+                            >
+                                {word}
+                            </motion.span>
+                        ))}
+                    </motion.h1>
+                    
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        className="text-ghibli-charcoal/60 max-w-2xl text-base sm:text-lg md:text-xl font-light leading-relaxed"
+                    >
+                        A breathtaking selection of {currentCategory.label.toLowerCase()} pieces, each telling a profound story of patience and perfection.
+                    </motion.p>
+                </motion.div>
 
-                {/* Sub-Category Tabs (Sticky) */}
-                <div className="sticky top-24 z-30 bg-ghibli-cream/95 backdrop-blur-sm -mx-4 px-4 md:-mx-8 md:px-8 py-4 mb-12 border-b border-ghibli-wood/10">
-                    <div className="flex overflow-x-auto gap-3 no-scrollbar w-full">
+                {/* Sticky Floating Sub-Category Tabs (Glassmorphism Light) */}
+                <div className="sticky sticky-below-header-padded z-40 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-10 md:px-10 py-4 sm:py-6 mb-10 sm:mb-16 pointer-events-none">
+                    <div className="flex overflow-x-auto gap-2 sm:gap-3 no-scrollbar w-full pointer-events-auto bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 p-2 sm:p-3 rounded-full shadow-[0_15px_40px_rgba(0,0,0,0.06)]">
                         {['All', ...(currentCategory?.subCategories || [])].map((sub) => (
                             <button
                                 key={sub}
                                 onClick={() => setSelectedSubCategory(sub)}
-                                className={`px-6 py-2.5 rounded-full text-xs font-bold tracking-[0.1em] uppercase whitespace-nowrap transition-all border ${selectedSubCategory === sub
-                                    ? 'bg-ghibli-wood text-ghibli-cream border-ghibli-wood'
-                                    : 'bg-white text-ghibli-charcoal/60 border-ghibli-wood/10 hover:border-ghibli-wood/30'
+                                className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-xs font-black tracking-[0.12em] sm:tracking-[0.15em] uppercase whitespace-nowrap transition-all duration-300 min-h-[44px] ${selectedSubCategory === sub
+                                    ? 'bg-ghibli-charcoal text-white shadow-md'
+                                    : 'bg-transparent text-ghibli-charcoal/50 hover:bg-ghibli-cream hover:text-ghibli-charcoal'
                                     }`}
                             >
                                 {sub}
@@ -198,61 +210,67 @@ const FullGallery = () => {
                     </div>
                 </div>
 
-                {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 min-h-[50vh]">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 md:gap-8 min-h-[50vh]">
                     {displayArtworks.length > 0 ? (
                         displayArtworks.map((art) => (
                             <div
                                 key={art.id}
                                 onClick={() => setSelectedArt(art)}
-                                className="group cursor-pointer bg-white rounded-[2rem] p-4 shadow-sm hover:shadow-xl transition-all duration-500 border border-ghibli-wood/5 flex flex-col h-full hover:-translate-y-1"
+                                className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-700 border border-ghibli-wood/5 flex flex-col hover:-translate-y-2 relative overflow-hidden h-full"
                             >
-                                <div className="aspect-[4/5] bg-ghibli-paper/20 rounded-2xl overflow-hidden mb-6 relative">
-                                    <div className="absolute inset-0 bg-ghibli-wood/0 group-hover:bg-ghibli-wood/5 transition-colors duration-500 z-10"></div>
-                                    {(!art.image_url || art.image_url.trim() === '') ? (
-                                        <div className="w-full h-full flex items-center justify-center flex-col gap-2">
-                                            <span className="text-4xl opacity-10 group-hover:scale-110 transition-transform duration-500">🎨</span>
-                                            <span className="text-[10px] font-bold tracking-widest text-ghibli-charcoal/20 uppercase">In Progress</span>
-                                        </div>
-                                    ) : (
-                                        <img
-                                            src={art.image_url}
-                                            alt={art.title}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                    )}
-                                </div>
-
-                                {art.title && (
-                                    <div className="mt-auto px-2 pb-2">
-                                        <span className="text-[10px] font-bold tracking-[0.2em] text-ghibli-wood/50 uppercase block mb-2">
-                                            {category}
-                                        </span>
-                                        <h4 className="font-bold text-ghibli-charcoal text-xl font-serif group-hover:text-ghibli-wood transition-colors line-clamp-1">
-                                            {art.title}
-                                        </h4>
-                                        {art.price && (
-                                            <div className="mt-2 flex items-baseline gap-2">
-                                                <span className="font-extrabold text-ghibli-charcoal">{formatPrice(art.price)}</span>
-                                                {art.original_price && getDiscountPct(art) && (
-                                                    <span className="text-sm text-ghibli-charcoal/40 line-through">{formatPrice(art.original_price)}</span>
-                                                )}
+                                {/* Subtle hover glow in background */}
+                                <div className="absolute inset-0 bg-ghibli-cream/0 group-hover:bg-ghibli-cream/50 transition-colors duration-500 z-0 rounded-2xl sm:rounded-[32px]"></div>
+                                
+                                <div className="relative z-10">
+                                    <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6 relative">
+                                        <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-700 z-10"></div>
+                                            <div className="w-full aspect-[4/5] flex items-center justify-center flex-col gap-3">
+                                                <span className="text-4xl opacity-10 group-hover:scale-110 transition-transform duration-500">✨</span>
+                                                <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-charcoal/20 uppercase">In Progress</span>
+                                            </div>
+                                        ) : (
+                                            <div className="w-full aspect-[4/5] relative">
+                                                <img
+                                                    src={art.image_url}
+                                                    alt={art.title}
+                                                    className="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-1000 group-hover:scale-105"
+                                                    loading="lazy"
+                                                />
                                             </div>
                                         )}
                                     </div>
-                                )}
+
+                                    {art.title && (
+                                        <div className="px-1 sm:px-2 pb-1 sm:pb-2">
+                                            <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.15em] sm:tracking-[0.2em] text-ghibli-wood/50 uppercase block mb-1 sm:mb-3">
+                                                {category}
+                                            </span>
+                                            <h4 className="font-bold text-ghibli-charcoal text-sm sm:text-lg md:text-2xl font-serif group-hover:text-ghibli-wood transition-colors duration-300 leading-snug line-clamp-2">
+                                                {art.title}
+                                            </h4>
+                                            {art.price && (
+                                                <div className="mt-2 sm:mt-4 flex items-baseline gap-2 sm:gap-3 border-t border-ghibli-wood/10 pt-2 sm:pt-4">
+                                                    <span className="font-black text-sm sm:text-lg md:text-xl text-ghibli-charcoal">{formatPrice(art.price)}</span>
+                                                    {art.original_price && getDiscountPct(art) && (
+                                                        <span className="text-sm text-ghibli-charcoal/30 line-through font-bold">{formatPrice(art.original_price)}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))
                     ) : (
-                        /* Empty State Placeholders - STUDIO LOOK */
+                        /* Empty State Placeholders - LIGHT MUSEUM */
                         Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="bg-white rounded-[2rem] p-4 border border-ghibli-wood/5 opacity-60">
+                            <div key={i} className="bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 border border-ghibli-wood/5 opacity-60 h-full">
                                 <div className="aspect-[4/5] bg-ghibli-paper/20 rounded-2xl mb-6 flex items-center justify-center">
-                                    <span className="text-[10px] font-bold tracking-widest text-ghibli-charcoal/20 uppercase">Coming Soon</span>
+                                    <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-charcoal/20 uppercase">Coming Soon</span>
                                 </div>
                                 <div className="px-2 pb-2">
                                     <span className="text-[10px] font-bold tracking-[0.2em] text-ghibli-wood/30 uppercase block mb-2">Gallery Slot</span>
-                                    <h4 className="font-bold text-ghibli-charcoal/40 text-xl font-serif">Piece {i + 1}</h4>
+                                    <h4 className="font-bold text-ghibli-charcoal/40 text-xl font-serif">Masterpiece {i + 1}</h4>
                                 </div>
                             </div>
                         ))
@@ -260,7 +278,7 @@ const FullGallery = () => {
                 </div>
             </div>
 
-            {/* Modal - STUDIO STYLE */}
+            {/* Modal - LIGHT STUDIO STYLE */}
             <AnimatePresence>
                 {selectedArt && (
                     <motion.div
@@ -268,41 +286,41 @@ const FullGallery = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedArt(null)}
-                        className="fixed inset-0 z-[200] bg-ghibli-charcoal/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
+                        className="fixed inset-0 z-[200] bg-ghibli-charcoal/80 backdrop-blur-xl flex items-center justify-center p-4 md:p-8"
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-5xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-2xl relative"
+                            className="bg-[#FDFBF7] rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
                             onClick={e => e.stopPropagation()}
                         >
                             <button
                                 onClick={() => setSelectedArt(null)}
-                                className="absolute top-6 right-6 z-20 w-8 h-8 rounded-full bg-ghibli-charcoal/5 hover:bg-ghibli-charcoal/10 flex items-center justify-center text-ghibli-charcoal/60 hover:text-ghibli-charcoal transition-all font-bold"
+                                className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-ghibli-charcoal/60 hover:text-ghibli-charcoal transition-all font-bold backdrop-blur-md"
                             >✕</button>
 
                             {/* Image Section */}
-                            <div className="w-full md:w-[55%] bg-ghibli-paper/10 relative flex items-center justify-center p-6 md:p-8 hidden md:flex">
-                                <div className="relative w-full h-full shadow-2xl rounded-lg overflow-hidden max-h-[70vh]">
+                            <div className="w-full md:w-[55%] bg-ghibli-cream relative flex items-center justify-center p-6 md:p-12 hidden md:flex border-r border-ghibli-wood/10">
+                                <div className="relative w-full h-full shadow-2xl rounded-2xl overflow-hidden max-h-[75vh]">
                                     {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
                                         <div className="w-full h-full bg-white flex items-center justify-center">
                                             <span className="text-6xl opacity-20">✨</span>
                                         </div>
                                     ) : (
-                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain" />
+                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
                                     )}
                                 </div>
                             </div>
 
                             {/* Mobile Image (Full Visibility) */}
-                            <div className="w-full h-[45vh] md:hidden bg-ghibli-paper/10 relative flex items-center justify-center overflow-hidden p-4">
+                            <div className="w-full h-[45vh] md:hidden bg-ghibli-cream relative flex items-center justify-center overflow-hidden p-6 border-b border-ghibli-wood/10">
                                 {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
                                     <div className="w-full h-full bg-white flex items-center justify-center">
                                         <span className="text-4xl opacity-20">✨</span>
                                     </div>
                                 ) : (
-                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain" />
+                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
                                 )}
                             </div>
 
@@ -310,45 +328,37 @@ const FullGallery = () => {
                             <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
                                 {/* 1. TITLE */}
                                 {selectedArt.title && (
-                                    <h3 className="text-3xl md:text-5xl font-bold font-serif text-ghibli-charcoal mb-4 leading-tight">
+                                    <h3 className="text-4xl md:text-5xl font-black font-serif text-ghibli-charcoal mb-6 leading-tight drop-shadow-sm">
                                         {selectedArt.title}
                                     </h3>
                                 )}
 
                                 {/* 2. NAME (Category + Subcategory) */}
-                                <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[11px] bg-ghibli-paper/30 px-3 py-1 rounded-full">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[10px] md:text-xs bg-ghibli-cream border border-ghibli-wood/20 px-4 py-1.5 rounded-full shadow-sm">
                                         {category?.toUpperCase() || 'COLLECTION'}
                                     </span>
                                     {getSubCategory(selectedArt) && (
-                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px]">
+                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px] md:text-xs">
                                             • {getSubCategory(selectedArt)}
                                         </span>
                                     )}
                                 </div>
 
                                 {(selectedArt.price || selectedArt.original_price) && (
-                                    <div className="flex items-baseline gap-3 mb-6">
-                                        {selectedArt.price && <span className="text-2xl font-extrabold text-ghibli-charcoal">{formatPrice(selectedArt.price)}</span>}
+                                    <div className="flex items-baseline gap-4 mb-8 bg-ghibli-cream/50 p-4 rounded-2xl border border-ghibli-wood/5">
+                                        {selectedArt.price && <span className="text-3xl font-black text-ghibli-charcoal">{formatPrice(selectedArt.price)}</span>}
                                         {selectedArt.original_price && getDiscountPct(selectedArt) && (
-                                            <span className="text-lg text-ghibli-charcoal/40 line-through">{formatPrice(selectedArt.original_price)}</span>
+                                            <span className="text-lg text-ghibli-charcoal/30 line-through font-bold">{formatPrice(selectedArt.original_price)}</span>
                                         )}
-                                    </div>
-                                )}
-
-                                {(selectedArt.title || (selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim())) && (
-                                    <div className="w-12 h-2 mb-8 text-ghibli-gold/40">
-                                        <svg viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="4">
-                                            <path d="M0 10 Q25 20 50 10 T100 10" />
-                                        </svg>
                                     </div>
                                 )}
 
                                 {/* 3. STORY */}
                                 {selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim() && (
-                                    <div className="prose prose-sm text-ghibli-charcoal/70 leading-loose mb-10 font-sans">
-                                        <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-2">Original Story</span>
-                                        <p>
+                                    <div className="prose prose-sm md:prose-base text-ghibli-charcoal/70 leading-loose mb-12 font-sans">
+                                        <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-3 text-ghibli-charcoal">The Legend</span>
+                                        <p className="font-light text-lg">
                                             {selectedArt.description
                                                 .replace(/\[FEATURED\]/g, '')
                                                 .replace(/\[SubCategory:.*?\]/g, '')
@@ -358,19 +368,14 @@ const FullGallery = () => {
                                     </div>
                                 )}
 
-                                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                                    <a
-                                        href={buildWhatsAppUrl(selectedArt, channels)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-8 py-4 bg-[#25D366] text-white rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:scale-105 transition-all self-start shadow-lg text-center flex-1"
-                                    >
+                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-auto">
+                                    <WhatsAppButton className="px-8 py-5 bg-[#25D366]/80 text-white rounded-full font-black tracking-[0.15em] text-xs uppercase self-start shadow-[0_10px_30px_rgba(37,211,102,0.2)] text-center flex-1">
                                         Enquire on WhatsApp
-                                    </a>
+                                    </WhatsAppButton>
                                     <a
                                         href="/#contact"
                                         onClick={() => setSelectedArt(null)}
-                                        className="px-8 py-4 bg-[#8D6E63] text-ghibli-cream rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#A0704F] transition-all self-start shadow-lg text-center flex-1"
+                                        className="px-8 py-5 bg-white text-ghibli-charcoal rounded-full font-black tracking-[0.15em] text-xs uppercase hover:bg-ghibli-cream transition-all self-start border border-ghibli-wood/20 hover:border-ghibli-wood shadow-sm text-center flex-1"
                                     >
                                         Contact
                                     </a>
