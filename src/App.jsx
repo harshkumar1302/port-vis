@@ -67,8 +67,9 @@ const Layout = ({ children }) => {
               <span>Where devotion meets detail. Visheshkala © 2026</span>
             </div>
           </div>
-          <a href="/admin" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500" title="Admin Gate">
-            🗝️
+          <a href="/admin" aria-label="Admin login" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500">
+            <span aria-hidden="true">🗝️</span>
+            <span className="sr-only">Admin login</span>
           </a>
         </footer>
       )}

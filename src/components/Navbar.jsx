@@ -105,7 +105,10 @@ const Navbar = () => {
                             aria-label={wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : 'Wishlist'}
                             className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            <span className="sr-only">
+                              {wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : 'Wishlist'}
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart" aria-hidden="true" focusable="false"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                             {wishlistCount > 0 && (
                                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center" aria-hidden="true">
                                     {wishlistCount}
@@ -121,7 +124,10 @@ const Navbar = () => {
                             aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
                             className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-bag" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            <span className="sr-only">
+                              {cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-bag" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                             {cartCount > 0 && (
                                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center" aria-hidden="true">
                                     {cartCount}
@@ -140,7 +146,8 @@ const Navbar = () => {
                                 }`}
                             title={isPlaying ? 'Pause Music' : 'Play Music'}
                         >
-                            {isPlaying ? <span>⏸</span> : <span className="ml-0.5">▶</span>}
+                            {isPlaying ? <span aria-hidden="true">⏸</span> : <span aria-hidden="true" className="ml-0.5">▶</span>}
+                            <span className="sr-only">{isPlaying ? 'Pause background music' : 'Play background music'}</span>
                         </button>
                         <AudioPlayer ref={audioRef} />
 
@@ -156,7 +163,10 @@ const Navbar = () => {
                 </div>
             </nav>
 
-            <div className={`fixed inset-0 z-[120] bg-ghibli-cream/98 backdrop-blur-3xl transition-all duration-500 flex flex-col items-center justify-center gap-8 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div
+                className={`fixed inset-0 z-[120] bg-ghibli-cream/98 backdrop-blur-3xl transition-all duration-500 flex flex-col items-center justify-center gap-8 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                aria-hidden={!mobileMenuOpen}
+            >
                 <button
                     type="button"
                     onClick={() => setMobileMenuOpen(false)}
@@ -185,10 +195,12 @@ const Navbar = () => {
                 {/* Mobile social row */}
                 <div className={`flex gap-4 mt-4 transition-all duration-500 ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${navLinks.length * 80 + 100}ms` }}>
                     <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} aria-label="Wishlist" className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        <span className="sr-only">Wishlist</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                     </Link>
                     <Link to="/cart" onClick={() => setMobileMenuOpen(false)} aria-label="Shopping cart" className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        <span className="sr-only">Shopping cart</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                     </Link>
                 </div>
             </div>
