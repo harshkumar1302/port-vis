@@ -2,12 +2,13 @@ import AudioPlayer from './AudioPlayer';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
+import useAnnouncementBar from '../hooks/useAnnouncementBar';
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [hasAnnouncement, setHasAnnouncement] = useState(true);
+    const { isVisible: announcementVisible } = useAnnouncementBar();
     const audioRef = useRef(null);
     const location = useLocation();
     const { cartCount, wishlistCount } = useStore();
@@ -26,13 +27,17 @@ const Navbar = () => {
         document.documentElement.classList.remove('dark');
         localStorage.removeItem('theme');
 
-        const dismissed = sessionStorage.getItem('visheshkala_announcement_dismissed') === '1';
-        setHasAnnouncement(!dismissed);
-
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
+
+    useEffect(() => {
+        document.documentElement.style.setProperty(
+            '--announcement-offset',
+            announcementVisible ? '28px' : '0px'
+        );
+    }, [announcementVisible]);
 
     const navLinks = [
         { name: 'Home', href: '/' },
@@ -41,7 +46,7 @@ const Navbar = () => {
         { name: 'Contact', href: '/contact' },
     ];
 
-    const topOffset = hasAnnouncement ? 'top-7' : 'top-0';
+    const topOffset = announcementVisible ? 'top-7' : 'top-0';
 
     return (
         <>

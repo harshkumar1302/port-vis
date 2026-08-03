@@ -1,25 +1,9 @@
-import { useState, useEffect } from 'react';
-import { fetchSiteSetting } from '../lib/fetchSettings';
-
-const STORAGE_KEY = 'visheshkala_announcement_dismissed';
+import useAnnouncementBar from '../hooks/useAnnouncementBar';
 
 const AnnouncementBar = () => {
-  const [items, setItems] = useState([]);
-  const [enabled, setEnabled] = useState(true);
-  const [dismissed, setDismissed] = useState(() =>
-    typeof window !== 'undefined' && sessionStorage.getItem(STORAGE_KEY) === '1'
-  );
+  const { items, isVisible } = useAnnouncementBar();
 
-  useEffect(() => {
-    fetchSiteSetting('announcement_bar', null).then((value) => {
-      if (value) {
-        setEnabled(value.enabled !== false);
-        setItems(value.items || []);
-      }
-    });
-  }, []);
-
-  if (dismissed || !enabled || items.length === 0) return null;
+  if (!isVisible) return null;
 
   const doubled = [...items, ...items];
 

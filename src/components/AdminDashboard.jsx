@@ -1007,7 +1007,27 @@ Check your internet connection. If this is on Vercel, please ensure you have run
     return (
         <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream transition-colors duration-500">
             <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12">
-                <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                    <div className="flex flex-col w-full sm:w-auto">
+                        <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group active:scale-95">
+                            <span className="group-hover:-translate-x-1 transition-transform">←</span> Exit to Site
+                        </a>
+                        <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
+                    </div>
+                    <div className="flex flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={() => setShowChangePassword(true)}
+                            className="flex-1 sm:flex-none px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <span>⚙️</span> <span className="hidden xs:inline">Reset Password</span><span className="xs:hidden">Settings</span>
+                        </button>
+                        <button onClick={handleSignOut} className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <span>🚪</span> Sign Out
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex bg-ghibli-paper/20 p-1 rounded-xl">
                     {[
                         { id: 'artworks', label: 'Artworks' },
                         { id: 'reviews', label: 'Reviews' },
@@ -1029,26 +1049,6 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                 {adminTab === 'site' && <SiteTab />}
 
                 {adminTab === 'artworks' && (<>
-
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                    <div className="flex flex-col w-full sm:w-auto">
-                        <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group active:scale-95">
-                            <span className="group-hover:-translate-x-1 transition-transform">←</span> Exit to Site
-                        </a>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
-                    </div>
-                    <div className="flex flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
-                        <button
-                            onClick={() => setShowChangePassword(true)}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            <span>⚙️</span> <span className="hidden xs:inline">Reset Password</span><span className="xs:hidden">Settings</span>
-                        </button>
-                        <button onClick={handleSignOut} className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
-                            <span>🚪</span> Sign Out
-                        </button>
-                    </div>
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
                     {/* Upload Form */}

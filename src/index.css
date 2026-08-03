@@ -2,6 +2,7 @@
 @import "tailwindcss";
 
 :root {
+  --announcement-offset: 0px;
   /* 🎨 PALETTE: Warm Ghibli (Strict) */
   --ghibli-cream: #FFFDF5;
   /* Warm off-white, NOT pure white */
@@ -63,8 +64,7 @@
 /* 🌿 Reset & Base */
 html {
   scroll-behavior: auto;
-  scroll-padding-top: 100px;
-  /* Offset for fixed navbar + announcement bar */
+  scroll-padding-top: calc(100px + var(--announcement-offset, 0px));
 }
 
 body {

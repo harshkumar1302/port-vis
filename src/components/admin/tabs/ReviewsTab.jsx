@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
 
 const ReviewsTab = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ name: '', message: '', rating: 5, verified: true, avatar_url: '' });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch('/api/manage-reviews');
+      const res = await fetch('/api/manage-reviews', { credentials: 'include' });
       if (res.ok) setReviews(await res.json());
     } catch (err) {
       console.error(err);
@@ -20,12 +23,40 @@ const ReviewsTab = () => {
 
   useEffect(() => { fetchReviews(); }, []);
 
+  const resetForm = () => {
+    setForm({ name: '', message: '', rating: 5, verified: true, avatar_url: '' });
+    setAvatarFile(null);
+    setAvatarPreview('');
+    setEditingId(null);
+  };
+
+  const uploadAvatar = async (file) => {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filePath = `review-avatars/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('artworks').upload(filePath, file);
+    if (error) throw error;
+    const { data: { publicUrl } } = supabase.storage.from('artworks').getPublicUrl(filePath);
+    return publicUrl;
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
+      let avatarUrl = form.avatar_url;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar(avatarFile);
+      }
+
       const method = editingId ? 'PUT' : 'POST';
-      const body = editingId ? { id: editingId, ...form } : form;
+      const body = { ...(editingId ? { id: editingId } : {}), ...form, avatar_url: avatarUrl || null };
       const res = await fetch('/api/manage-reviews', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -33,8 +64,7 @@ const ReviewsTab = () => {
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error((await res.json()).error);
-      setForm({ name: '', message: '', rating: 5, verified: true, avatar_url: '' });
-      setEditingId(null);
+      resetForm();
       fetchReviews();
     } catch (err) {
       alert(err.message);
@@ -56,7 +86,15 @@ const ReviewsTab = () => {
 
   const handleEdit = (review) => {
     setEditingId(review.id);
-    setForm({ name: review.name, message: review.message, rating: review.rating, verified: review.verified, avatar_url: review.avatar_url || '' });
+    setForm({
+      name: review.name,
+      message: review.message,
+      rating: review.rating,
+      verified: review.verified,
+      avatar_url: review.avatar_url || '',
+    });
+    setAvatarFile(null);
+    setAvatarPreview(review.avatar_url || '');
   };
 
   if (loading) return <div className="text-center py-10 text-ghibli-wood">Loading reviews...</div>;
@@ -67,9 +105,28 @@ const ReviewsTab = () => {
         <h2 className="text-2xl font-bold text-ghibli-navy mb-6">{editingId ? 'Edit Review' : 'Add Review'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" placeholder="Customer name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50" required />
-          <input type="url" placeholder="Avatar Image URL (optional)" value={form.avatar_url} onChange={e => setForm({ ...form, avatar_url: e.target.value })} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50" />
+
+          <div>
+            <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Avatar (optional)</label>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-ghibli-wood/10 flex items-center justify-center font-bold text-ghibli-wood overflow-hidden shrink-0">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                ) : (
+                  form.name?.[0]?.toUpperCase() || '?'
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="text-sm text-ghibli-charcoal/70 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-ghibli-wood/10 file:text-ghibli-wood file:font-bold file:cursor-pointer"
+              />
+            </div>
+          </div>
+
           <textarea placeholder="Review message" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 h-24" required />
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center flex-wrap">
             <label className="text-sm font-bold text-ghibli-charcoal/70">Rating</label>
             <select value={form.rating} onChange={e => setForm({ ...form, rating: Number(e.target.value) })} className="p-2 rounded-lg border border-ghibli-wood/10">
               {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} stars</option>)}
@@ -84,7 +141,7 @@ const ReviewsTab = () => {
               {saving ? 'Saving...' : editingId ? 'Update' : 'Add Review'}
             </button>
             {editingId && (
-              <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', message: '', rating: 5, verified: true, avatar_url: '' }); }} className="px-6 py-3 bg-ghibli-paper text-ghibli-wood rounded-xl font-bold text-sm">
+              <button type="button" onClick={resetForm} className="px-6 py-3 bg-ghibli-paper text-ghibli-wood rounded-xl font-bold text-sm">
                 Cancel
               </button>
             )}
@@ -101,7 +158,7 @@ const ReviewsTab = () => {
               </div>
               <div>
                 <div className="font-bold text-ghibli-charcoal">{r.name} {'★'.repeat(r.rating)}</div>
-                <p className="text-sm text-ghibli-charcoal/70 mt-1 italic">"{r.message}"</p>
+                <p className="text-sm text-ghibli-charcoal/70 mt-1 italic">&ldquo;{r.message}&rdquo;</p>
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">

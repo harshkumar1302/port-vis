@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { ANNOUNCEMENT_UPDATE_EVENT } from '../../../hooks/useAnnouncementBar';
+import { fetchSiteSetting } from '../../../lib/fetchSettings';
 
 const SiteTab = () => {
   const [announcement, setAnnouncement] = useState({ enabled: true, items: [] });
@@ -9,13 +11,13 @@ const SiteTab = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/settings?id=announcement_bar').then(r => r.ok ? r.json() : null),
-      fetch('/api/settings?id=contact_channels').then(r => r.ok ? r.json() : null),
-      fetch('/api/settings?id=hero_stats').then(r => r.ok ? r.json() : null),
+      fetchSiteSetting('announcement_bar', { enabled: true, items: [] }),
+      fetchSiteSetting('contact_channels', { instagram_url: '', whatsapp_number: '', whatsapp_message_template: '' }),
+      fetchSiteSetting('hero_stats', { handmade_pct: 100, happy_homes: 500, rating: 5 }),
     ]).then(([ann, con, st]) => {
-      if (ann?.value) setAnnouncement(ann.value);
-      if (con?.value) setContact(con.value);
-      if (st?.value) setStats(st.value);
+      if (ann) setAnnouncement(ann);
+      if (con) setContact(con);
+      if (st) setStats(st);
     }).catch(console.error);
   }, []);
 
@@ -26,7 +28,7 @@ const SiteTab = () => {
       credentials: 'include',
       body: JSON.stringify({ id, value }),
     });
-    if (!res.ok) throw new Error((await res.json()).error);
+    if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
   };
 
   const handleSave = async () => {
@@ -36,6 +38,7 @@ const SiteTab = () => {
       await saveSetting('announcement_bar', announcement);
       await saveSetting('contact_channels', contact);
       await saveSetting('hero_stats', stats);
+      window.dispatchEvent(new Event(ANNOUNCEMENT_UPDATE_EVENT));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -79,6 +82,7 @@ const SiteTab = () => {
           </div>
         ))}
         <button onClick={addAnnouncementItem} className="text-sm font-bold text-ghibli-wood">+ Add announcement</button>
+        <p className="text-xs text-ghibli-charcoal/50">Click <strong>Save Site Settings</strong> below — changes won&apos;t appear on the live site until saved.</p>
       </div>
 
       <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] space-y-4">

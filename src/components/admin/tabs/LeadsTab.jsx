@@ -8,8 +8,17 @@ const LeadsTab = () => {
     const fetchLeads = async () => {
         try {
             setLoading(true);
-            const res = await fetch('/api/manage-leads');
-            if (!res.ok) throw new Error('Failed to fetch leads');
+            setError(null);
+            const res = await fetch('/api/manage-leads', { credentials: 'include' });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (data.code === 'TABLE_MISSING') {
+                    setLeads([]);
+                    setError('Leads table not set up yet. Run migrations/2026_08_chatbot_leads.sql in Supabase SQL Editor.');
+                    return;
+                }
+                throw new Error(data.error || 'Failed to fetch leads');
+            }
             const data = await res.json();
             setLeads(data);
         } catch (err) {
@@ -28,6 +37,7 @@ const LeadsTab = () => {
             const res = await fetch('/api/manage-leads', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ id, status: 'read' }),
             });
             if (!res.ok) throw new Error('Failed to update status');

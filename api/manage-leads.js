@@ -15,6 +15,11 @@ const verifyOwner = (req) => {
   }
 };
 
+const isMissingTable = (error) =>
+  error?.code === "42P01" ||
+  error?.code === "PGRST205" ||
+  /does not exist/i.test(error?.message || "");
+
 export default async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -36,7 +41,15 @@ export default async function handler(req, res) {
         .insert([{ name, contact_info, message }])
         .select();
         
-      if (error) throw error;
+      if (error) {
+        if (isMissingTable(error)) {
+          return res.status(503).json({
+            error: "Leads table not set up yet. Run migrations/2026_08_chatbot_leads.sql in Supabase.",
+            code: "TABLE_MISSING",
+          });
+        }
+        throw error;
+      }
       return res.status(201).json({ success: true, lead: data[0] });
     }
 
@@ -49,9 +62,12 @@ export default async function handler(req, res) {
         .from("chatbot_leads")
         .select("*")
         .order("created_at", { ascending: false });
-        
-      if (error) throw error;
-      return res.status(200).json(data);
+
+      if (error) {
+        if (isMissingTable(error)) return res.status(200).json([]);
+        throw error;
+      }
+      return res.status(200).json(data || []);
     }
 
     if (req.method === "PUT") {
