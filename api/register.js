@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
-import { sendWelcomeEmail } from "./utils/email.js";
+import { sendWelcomeEmail } from "../lib/email.js";
 
 
 
