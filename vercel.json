@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
       "source": "/((?!api/|_next/|_static/|[0-9a-z.-]+\\.[0-9a-z]+).*)",
@@ -10,12 +11,6 @@
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/(.*\\.(jpg|jpeg|png|webp|svg|ico|woff2|woff|mp3))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
       ]
     }
   ],
