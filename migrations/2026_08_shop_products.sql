@@ -22,4 +22,4 @@ CREATE POLICY "Allow Public Read Access"
   ON public.shop_products FOR SELECT
   USING (true);
 
--- Writes go through /api/manage-shop with service role
+-- Writes go through /api/manage-art with _resource: shop and service role

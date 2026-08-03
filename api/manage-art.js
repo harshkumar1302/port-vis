@@ -7,9 +7,14 @@ const ARTWORK_FIELDS = [
   "sub_category", "sort_order",
 ];
 
-const pickArtworkFields = (body) => {
+const SHOP_FIELDS = [
+  "title", "description", "category", "image_url", "user_id",
+  "price", "original_price", "is_active", "stock",
+];
+
+const pickFields = (body, fields) => {
   const payload = {};
-  for (const key of ARTWORK_FIELDS) {
+  for (const key of fields) {
     if (body[key] !== undefined) payload[key] = body[key];
   }
   return payload;
@@ -44,19 +49,22 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const isShop = req.body?._resource === "shop";
+  const table = isShop ? "shop_products" : "artworks";
+  const fields = isShop ? SHOP_FIELDS : ARTWORK_FIELDS;
 
   try {
     if (req.method === "POST") {
-      const payload = pickArtworkFields(req.body);
-      const { data, error } = await supabase.from("artworks").insert([payload]).select();
+      const payload = pickFields(req.body, fields);
+      const { data, error } = await supabase.from(table).insert([payload]).select();
       if (error) throw error;
       return res.status(201).json(data[0]);
     }
 
     if (req.method === "PUT") {
-      const { action, oldCategory, newCategory, id, ...rest } = req.body;
+      const { action, oldCategory, newCategory, id, _resource, ...rest } = req.body;
 
-      if (action === "rename_category") {
+      if (!isShop && action === "rename_category") {
         if (!oldCategory || !newCategory) {
           return res.status(400).json({ error: "oldCategory and newCategory required" });
         }
@@ -70,9 +78,9 @@ export default async function handler(req, res) {
 
       if (!id) return res.status(400).json({ error: "ID is required for updates" });
 
-      const payload = pickArtworkFields(rest);
+      const payload = pickFields(rest, fields);
       const { data, error } = await supabase
-        .from("artworks")
+        .from(table)
         .update(payload)
         .eq("id", id)
         .select();
@@ -83,7 +91,7 @@ export default async function handler(req, res) {
     if (req.method === "DELETE") {
       const { id } = req.body;
       if (!id) return res.status(400).json({ error: "ID is required for deletion" });
-      const { error } = await supabase.from("artworks").delete().eq("id", id);
+      const { error } = await supabase.from(table).delete().eq("id", id);
       if (error) throw error;
       return res.status(200).json({ success: true });
     }

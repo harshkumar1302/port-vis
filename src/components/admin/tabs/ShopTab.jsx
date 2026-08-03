@@ -83,11 +83,11 @@ const ShopTab = () => {
                 await supabase.storage.from('artworks').remove([fileName]);
             }
 
-            const res = await fetch('/api/manage-shop', {
+            const res = await fetch('/api/manage-art', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ id: prod.id }),
+                body: JSON.stringify({ id: prod.id, _resource: 'shop' }),
             });
 
             if (!res.ok) throw new Error('Failed to delete product');
@@ -143,11 +143,11 @@ const ShopTab = () => {
             const method = editingId ? 'PUT' : 'POST';
             if (editingId) payload.id = editingId;
 
-            const res = await fetch('/api/manage-shop', {
+            const res = await fetch('/api/manage-art', {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ ...payload, _resource: 'shop' }),
             });
 
             if (!res.ok) {

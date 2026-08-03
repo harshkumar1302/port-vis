@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
 import WhatsAppButton from './WhatsAppButton';
+import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
@@ -224,20 +225,16 @@ const FullGallery = () => {
                                 <div className="relative z-10">
                                     <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6 relative">
                                         <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-700 z-10"></div>
-                                            <div className="w-full aspect-[4/5] flex items-center justify-center flex-col gap-3">
-                                                <span className="text-4xl opacity-10 group-hover:scale-110 transition-transform duration-500">✨</span>
-                                                <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-charcoal/20 uppercase">In Progress</span>
-                                            </div>
-                                        ) : (
-                                            <div className="w-full aspect-[4/5] relative">
-                                                <img
-                                                    src={art.image_url}
-                                                    alt={art.title}
-                                                    className="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-1000 group-hover:scale-105"
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                        )}
+                                        <div className="w-full aspect-[4/5] relative">
+                                            <ArtworkImage
+                                                src={art.image_url}
+                                                alt={art.title}
+                                                size="card"
+                                                objectFit="object-contain"
+                                                className="absolute inset-0"
+                                                imgClassName="p-4 transition-transform duration-1000 group-hover:scale-105"
+                                            />
+                                        </div>
                                     </div>
 
                                     {art.title && (
