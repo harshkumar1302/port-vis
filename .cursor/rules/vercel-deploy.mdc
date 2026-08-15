@@ -23,7 +23,34 @@ This repo deploys to **two** Vercel projects from one push: `port-vis` and `vish
 - Auth and content legacy URLs are **rewritten** to consolidated handlers — keep rewrites when changing API structure.
 - After editing `vercel.json`, run `npx vercel build` locally.
 
-## API layout (8 functions)
+## Before adding ANY new API — merge-first rule
+
+**Default: do NOT create a new `api/*.js` file.** Always ask: can this live in an existing handler?
+
+### Decision checklist (run every time)
+
+1. **Auth / passwords / sessions?** → extend `auth.js` (+ rewrite in `vercel.json` if new public path)
+2. **Admin CMS write to DB?** → extend `manage-art.js` (`_resource`) or `manage-content.js` (`resource=`)
+3. **Public form / user submission?** → extend `contact.js`, `enquire.js`, or `newsletter.js` if same shape (POST + insert row)
+4. **Site config read/write?** → extend `settings.js`
+5. **Cron / health ping?** → extend `keep-alive.js`
+6. **Only if none of the above fit** → new file is justified — but confirm count is **≤11** before pushing (leave 1 slot buffer)
+
+### Merge patterns already in use
+
+- **`_resource` / `?resource=`** — one handler, multiple tables (see `manage-art`, `manage-content`)
+- **Vercel rewrites** — keep old URLs working when consolidating (`/api/login` → `/api/auth?action=login`)
+- **Shared helpers** — put logic in `lib/apiUtils.js`, not new function files
+
+### When a new file IS justified
+
+- Different auth model (e.g. payment webhook with signature verification)
+- Third-party integration that doesn't fit existing handlers
+- Public endpoint with totally different rate-limit / security needs
+
+**Tell the user which handler you considered merging into and why a new file was needed.**
+
+## API layout (8 functions — 4 slots free)
 
 | File | Handles |
 |------|---------|
