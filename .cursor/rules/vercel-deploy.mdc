@@ -1,0 +1,42 @@
+---
+description: Vercel deploy constraints and guardrails for port-vis / visheshkala
+alwaysApply: true
+---
+
+# Vercel Deploy Guardrails (port-vis)
+
+This repo deploys to **two** Vercel projects from one push: `port-vis` and `vishakhagarg` (visheshkala.com). Every change triggers two full deploys.
+
+## Hard limits
+
+- **12 serverless functions max** (Vercel Hobby). Target **≤8** after consolidation.
+- **Never add a new `api/*.js` file** without checking count — merge into existing handlers first.
+- `scripts/check-vercel.mjs` runs on `prebuild` — do not bypass it.
+
+## Node version
+
+- Pinned to **24.x** in `package.json` `engines` and `.nvmrc`.
+
+## vercel.json
+
+- Invalid header patterns break deploy. No alternation groups like `(jpg|png|…)` in `headers[].source`.
+- Auth and content legacy URLs are **rewritten** to consolidated handlers — keep rewrites when changing API structure.
+- After editing `vercel.json`, run `npx vercel build` locally.
+
+## API layout (8 functions)
+
+| File | Handles |
+|------|---------|
+| `auth.js` | login, logout, me, register, change-password, request-reset, reset-password (via rewrites) |
+| `manage-content.js` | leads + reviews (via rewrites from `/api/manage-leads`, `/api/manage-reviews`) |
+| `manage-art.js` | artworks + shop writes (`_resource: 'shop'`) |
+| `settings.js` | site CMS config |
+| `contact.js` | contact form submissions |
+| `enquire.js` | cart checkout → WhatsApp order intent |
+| `newsletter.js` | waitlist signups |
+| `keep-alive.js` | daily Supabase cron ping |
+
+## Before pushing deploy-sensitive changes
+
+1. `npm run build` (runs prebuild guard)
+2. `npx vercel build` if `vercel.json` or `api/` changed

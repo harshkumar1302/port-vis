@@ -1,5 +1,5 @@
-/** Flip to true when your WhatsApp number is ready */
-export const WHATSAPP_ENABLED = false;
+/** WhatsApp is enabled when a number is configured in admin Site Settings */
+export const WHATSAPP_ENABLED = true;
 
 const DEFAULT_CHANNELS = {
   instagram_url: 'https://www.instagram.com/visheshkalaa/',
@@ -18,4 +18,7 @@ export const buildWhatsAppUrl = (artwork, channels = DEFAULT_CHANNELS) => {
 export const buildInstagramUrl = (channels = DEFAULT_CHANNELS) =>
   channels.instagram_url || DEFAULT_CHANNELS.instagram_url;
 
-export default { buildWhatsAppUrl, buildInstagramUrl, DEFAULT_CHANNELS };
+export const hasWhatsApp = (channels = DEFAULT_CHANNELS) =>
+  Boolean((channels.whatsapp_number || '').replace(/\D/g, ''));
+
+export default { buildWhatsAppUrl, buildInstagramUrl, hasWhatsApp, DEFAULT_CHANNELS };

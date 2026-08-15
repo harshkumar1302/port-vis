@@ -1,12 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../lib/artwork';
 import { titleToSlug } from '../lib/categoryUtils';
+import ArtworkImage from '../components/ArtworkImage';
 import WhatsAppButton from '../components/WhatsAppButton';
 
 const Cart = () => {
   const { cart, removeFromCart, updateCartQuantity } = useStore();
+  const [customer, setCustomer] = useState({ name: '', contact_info: '' });
+  const [checkoutStatus, setCheckoutStatus] = useState('idle'); // idle | loading | done | error
+  const [checkoutMsg, setCheckoutMsg] = useState('');
+  const [whatsappUrl, setWhatsappUrl] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -14,6 +19,36 @@ const Cart = () => {
 
   const calculateTotal = () =>
     cart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
+
+  const handleCheckout = async () => {
+    setCheckoutStatus('loading');
+    setCheckoutMsg('');
+    try {
+      const res = await fetch('/api/enquire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: customer.name.trim() || undefined,
+          contact_info: customer.contact_info.trim() || undefined,
+          items: cart.map(({ id, title, price, quantity, image_url }) => ({
+            id, title, price, quantity, image_url,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Checkout failed');
+
+      setCheckoutStatus('done');
+      setCheckoutMsg(data.message);
+      if (data.whatsappUrl) {
+        setWhatsappUrl(data.whatsappUrl);
+        window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (err) {
+      setCheckoutStatus('error');
+      setCheckoutMsg(err.message || 'Could not process checkout. Try contacting us directly.');
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -149,6 +184,29 @@ const Cart = () => {
                 Order Summary
               </h2>
 
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-white/50 mb-2">Your name</label>
+                  <input
+                    type="text"
+                    value={customer.name}
+                    onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))}
+                    placeholder="Optional"
+                    className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-ghibli-gold/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-white/50 mb-2">Phone or email</label>
+                  <input
+                    type="text"
+                    value={customer.contact_info}
+                    onChange={(e) => setCustomer((c) => ({ ...c, contact_info: e.target.value }))}
+                    placeholder="So we can reach you"
+                    className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-ghibli-gold/50"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-end text-white/70 border-b border-white/10 pb-4">
                   <span className="text-xs tracking-widest uppercase">Subtotal</span>
@@ -164,12 +222,35 @@ const Cart = () => {
                 </div>
               </div>
 
-              <WhatsAppButton className="w-full py-4 rounded-full bg-ghibli-gold/80 text-ghibli-navy font-bold tracking-[0.08em] text-xs uppercase flex items-center justify-center gap-2">
-                Checkout via WhatsApp
-              </WhatsAppButton>
+              {checkoutStatus === 'done' ? (
+                <div className="text-center py-4">
+                  <p className="text-ghibli-gold text-sm mb-4">{checkoutMsg}</p>
+                  {whatsappUrl && (
+                    <WhatsAppButton
+                      href={whatsappUrl}
+                      className="w-full py-4 rounded-full bg-[#25D366] text-white font-bold tracking-[0.08em] text-xs uppercase flex items-center justify-center gap-2"
+                    >
+                      Open WhatsApp again
+                    </WhatsAppButton>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <WhatsAppButton
+                    onClick={handleCheckout}
+                    disabled={checkoutStatus === 'loading'}
+                    className="w-full py-4 rounded-full bg-ghibli-gold/80 text-ghibli-navy font-bold tracking-[0.08em] text-xs uppercase flex items-center justify-center gap-2 hover:bg-ghibli-gold transition-colors"
+                  >
+                    {checkoutStatus === 'loading' ? 'Processing…' : 'Checkout via WhatsApp'}
+                  </WhatsAppButton>
+                  {checkoutStatus === 'error' && (
+                    <p className="mt-4 text-red-300 text-xs text-center">{checkoutMsg}</p>
+                  )}
+                </>
+              )}
 
               <p className="mt-6 text-center text-[9px] text-white/30 uppercase tracking-widest font-bold">
-                Taxes calculated at checkout
+                We&apos;ll confirm price &amp; delivery on WhatsApp
               </p>
             </div>
           </div>

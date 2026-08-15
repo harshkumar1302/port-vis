@@ -3,27 +3,37 @@ import { useState } from 'react';
 
 const NewsletterModal = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, sending, success
+    const [status, setStatus] = useState('idle'); // idle, sending, success, error
+    const [errorMsg, setErrorMsg] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('sending');
-        // Simulate API call
-        setTimeout(() => {
+        setErrorMsg('');
+        try {
+            const res = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Could not subscribe');
             setStatus('success');
             setTimeout(() => {
                 onClose();
                 setStatus('idle');
                 setEmail('');
             }, 3500);
-        }, 2000);
+        } catch (err) {
+            setErrorMsg(err.message || 'Something went wrong. Try again.');
+            setStatus('idle');
+        }
     };
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
-                    {/* Immersive Magical Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -32,28 +42,24 @@ const NewsletterModal = ({ isOpen, onClose }) => {
                         className="absolute inset-0 bg-ghibli-navy/90 backdrop-blur-xl"
                     />
 
-                    {/* Floating Orbs in background */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="absolute top-1/4 left-1/4 w-96 h-96 bg-ghibli-gold/20 rounded-full blur-[100px] pointer-events-none animate-divine-pulse" 
+                        className="absolute top-1/4 left-1/4 w-96 h-96 bg-ghibli-gold/20 rounded-full blur-[100px] pointer-events-none animate-divine-pulse"
                     />
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-ghibli-wood/30 rounded-full blur-[120px] pointer-events-none animate-float" style={{ animationDelay: '2s' }}
                     />
 
-                    {/* Modal Content - Glassmorphism */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 30, transition: { duration: 0.4 } }}
                         className="relative w-full max-w-2xl bg-white/5 backdrop-blur-2xl rounded-3xl p-8 md:p-16 shadow-2xl border border-white/10 overflow-hidden"
                     >
-                        {/* Decorative Corner Borders */}
-                        <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-ghibli-gold/30 rounded-tl-3xl"></div>
-                        <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-ghibli-gold/30 rounded-br-3xl"></div>
+                        <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-ghibli-gold/30 rounded-tl-3xl" />
+                        <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-ghibli-gold/30 rounded-br-3xl" />
 
-                        {/* Close Button */}
                         {status !== 'sending' && status !== 'success' && (
                             <button
                                 onClick={onClose}
@@ -65,7 +71,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
 
                         <AnimatePresence mode="wait">
                             {status === 'success' ? (
-                                <motion.div 
+                                <motion.div
                                     key="success"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -88,7 +94,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
                                     </p>
                                 </motion.div>
                             ) : (
-                                <motion.div 
+                                <motion.div
                                     key="form"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -116,17 +122,19 @@ const NewsletterModal = ({ isOpen, onClose }) => {
                                                 className="w-full px-4 py-4 bg-transparent border-b border-white/20 focus:outline-none focus:border-ghibli-gold text-white text-xl placeholder:text-white/20 font-serif text-center transition-colors duration-500"
                                                 disabled={status === 'sending'}
                                             />
-                                            {/* Magical glow line on focus */}
-                                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-ghibli-gold group-focus-within:w-full transition-all duration-700 ease-out shadow-[0_0_10px_#FACD60]"></div>
+                                            <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-ghibli-gold group-focus-within:w-full transition-all duration-700 ease-out shadow-[0_0_10px_#FACD60]" />
                                         </div>
-                                        
+
+                                        {errorMsg && (
+                                            <p className="text-red-300 text-sm mb-4">{errorMsg}</p>
+                                        )}
+
                                         <button
                                             type="submit"
                                             disabled={status === 'sending'}
                                             className="relative overflow-hidden w-full py-5 rounded-none border border-white/20 text-white font-bold tracking-[0.3em] text-xs uppercase hover:bg-white hover:text-ghibli-navy transition-all duration-500 disabled:opacity-50 disabled:cursor-wait group/btn"
                                         >
-                                            <div className="absolute inset-0 bg-ghibli-gold translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-500 ease-out z-0"></div>
-                                            
+                                            <div className="absolute inset-0 bg-ghibli-gold translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-500 ease-out z-0" />
                                             <span className="relative z-10 flex items-center justify-center gap-3">
                                                 {status === 'sending' ? (
                                                     <span className="flex items-center gap-2">

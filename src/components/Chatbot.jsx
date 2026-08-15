@@ -13,6 +13,7 @@ import {
 } from '../lib/mithiBrain';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
 import { getProductsUrl } from '../lib/categoryUtils';
 
 const TypingDots = () => (
@@ -50,13 +51,18 @@ const Chatbot = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+  const [channels, setChannels] = useState({});
   const scrollRef = useRef(null);
+  const waUrl = buildWhatsAppUrl({ title: 'Visheshkala' }, channels);
 
   useEffect(() => {
     if (!isOpen) return;
 
     fetchSiteSetting('category_definitions', null).then((catValue) => {
       if (catValue?.length) setCategories(catValue);
+    });
+    fetchSiteSetting('contact_channels', null).then((val) => {
+      if (val) setChannels(val);
     });
   }, [isOpen]);
 
@@ -109,7 +115,13 @@ const Chatbot = () => {
       handleTopic(TOPICS[action.topic]);
     } else if (action.type === 'whatsapp') {
       userSay(action.label);
-      mithiSay("WhatsApp is coming soon! For now, leave a note below or DM us on Instagram — we'd love to hear from you.");
+      const waUrl = buildWhatsAppUrl({ title: 'Visheshkala' }, channels);
+      if (waUrl) {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+        mithiSay("Opening WhatsApp for you — we'll reply as soon as we can!");
+      } else {
+        mithiSay("WhatsApp isn't set up yet — leave a note below or DM us on Instagram!");
+      }
     }
   };
 
@@ -229,6 +241,9 @@ const Chatbot = () => {
                       ) : action.type === 'whatsapp' ? (
                         <WhatsAppButton
                           key={i}
+                          href={waUrl}
+                          disabled={!hasWhatsApp(channels)}
+                          onClick={() => setIsOpen(false)}
                           className="p-2.5 text-sm border rounded-xl bg-green-50/80 border-green-200 text-green-800 w-full text-left font-medium"
                         >
                           {action.label}
@@ -327,7 +342,12 @@ const Chatbot = () => {
           {/* Footer quick bar */}
           {step === 'chat' && !typing && (
             <div className="px-3 py-2 bg-white border-t border-ghibli-wood/10 flex gap-2">
-              <WhatsAppButton className="flex-1 text-center py-1.5 text-[11px] font-bold bg-green-50/80 text-green-700 rounded-lg">
+              <WhatsAppButton
+                href={waUrl}
+                disabled={!hasWhatsApp(channels)}
+                onClick={() => setIsOpen(false)}
+                className="flex-1 text-center py-1.5 text-[11px] font-bold bg-green-50/80 text-green-700 rounded-lg"
+              >
                 WhatsApp
               </WhatsAppButton>
               <button

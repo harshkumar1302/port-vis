@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../context/StoreContext';
 import { formatPrice, getDiscountPct } from '../lib/artwork';
-import WhatsAppButton from '../components/WhatsAppButton';
+import useSiteSetting from '../hooks/useSiteSettings';
+import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
 import ArtworkImage from '../components/ArtworkImage';
 import { titleToSlug } from '../lib/categoryUtils';
 import usePageSEO from '../hooks/usePageSEO';
@@ -22,6 +23,8 @@ const ProductDetail = () => {
   const [art, setArt] = useState(state?.art || state?.product || null);
   const [loading, setLoading] = useState(!state?.art && !state?.product);
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
+  const { value: channels } = useSiteSetting('contact_channels', {});
+  const waUrl = buildWhatsAppUrl(art, channels);
 
   usePageSEO({
     enabled: Boolean(art),
@@ -152,7 +155,11 @@ const ProductDetail = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                 </button>
               </div>
-              <WhatsAppButton className="w-full text-center py-4 rounded-xl bg-[#25D366] text-white font-bold tracking-widest uppercase text-xs sm:text-sm shadow-sm hover:shadow-md transition-all min-h-[48px]">
+              <WhatsAppButton
+                href={waUrl}
+                disabled={!hasWhatsApp(channels)}
+                className="w-full text-center py-4 rounded-xl bg-[#25D366] text-white font-bold tracking-widest uppercase text-xs sm:text-sm shadow-sm hover:shadow-md transition-all min-h-[48px]"
+              >
                 Enquire on WhatsApp
               </WhatsAppButton>
             </div>
