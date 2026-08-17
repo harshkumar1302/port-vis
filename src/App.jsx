@@ -27,6 +27,7 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -122,6 +123,7 @@ const App = () => {
             <Route path="/contact" element={<Suspense fallback={<PageFallback />}><Contact /></Suspense>} />
             <Route path="/wishlist" element={<Suspense fallback={<PageFallback />}><Wishlist /></Suspense>} />
             <Route path="/cart" element={<Suspense fallback={<PageFallback />}><Cart /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<PageFallback />}><Checkout /></Suspense>} />
 
             <Route path="/products" element={<ProductsRedirect />} />
             <Route path="/product/:slug" element={<ProductSlugRedirect />} />

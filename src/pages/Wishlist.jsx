@@ -50,7 +50,7 @@ const Wishlist = () => {
             </Link>
           </div>
         ) : (
-          <ProductCardGrid items={wishlist} skeletonCount={wishlist.length} />
+          <ProductCardGrid items={wishlist} skeletonCount={wishlist.length} variant="wishlist" />
         )}
       </div>
     </div>

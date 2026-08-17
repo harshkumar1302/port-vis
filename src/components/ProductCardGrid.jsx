@@ -28,9 +28,11 @@ const ProductCardGrid = ({
   empty = null,
 }) => {
   const urls = useMemo(() => collectImageUrls(items, 'image_url', 'card'), [items]);
-  const Card = variant === 'shop' ? ShopProductCard : ProductCard;
-  const Skeleton = variant === 'shop' ? ShopProductCardSkeleton : ProductCardSkeleton;
-  const gridClass = variant === 'shop' ? (className === PRODUCT_GRID_CLASS ? SHOP_GRID_CLASS : className) : className;
+  const isShop = variant === 'shop';
+  const isWishlist = variant === 'wishlist';
+  const Card = isShop ? ShopProductCard : ProductCard;
+  const Skeleton = isShop ? ShopProductCardSkeleton : ProductCardSkeleton;
+  const gridClass = isShop ? (className === PRODUCT_GRID_CLASS ? SHOP_GRID_CLASS : className) : className;
 
   useEffect(() => {
     if (!dataLoading && urls.length > 0) {
@@ -58,7 +60,11 @@ const ProductCardGrid = ({
   return (
     <div className={gridClass}>
       {items.map((art, i) => {
-        const card = <Card art={art} priority={i < 4} />;
+        const card = isShop ? (
+          <Card art={art} priority={i < 4} />
+        ) : (
+          <Card art={art} priority={i < 4} variant={isWishlist ? 'wishlist' : 'default'} />
+        );
         if (i >= 8) {
           return (
             <div key={art.id} className="flex flex-col h-full">

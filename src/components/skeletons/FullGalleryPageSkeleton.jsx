@@ -3,7 +3,7 @@ import { GalleryGridCardSkeleton } from './GalleryCardSkeletons';
 
 /** Mirrors FullGallery.jsx — back link, header, sub-category tabs, grid */
 const FullGalleryPageSkeleton = ({ categoryLabel = 'Collection' }) => (
-  <div className="min-h-screen bg-[#FDFBF7] text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
+  <div className="min-h-screen bg-ghibli-cream text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
     <div className="page-container max-w-[1400px]">
       <GalleryBone className="h-10 w-52 sm:w-64 rounded-full mb-10 sm:mb-16" />
 

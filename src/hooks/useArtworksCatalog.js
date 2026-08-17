@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export const ARTWORK_COLUMNS =
-  'id, title, description, category, image_url, price, original_price, stock, is_bestseller, is_new, is_featured, sub_category, sort_order, listing_type, created_at';
+export const ARTWORKS_CACHE_EVENT = 'artworks-cache-invalidate';
 
 let cache = null;
 let inflight = null;
@@ -14,7 +13,7 @@ export async function fetchArtworksCatalog() {
 
   inflight = supabase
     .from('artworks')
-    .select(ARTWORK_COLUMNS)
+    .select('*')
     .order('created_at', { ascending: false })
     .then(({ data, error }) => {
       if (error) throw error;
@@ -31,11 +30,28 @@ export async function fetchArtworksCatalog() {
 export function invalidateArtworksCache() {
   cache = null;
   inflight = null;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ARTWORKS_CACHE_EVENT));
+  }
 }
 
 export function useArtworksCatalog() {
   const [artworks, setArtworks] = useState(() => cache || []);
   const [loading, setLoading] = useState(() => !cache);
+
+  const reload = useCallback(async () => {
+    cache = null;
+    inflight = null;
+    setLoading(true);
+    try {
+      const rows = await fetchArtworksCatalog();
+      setArtworks(rows);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,10 +63,17 @@ export function useArtworksCatalog() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
+    const onInvalidate = () => {
+      if (!cancelled) reload();
+    };
+    window.addEventListener(ARTWORKS_CACHE_EVENT, onInvalidate);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(ARTWORKS_CACHE_EVENT, onInvalidate);
     };
-  }, []);
+  }, [reload]);
 
-  return { artworks, loading };
+  return { artworks, loading, reload };
 }

@@ -1,22 +1,55 @@
 import { useEffect, useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { buildInstagramUrl, buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
-import WhatsAppButton from '../components/WhatsAppButton';
+
+const INQUIRY_TYPES = [
+  'Custom Artwork',
+  'Temple & Decor',
+  'Order Inquiry',
+  'Gifting / Bulk',
+  'General Question',
+];
+
+const FAQS = [
+  {
+    q: 'How do custom commissions work?',
+    a: 'Every custom artwork begins with a conversation about your space, size preference, and spiritual or aesthetic vision. Once we align on dimensions and design motifs, we share WIP updates before final finishing, varnish, and secure packaging.',
+  },
+  {
+    q: 'What are your delivery & dispatch timelines?',
+    a: 'Ready-to-ship creations are carefully packed and dispatched within 2–3 business days. Made-to-order commissions typically take 7–14 days depending on the detail, drying layers, and framing requirements.',
+  },
+  {
+    q: 'Can you customize dimensions for home temples and shrines?',
+    a: 'Yes! Many of our pieces are specially proportioned for sacred altars, mandirs, and entryway sanctums. Simply mention your exact height and width constraints in your inquiry.',
+  },
+  {
+    q: 'How are the artworks packaged for transit?',
+    a: 'Each piece is wrapped in moisture-resistant archival paper, reinforced with multi-layer bubble cushioning, and encased in sturdy corner-protected wooden/rigid boxes to guarantee safe delivery across India.',
+  },
+];
 
 const Contact = () => {
   const { value: channels } = useSiteSetting('contact_channels', {});
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [selectedType, setSelectedType] = useState('Custom Artwork');
+  const [form, setForm] = useState({ name: '', email: '', subject: 'Custom Artwork', message: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [openFaq, setOpenFaq] = useState(0); // first item open by default
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const instaUrl = buildInstagramUrl(channels);
+  const instaUrl = buildInstagramUrl(channels) || 'https://instagram.com';
   const waGeneral = hasWhatsApp(channels)
-    ? buildWhatsAppUrl({ title: 'Visheshkala' }, channels)
+    ? buildWhatsAppUrl({ title: 'Visheshkala Atelier' }, channels)
     : null;
+
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+    setForm((prev) => ({ ...prev, subject: type }));
+  };
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -33,159 +66,272 @@ const Contact = () => {
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not send');
+      if (!res.ok) throw new Error(data.error || 'Could not send message');
       setStatus('success');
-      setForm({ name: '', email: '', subject: '', message: '' });
+      setForm({ name: '', email: '', subject: selectedType, message: '' });
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err.message || 'Something went wrong. Try WhatsApp or email.');
+      setErrorMsg(err.message || 'Something went wrong. Try reaching us directly via WhatsApp.');
     }
   };
 
-  return (
-    <div className="pt-8 pb-24 min-h-screen bg-ghibli-cream/40">
-      <div className="page-container max-w-7xl">
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4">
-            Get in Touch
-          </h1>
-          <p className="text-ghibli-charcoal/70 max-w-2xl mx-auto text-lg">
-            Have a question about an order, custom commissions, or just want to say hi? We&apos;re here.
-          </p>
+  return (
+    <div className="min-h-screen bg-ghibli-cream pb-28 pt-24 md:pt-32">
+      {/* Editorial Header */}
+      <div className="page-container max-w-[1200px] mb-16 text-center">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-ghibli-wood/5 border border-ghibli-wood/15 mb-4">
+          <span className="w-1.5 h-1.5 rounded-full bg-ghibli-wood animate-pulse" />
+          <span className="text-[10px] uppercase tracking-[0.25em] font-bold text-ghibli-wood">
+            Atelier Concierge & Commissions
+          </span>
+        </div>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-ghibli-charcoal font-serif tracking-tight max-w-3xl mx-auto leading-[1.15] mb-5">
+          Let’s bring your sacred vision to life.
+        </h1>
+        <p className="text-ghibli-charcoal/65 max-w-xl mx-auto text-base sm:text-lg font-sans leading-relaxed">
+          Whether you’re looking for a bespoke altar piece, custom color palette, or have a question about an order, our studio is here for you.
+        </p>
+      </div>
+
+      <div className="page-container max-w-[1200px]">
+        {/* Direct Concierge Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
+          {/* WhatsApp Card */}
+          <a
+            href={waGeneral || '#'}
+            target={waGeneral ? '_blank' : undefined}
+            rel={waGeneral ? 'noopener noreferrer' : undefined}
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Fastest Response</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">WhatsApp Concierge</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                Direct chat with Vishakha for immediate pricing, WIP snapshots, and custom quotes.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>Start conversation</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
+
+          {/* Instagram Card */}
+          <a
+            href={instaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#E4405F]/10 text-[#E4405F] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Visual Atelier</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Instagram Direct</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                Follow our daily studio process, reel reveals, and message us directly on DM.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>Visit @visheshkala</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
+
+          {/* Email Card */}
+          <a
+            href="mailto:hello@visheshkala.com"
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-ghibli-wood/10 text-ghibli-wood flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Formal Inquiries</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Studio Mailbox</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                For bulk corporate gifting, gallery showcases, or detailed project briefs.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>hello@visheshkala.com</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
-
-          <div className="w-full lg:w-1/3 space-y-8">
-            <div className="card-glass p-8 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-ghibli-wood/10">
-              <h3 className="font-serif font-bold text-xl text-ghibli-charcoal mb-6">Fastest Reply</h3>
-              <WhatsAppButton
-                href={waGeneral}
-                disabled={!waGeneral}
-                className="w-full text-center py-4 rounded-xl bg-[#25D366]/80 text-white font-bold tracking-widest uppercase text-sm shadow-sm mb-4"
-              >
-                Chat on WhatsApp
-              </WhatsAppButton>
-              <a
-                href={instaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full text-center py-4 rounded-xl bg-gradient-to-r from-[#E4405F] to-[#833AB4] text-white font-bold tracking-widest uppercase text-sm shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                DM on Instagram
-              </a>
-            </div>
-
-            <div className="card-glass p-8 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-ghibli-wood/10">
-              <h3 className="font-serif font-bold text-xl text-ghibli-charcoal mb-4">Email Us</h3>
-              <p className="text-ghibli-charcoal/70 mb-2">For business inquiries and support:</p>
-              <a href="mailto:hello@visheshkala.com" className="font-bold text-ghibli-wood hover:underline">
-                hello@visheshkala.com
-              </a>
-            </div>
-          </div>
-
-          <div className="w-full lg:w-2/3">
-
-            <div className="card-glass p-8 md:p-10 bg-white/80 backdrop-blur-3xl rounded-3xl shadow-soft border border-ghibli-wood/10 mb-12">
-              <h2 className="font-serif font-bold text-2xl text-ghibli-charcoal mb-6">Send a Message</h2>
+        {/* Main Two-Column Section: Form & FAQ */}
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+          {/* Left Column: Commission & Inquiry Form */}
+          <div className="w-full lg:w-[58%]">
+            <div className="bg-white/80 backdrop-blur-2xl border border-ghibli-wood/10 rounded-[2.5rem] p-8 sm:p-10 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <div className="mb-8">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ghibli-wood">Send a Message</span>
+                <h2 className="font-serif text-3xl text-ghibli-charcoal mt-1">Inquiry Form</h2>
+              </div>
 
               {status === 'success' ? (
-                <div className="text-center py-10">
-                  <div className="text-5xl mb-4">✨</div>
-                  <h3 className="font-serif font-bold text-xl text-ghibli-charcoal mb-2">Message sent!</h3>
-                  <p className="text-ghibli-charcoal/70 mb-6">We&apos;ll get back to you within 1–2 business days.</p>
+                <div className="text-center py-12 px-4">
+                  <div className="w-16 h-16 rounded-full bg-ghibli-wood/10 text-ghibli-wood flex items-center justify-center mx-auto mb-6 text-2xl border border-ghibli-wood/20">
+                    ✨
+                  </div>
+                  <h3 className="font-serif text-3xl text-ghibli-charcoal mb-3">Message Received</h3>
+                  <p className="text-ghibli-charcoal/70 text-sm max-w-md mx-auto leading-relaxed mb-8">
+                    Thank you for reaching out to Visheshkala. We usually review and respond to inquiries within 24 hours.
+                  </p>
                   <button
                     type="button"
                     onClick={() => setStatus('idle')}
-                    className="text-sm font-bold text-ghibli-wood uppercase tracking-widest hover:underline"
+                    className="px-8 py-3 rounded-full bg-ghibli-charcoal text-white text-xs font-bold uppercase tracking-widest hover:bg-ghibli-wood transition-colors"
                   >
-                    Send another message
+                    Send Another Note
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Topic Selector Chips */}
+                  <div>
+                    <label className="block text-[10px] tracking-widest uppercase font-bold text-ghibli-charcoal/50 mb-3">
+                      What is your inquiry regarding?
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {INQUIRY_TYPES.map((type) => {
+                        const isSelected = selectedType === type;
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => handleTypeSelect(type)}
+                            className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                              isSelected
+                                ? 'bg-ghibli-wood text-white shadow-sm'
+                                : 'bg-ghibli-cream/60 text-ghibli-charcoal/70 hover:bg-ghibli-cream hover:text-ghibli-charcoal border border-ghibli-wood/10'
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Name & Email Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                      <label className="block text-sm font-bold text-ghibli-charcoal/70 mb-2">Name</label>
+                      <label className="block text-[10px] tracking-widest uppercase font-bold text-ghibli-charcoal/50 mb-1">
+                        Your Name *
+                      </label>
                       <input
                         required
                         name="name"
                         value={form.name}
                         onChange={handleChange}
                         type="text"
-                        className="w-full px-4 py-3 rounded-xl border border-ghibli-wood/20 bg-white/50 focus:outline-none focus:border-ghibli-wood focus:ring-1 focus:ring-ghibli-wood transition-colors"
-                        placeholder="Your name"
+                        placeholder="e.g. Radhika Sharma"
+                        className="w-full px-1 py-3 bg-transparent border-b border-ghibli-wood/20 text-ghibli-charcoal text-sm placeholder:text-ghibli-charcoal/30 focus:outline-none focus:border-ghibli-wood transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-ghibli-charcoal/70 mb-2">Email</label>
+                      <label className="block text-[10px] tracking-widest uppercase font-bold text-ghibli-charcoal/50 mb-1">
+                        Email Address *
+                      </label>
                       <input
                         required
                         name="email"
                         value={form.email}
                         onChange={handleChange}
                         type="email"
-                        className="w-full px-4 py-3 rounded-xl border border-ghibli-wood/20 bg-white/50 focus:outline-none focus:border-ghibli-wood focus:ring-1 focus:ring-ghibli-wood transition-colors"
-                        placeholder="your@email.com"
+                        placeholder="radhika@example.com"
+                        className="w-full px-1 py-3 bg-transparent border-b border-ghibli-wood/20 text-ghibli-charcoal text-sm placeholder:text-ghibli-charcoal/30 focus:outline-none focus:border-ghibli-wood transition-colors"
                       />
                     </div>
                   </div>
+
+                  {/* Message Field */}
                   <div>
-                    <label className="block text-sm font-bold text-ghibli-charcoal/70 mb-2">Subject</label>
-                    <input
-                      required
-                      name="subject"
-                      value={form.subject}
-                      onChange={handleChange}
-                      type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-ghibli-wood/20 bg-white/50 focus:outline-none focus:border-ghibli-wood focus:ring-1 focus:ring-ghibli-wood transition-colors"
-                      placeholder="How can we help?"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-ghibli-charcoal/70 mb-2">Message</label>
+                    <label className="block text-[10px] tracking-widest uppercase font-bold text-ghibli-charcoal/50 mb-1">
+                      Your Message / Custom Details *
+                    </label>
                     <textarea
                       required
                       name="message"
                       value={form.message}
                       onChange={handleChange}
                       rows="4"
-                      className="w-full px-4 py-3 rounded-xl border border-ghibli-wood/20 bg-white/50 focus:outline-none focus:border-ghibli-wood focus:ring-1 focus:ring-ghibli-wood transition-colors resize-none"
-                      placeholder="Write your message here..."
+                      placeholder="Share dimensions, preferred color palette, deity or motif preference, or any specific questions..."
+                      className="w-full px-1 py-3 bg-transparent border-b border-ghibli-wood/20 text-ghibli-charcoal text-sm placeholder:text-ghibli-charcoal/30 focus:outline-none focus:border-ghibli-wood transition-colors resize-none leading-relaxed"
                     />
                   </div>
+
                   {status === 'error' && (
-                    <p className="text-red-600 text-sm font-medium">{errorMsg}</p>
+                    <p className="text-red-500 text-xs font-semibold">{errorMsg}</p>
                   )}
+
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={status === 'sending'}
-                    className="px-8 py-4 rounded-xl bg-ghibli-wood text-white font-bold tracking-widest uppercase text-sm shadow-soft hover:shadow-luxe hover:bg-ghibli-charcoal transition-all disabled:opacity-60"
+                    className="w-full sm:w-auto px-10 py-4 rounded-full bg-ghibli-charcoal text-white font-bold tracking-widest uppercase text-xs hover:bg-ghibli-wood shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(139,94,60,0.23)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:hover:transform-none"
                   >
-                    {status === 'sending' ? 'Sending…' : 'Send Message'}
+                    {status === 'sending' ? 'Sending Message…' : 'Submit Inquiry'}
                   </button>
                 </form>
               )}
             </div>
+          </div>
 
-            <div className="space-y-6">
-              <h2 className="font-serif font-bold text-2xl text-ghibli-charcoal mb-6">Frequently Asked Questions</h2>
-
-              <div className="border-b border-ghibli-wood/10 pb-4">
-                <h4 className="font-bold text-ghibli-charcoal mb-2">What are your shipping times?</h4>
-                <p className="text-ghibli-charcoal/70 text-sm leading-relaxed">Ready-to-ship items are dispatched within 2-3 business days. Made-to-order and custom commissions typically take 7-14 days depending on the complexity of the piece.</p>
+          {/* Right Column: Interactive FAQ Accordion */}
+          <div className="w-full lg:w-[42%] flex flex-col">
+            <div className="bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <div className="mb-6 border-b border-ghibli-wood/10 pb-4">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ghibli-wood">Need Quick Answers?</span>
+                <h3 className="font-serif text-2xl text-ghibli-charcoal mt-1">Frequently Asked Questions</h3>
               </div>
 
-              <div className="border-b border-ghibli-wood/10 pb-4">
-                <h4 className="font-bold text-ghibli-charcoal mb-2">Do you accept custom orders?</h4>
-                <p className="text-ghibli-charcoal/70 text-sm leading-relaxed">Yes! We love bringing your ideas to life. Reach out via the contact form or Instagram to discuss your vision, sizing, and pricing.</p>
+              <div className="divide-y divide-ghibli-wood/10">
+                {FAQS.map((faq, idx) => {
+                  const isOpen = openFaq === idx;
+                  return (
+                    <div key={idx} className="py-4 first:pt-0 last:pb-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleFaq(idx)}
+                        className="w-full flex items-center justify-between text-left gap-4 py-2 group cursor-pointer focus:outline-none"
+                      >
+                        <span className={`font-serif text-base transition-colors ${
+                          isOpen ? 'text-ghibli-wood font-bold' : 'text-ghibli-charcoal group-hover:text-ghibli-wood'
+                        }`}>
+                          {faq.q}
+                        </span>
+                        <span className={`w-7 h-7 rounded-full border border-ghibli-wood/15 flex items-center justify-center text-xs flex-shrink-0 transition-transform duration-300 ${
+                          isOpen ? 'rotate-180 bg-ghibli-wood text-white border-ghibli-wood' : 'text-ghibli-charcoal/50 group-hover:border-ghibli-wood/30'
+                        }`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="pt-2 pb-2 pr-6 text-ghibli-charcoal/70 text-xs sm:text-sm leading-relaxed font-sans animate-fade-in">
+                          {faq.a}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="pb-4">
-                <h4 className="font-bold text-ghibli-charcoal mb-2">What is your return policy?</h4>
-                <p className="text-ghibli-charcoal/70 text-sm leading-relaxed">Because each piece is handmade, we do not accept returns on custom orders. If an item arrives damaged, please contact us within 48 hours of delivery with photos, and we will make it right.</p>
+              {/* Studio Assurance Note */}
+              <div className="mt-8 pt-6 border-t border-ghibli-wood/10 flex items-center gap-3 text-ghibli-charcoal/50 text-[11px]">
+                <span className="text-base">✨</span>
+                <span>Handcrafted with precision & devotion in our private studio.</span>
               </div>
             </div>
           </div>

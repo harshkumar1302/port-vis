@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
-import { isGalleryListing } from '../lib/categoryUtils';
+import { isGalleryListing, artMatchesCategory, artMatchesSubCategory } from '../lib/categoryUtils';
 import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
@@ -51,18 +51,10 @@ const FullGallery = () => {
 
 
     const filteredArtworks = artworks.filter(art => {
-        if (!category) return false;
-
-        const artCat = art.category?.trim().toLowerCase();
-        const catMatch = artCat === currentCategory.label?.trim().toLowerCase() || artCat === currentCategory.id?.trim().toLowerCase();
-        if (!catMatch) return false;
-
-        if (selectedSubCategory !== 'All') {
-            const subMatch =
-                art.description?.toLowerCase().includes(selectedSubCategory.toLowerCase()) ||
-                art.title?.toLowerCase().includes(selectedSubCategory.toLowerCase()) ||
-                art.tags?.includes(selectedSubCategory);
-            if (!subMatch) return false;
+        if (!category || !currentCategory) return false;
+        if (!artMatchesCategory(art, category, categories)) return false;
+        if (selectedSubCategory !== 'All' && !artMatchesSubCategory(art, selectedSubCategory)) {
+            return false;
         }
         return true;
     });
@@ -117,7 +109,7 @@ const FullGallery = () => {
     if (!currentCategory) return null;
 
     return (
-        <div className="min-h-screen bg-[#FDFBF7] text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
+        <div className="min-h-screen bg-ghibli-cream text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
             <div className="page-container max-w-[1400px]">
                 
                 {/* Back Navigation */}
@@ -301,7 +293,7 @@ const FullGallery = () => {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-[#FDFBF7] rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
+                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
                             onClick={e => e.stopPropagation()}
                         >
                             <button
@@ -317,7 +309,13 @@ const FullGallery = () => {
                                             <span className="text-6xl opacity-20">✨</span>
                                         </div>
                                     ) : (
-                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
+                                        <ArtworkImage
+                                            src={selectedArt.image_url}
+                                            alt={selectedArt.title}
+                                            size="detail"
+                                            objectFit="object-contain"
+                                            imgClassName="drop-shadow-2xl"
+                                        />
                                     )}
                                 </div>
                             </div>
@@ -329,7 +327,13 @@ const FullGallery = () => {
                                         <span className="text-4xl opacity-20">✨</span>
                                     </div>
                                 ) : (
-                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
+                                    <ArtworkImage
+                                        src={selectedArt.image_url}
+                                        alt={selectedArt.title}
+                                        size="detail"
+                                        objectFit="object-contain"
+                                        imgClassName="drop-shadow-2xl"
+                                    />
                                 )}
                             </div>
 

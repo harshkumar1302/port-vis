@@ -9,11 +9,13 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
-import { isGalleryListing } from '../lib/categoryUtils';
+import { isGalleryListing, artMatchesCategory } from '../lib/categoryUtils';
+import { isFeatured } from '../lib/artwork';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import GalleryPageSkeleton from './skeletons/GalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
+import ArtworkImage from './ArtworkImage';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
@@ -44,24 +46,17 @@ const ArtGallery = () => {
 
 
     const getCategoryItems = (catLabel) => {
-        const catDef = categories.find(c => c.label === catLabel);
-        return artworks.filter(art => {
-            const artCat = art.category?.trim().toLowerCase();
-            const matches = artCat === catLabel?.trim().toLowerCase() || (catDef && artCat === catDef.id?.trim().toLowerCase());
-            return matches &&
-                !art.category?.toLowerCase().includes('upcoming') &&
-                !art.description?.includes('[FEATURED]') &&
-                !art.title?.includes('[FEATURED]');
-        });
+        const catDef = categories.find((c) => c.label === catLabel);
+        return artworks.filter(art =>
+            (artMatchesCategory(art, catLabel, categories) ||
+              (catDef && artMatchesCategory(art, catDef.id, categories))) &&
+            !art.category?.toLowerCase().includes('upcoming') &&
+            !isFeatured(art)
+        );
     };
 
     const getFeaturedItems = () => {
-        return artworks.filter(art =>
-            art.description?.includes('[FEATURED]') ||
-            art.title?.includes('[FEATURED]') ||
-            art.tags?.includes('[FEATURED]') ||
-            art.category?.toLowerCase() === 'featured'
-        );
+        return artworks.filter(art => isFeatured(art));
     };
 
     const getDisplayItems = (items, placeholderCount = 8, minThreshold = 8) => {
@@ -116,7 +111,7 @@ const ArtGallery = () => {
     }
 
     return (
-        <section id="gallery" className="relative bg-[#FDFBF7] text-ghibli-charcoal font-gallery overflow-hidden w-full min-h-screen pb-20 sm:pb-32">
+        <section id="gallery" className="relative bg-ghibli-cream text-ghibli-charcoal font-gallery overflow-hidden w-full min-h-screen pb-20 sm:pb-32">
             
             {/* HERO SECTION - LIGHT MUSEUM */}
             <div className="relative w-full pt-28 sm:pt-40 pb-16 sm:pb-24 md:pb-32 flex flex-col items-center text-center px-4 sm:px-6 md:px-12 z-10 overflow-hidden">
@@ -207,7 +202,7 @@ const ArtGallery = () => {
                     {/* Right-edge fade for light mode */}
                     <div
                         className="absolute right-0 top-16 bottom-0 w-20 sm:w-36 md:w-56 z-20 pointer-events-none"
-                        style={{ background: 'linear-gradient(to left, #FDFBF7 10%, rgba(253,251,247,0) 100%)' }}
+                        style={{ background: 'linear-gradient(to left, #FBF8EC 10%, rgba(251,248,236,0) 100%)' }}
                     />
 
                     {/* Swiper Viewport */}
@@ -242,19 +237,16 @@ const ArtGallery = () => {
                                         <span className="text-5xl opacity-20 drop-shadow-md">✨</span>
                                         <span className="text-xs font-bold tracking-[0.2em] opacity-40 uppercase text-ghibli-charcoal">Enigmatic Piece</span>
                                     </div>
-                                ) : (
-                                    (!work.image_url || work.image_url.trim() === '') ? (
-                                        <div className="w-full h-full bg-ghibli-cream flex items-center justify-center">
-                                            <span className="text-4xl opacity-20">🎨</span>
-                                        </div>
                                     ) : (
-                                        <img
+                                        <ArtworkImage
                                             src={work.image_url}
                                             alt={work.title}
-                                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                            size="card"
+                                            priority={index < 4}
+                                            objectFit="object-cover"
+                                            imgClassName="transition-transform duration-1000 group-hover:scale-105"
                                         />
-                                    )
-                                )}
+                                    )}
 
                                 {!work.isPlaceholder && work.title && (
                                     <div className="absolute bottom-0 left-0 right-0 p-8 pt-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
@@ -306,7 +298,7 @@ const ArtGallery = () => {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-[#FDFBF7] rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
+                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
                             onClick={e => e.stopPropagation()}
                         >
                             <button
@@ -322,7 +314,13 @@ const ArtGallery = () => {
                                             <span className="text-6xl opacity-20">✨</span>
                                         </div>
                                     ) : (
-                                        <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
+                                        <ArtworkImage
+                                            src={selectedArt.image_url}
+                                            alt={selectedArt.title}
+                                            size="detail"
+                                            objectFit="object-contain"
+                                            imgClassName="drop-shadow-2xl"
+                                        />
                                     )}
                                 </div>
                             </div>
@@ -334,7 +332,13 @@ const ArtGallery = () => {
                                         <span className="text-4xl opacity-20">✨</span>
                                     </div>
                                 ) : (
-                                    <img src={selectedArt.image_url} alt={selectedArt.title} className="w-full h-full object-contain drop-shadow-2xl" />
+                                    <ArtworkImage
+                                        src={selectedArt.image_url}
+                                        alt={selectedArt.title}
+                                        size="detail"
+                                        objectFit="object-contain"
+                                        imgClassName="drop-shadow-2xl"
+                                    />
                                 )}
                             </div>
 
@@ -456,10 +460,12 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                                     ) : (
                                         (item && item.image_url) ? (
                                             <>
-                                                <img
+                                                <ArtworkImage
                                                     src={item.image_url}
                                                     alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                                    size="card"
+                                                    objectFit="object-cover"
+                                                    imgClassName="transition-transform duration-1000 group-hover:scale-105"
                                                 />
                                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
                                             </>

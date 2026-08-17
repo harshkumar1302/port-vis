@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         ghibli: {
-          cream: '#FDFBF7',
+          cream: '#FBF8EC',
           paper: '#F5E6D3',
           wood: '#8B5E3C',
           forest: '#2D4F1E',

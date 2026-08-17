@@ -6,12 +6,11 @@ import { getProductsUrl } from '../lib/categoryUtils';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import ArtworkImage from './ArtworkImage';
 
-// Fallbacks if no product image is found in a category
 const CATEGORY_ASSETS = {
-  mandala: { fallbackColor: 'from-[#E8B4B8] to-[#D88A92]' },
-  miniature: { fallbackColor: 'from-[#FACD60] to-[#E5B540]' },
-  gift: { fallbackColor: 'from-[#A0704F] to-[#805030]' },
-  diy: { fallbackColor: 'from-ghibli-navy to-ghibli-charcoal' },
+  mandala: { fallbackBg: 'bg-[#FCEBEB]', iconColor: 'text-[#D88A92]' },
+  miniature: { fallbackBg: 'bg-[#FFF7DF]', iconColor: 'text-[#E5B540]' },
+  gift: { fallbackBg: 'bg-[#F5EBE6]', iconColor: 'text-[#A0704F]' },
+  diy: { fallbackBg: 'bg-[#F0F4F8]', iconColor: 'text-[#6C8EAB]' },
 };
 
 const CATEGORY_ICONS = {
@@ -45,12 +44,9 @@ const ShopByCategory = () => {
         if (data) {
           data.forEach(art => {
              const c = art.category?.toLowerCase() || '';
-             // Grab the newest image for every category present in the db
              if (c && !imgMap[c]) {
                imgMap[c] = art.image_url;
              }
-             
-             // Also keep backwards compatibility for fallback categories
              if (c.includes('mandala') && !imgMap['mandala']) imgMap['mandala'] = art.image_url;
              if (c.includes('miniature') && !imgMap['miniature']) imgMap['miniature'] = art.image_url;
              if (c.includes('gift') && !imgMap['gift']) imgMap['gift'] = art.image_url;
@@ -69,94 +65,72 @@ const ShopByCategory = () => {
   }, []);
 
   return (
-    <section id="shop" className="relative py-20 md:py-24 scroll-mt-28 bg-ghibli-cream/20 border-b border-ghibli-wood/5">
+    <section id="shop" className="relative py-20 md:py-28 scroll-mt-28 bg-[#f4f3f0] border-y border-ghibli-wood/5">
       <div className="page-container max-w-[1400px]">
         
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 md:mb-16">
           <span className="text-ghibli-wood/70 text-[10px] font-bold tracking-[0.2em] uppercase mb-3 block">
             Find Your Perfect Piece
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight flex flex-col items-center">
+          <h2 className="text-3xl md:text-[2.75rem] font-bold text-ghibli-charcoal font-sans tracking-tight flex flex-col items-center">
             Shop by Category
-            <div className="h-0.5 w-16 bg-ghibli-wood/40 mt-6 rounded-full" />
+            <div className="h-0.5 bg-ghibli-wood/40 mt-4 md:mt-6 rounded-full animate-line-expand" />
           </h2>
         </div>
 
-        {/* Scrollable Container for Cards */}
-        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 snap-x snap-mandatory scrollbar-hide overscroll-x-contain -mx-6 px-6 md:mx-0 md:px-0">
+        {/* 4-Column Grid Container */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
           {!imagesFetched
             ? categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="snap-start shrink-0 w-[280px] md:w-[320px] lg:w-[calc(25%-1.125rem)] aspect-[4/3] rounded-3xl bg-ghibli-wood/10 animate-pulse"
+                  className="w-full aspect-square bg-ghibli-wood/10 animate-pulse rounded-none"
                 />
               ))
             : categories.map((cat) => {
             const asset = CATEGORY_ASSETS[cat.id] || CATEGORY_ASSETS.gift;
-            // Use dynamically fetched product image (prefer exact match on label, fall back to id keywords)
             const displayImage = categoryImages[cat.label.toLowerCase()] || categoryImages[cat.id];
 
             return (
-              <div
-                key={cat.id}
-                className="snap-start shrink-0 w-[280px] md:w-[320px] lg:w-[calc(25%-1.125rem)]"
-              >
+              <div key={cat.id} className="group flex flex-col gap-4">
                 <Link
                   to={getProductsUrl(cat.id)}
-                  className="group relative block aspect-[4/3] rounded-3xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-500 bg-ghibli-paper"
+                  className="block relative w-full aspect-square overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 rounded-none"
                 >
-                  {/* Background Image or Placeholder */}
-                  <div className="absolute inset-0 bg-ghibli-paper">
+                  <div className="absolute inset-0">
                     {displayImage ? (
                       <ArtworkImage
                         src={displayImage}
                         alt={cat.label}
                         size="category"
-                        imgClassName="transition-transform duration-500 ease-out group-hover:scale-105"
+                        imgClassName="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />
-                    ) : null}
-                    
-                    {/* Placeholder gradient fallback (shows if no image, or if image fails to load via CSS sibling logic) */}
-                    <div className={`absolute inset-0 ${displayImage ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-br ${asset.fallbackColor} transition-transform duration-700 ease-in-out group-hover:scale-105`}>
-                       <span className="text-6xl drop-shadow-md pb-6">{CATEGORY_ICONS[cat.id]}</span>
-                    </div>
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center ${asset.fallbackBg} transition-transform duration-700 ease-out group-hover:scale-110`}>
+                        <span className={`text-6xl drop-shadow-sm pb-6 ${asset.iconColor}`}>{CATEGORY_ICONS[cat.id]}</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Dark Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-ghibli-charcoal/90 via-ghibli-charcoal/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
-                  
-                  {/* Text Content */}
-                  <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col">
-                    <h3 className="font-serif text-2xl font-bold text-white mb-1 drop-shadow-sm">
-                      {cat.label}
-                    </h3>
-                    <span className="inline-flex items-center gap-1.5 font-sans text-sm font-bold text-[#E8B4B8] group-hover:text-[#D88A92] transition-colors">
-                      Shop Now
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1.5">
-                        <path d="M5 12h14"></path>
-                        <path d="m12 5 7 7-7 7"></path>
-                      </svg>
-                    </span>
-                  </div>
+                </Link>
+                
+                <Link to={getProductsUrl(cat.id)} className="flex items-start justify-between text-left group">
+                  <h3 className="font-sans text-base md:text-lg font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors max-w-[85%] leading-tight">
+                    {cat.label}
+                  </h3>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="18" height="18" 
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                    className="text-ghibli-charcoal/60 mt-0.5 group-hover:translate-x-1 group-hover:text-ghibli-wood transition-all duration-300 flex-shrink-0"
+                  >
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg>
                 </Link>
               </div>
             );
           })}
-        </div>
-
-        {/* View All Products Button */}
-        <div className="mt-6 flex justify-center">
-          <Link
-            to="/shop"
-            className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-transparent border border-ghibli-charcoal/20 text-ghibli-charcoal font-bold text-sm hover:bg-white hover:border-ghibli-charcoal/30 hover:shadow-sm transition-all active:scale-95 cursor-pointer"
-          >
-            <span>View All Products</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
-          </Link>
         </div>
 
       </div>

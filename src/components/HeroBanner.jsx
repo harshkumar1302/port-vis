@@ -4,7 +4,7 @@ const HeroBanner = ({ src, mobileSrc, alt }) => {
   if (!src) return null;
 
   return (
-    <div className="hero-banner-frame relative w-full overflow-hidden rounded-none border-0 shadow-none sm:rounded-2xl sm:border sm:border-ghibli-wood/10 sm:shadow-lg lg:rounded-3xl">
+    <div className="hero-banner-frame">
       <picture>
         {mobileSrc && (
           <source media="(max-width: 639px)" srcSet={mobileSrc} />
@@ -14,7 +14,7 @@ const HeroBanner = ({ src, mobileSrc, alt }) => {
           alt={alt}
           width={HERO_BANNER_WIDTH}
           height={HERO_BANNER_HEIGHT}
-          className="block h-auto w-full"
+          className="hero-banner-img"
           loading="eager"
           fetchPriority="high"
           decoding="async"

@@ -145,6 +145,8 @@ export const isGalleryListing = (art) => {
   if (art.listing_type === 'shop') return false;
   const cat = (art.category || '').trim().toLowerCase();
   if (cat === 'upcoming') return true;
+  // Legacy rows without listing_type — show on gallery (shop tab filters separately)
+  if (!art.listing_type) return true;
   return art.price == null || art.price === '';
 };
 

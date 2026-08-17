@@ -371,7 +371,7 @@ const AdminDashboard = () => {
 
     const Shell = isMobile ? MobileAdminShell : DesktopAdminShell;
 
-    return (
+                                                    return (
         <>
             <Shell 
                 adminTab={adminTab} 
@@ -382,109 +382,109 @@ const AdminDashboard = () => {
             />
 
             {/* Change Password Modal (shared between mobile and desktop) */}
-            {showChangePassword && (
+                {showChangePassword && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
                     <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative">
-                        <button
-                            onClick={() => {
-                                setShowChangePassword(false);
-                                setCurrentPassword('');
-                                setNewPassword('');
-                                setConfirmNewPassword('');
-                            }}
-                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
-                        >
-                            ✕
-                        </button>
-
-                        <h2 className="text-xl sm:text-2xl font-bold text-ghibli-charcoal mb-2 sm:mb-4">Change Password</h2>
-                        <p className="text-sm text-ghibli-charcoal/60 mb-6">
-                            Update your password. You'll receive a confirmation email.
-                        </p>
-
-                        <form onSubmit={async (e) => {
-                            e.preventDefault();
-                            if (newPassword !== confirmNewPassword) {
-                                alert('New passwords do not match!');
-                                return;
-                            }
-                            if (newPassword.length < 8) {
-                                alert('New password must be at least 8 characters');
-                                return;
-                            }
-                            try {
-                                const res = await fetch('/api/change-password', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({ currentPassword, newPassword }),
-                                });
-                                const data = await res.json();
-                                if (res.ok) {
-                                    alert('✅ Password updated successfully! Check your email for confirmation.');
+                            <button
+                                onClick={() => {
                                     setShowChangePassword(false);
                                     setCurrentPassword('');
                                     setNewPassword('');
                                     setConfirmNewPassword('');
-                                } else {
-                                    alert(`❌ ${data.error || 'Failed to update password'}`);
+                                }}
+                                className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
+                            >
+                                ✕
+                            </button>
+
+                        <h2 className="text-xl sm:text-2xl font-bold text-ghibli-charcoal mb-2 sm:mb-4">Change Password</h2>
+                        <p className="text-sm text-ghibli-charcoal/60 mb-6">
+                                Update your password. You'll receive a confirmation email.
+                            </p>
+
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (newPassword !== confirmNewPassword) {
+                                    alert('New passwords do not match!');
+                                    return;
                                 }
-                            } catch (err) {
-                                console.error('Password change error:', err);
-                                alert('Connection error. Please try again.');
-                            }
-                        }} className="space-y-4">
-                            <div className="relative">
+                                if (newPassword.length < 8) {
+                                    alert('New password must be at least 8 characters');
+                                    return;
+                                }
+                                try {
+                                    const res = await fetch('/api/change-password', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ currentPassword, newPassword }),
+                                    });
+                                    const data = await res.json();
+                                    if (res.ok) {
+                                        alert('✅ Password updated successfully! Check your email for confirmation.');
+                                        setShowChangePassword(false);
+                                        setCurrentPassword('');
+                                        setNewPassword('');
+                                        setConfirmNewPassword('');
+                                    } else {
+                                        alert(`❌ ${data.error || 'Failed to update password'}`);
+                                    }
+                                } catch (err) {
+                                    console.error('Password change error:', err);
+                                    alert('Connection error. Please try again.');
+                                }
+                            }} className="space-y-4">
+                                <div className="relative">
                                 <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">Current Password</label>
-                                <input
-                                    type={showCurrentPassword ? "text" : "password"}
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    required
-                                />
+                                    <input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        required
+                                    />
                                 <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
-                                    {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
+                                        {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
 
-                            <div className="relative">
+                                <div className="relative">
                                 <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">New Password</label>
-                                <input
-                                    type={showNewPassword ? "text" : "password"}
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    required
-                                    minLength={8}
-                                />
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        required
+                                        minLength={8}
+                                    />
                                 <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
-                                    {showNewPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
+                                        {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
 
-                            <div className="relative">
+                                <div className="relative">
                                 <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">Confirm New Password</label>
-                                <input
-                                    type={showConfirmNewPassword ? "text" : "password"}
-                                    value={confirmNewPassword}
-                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                    required
-                                    minLength={8}
-                                />
+                                    <input
+                                        type={showConfirmNewPassword ? "text" : "password"}
+                                        value={confirmNewPassword}
+                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                        required
+                                        minLength={8}
+                                    />
                                 <button type="button" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
-                                    {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
-                            </div>
+                                        {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
+                                    </button>
+                                </div>
 
                             <button type="submit" className="w-full py-3.5 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg text-sm tracking-wider uppercase">
-                                Update Password
-                            </button>
-                        </form>
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
         </>
     );
 };

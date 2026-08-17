@@ -4,7 +4,7 @@ import { GalleryFeaturedCardSkeleton, GalleryCategoryCardSkeleton } from './Gall
 
 /** Mirrors ArtGallery.jsx — hero, featured row, category carousels */
 const GalleryPageSkeleton = () => (
-  <section className="relative bg-[#FDFBF7] text-ghibli-charcoal min-h-screen pb-20 sm:pb-32 overflow-hidden">
+  <section className="relative bg-ghibli-cream text-ghibli-charcoal min-h-screen pb-20 sm:pb-32 overflow-hidden">
     {/* Hero — matches ArtGallery hero block */}
     <div className="relative w-full pt-28 sm:pt-40 pb-16 sm:pb-24 md:pb-32 flex flex-col items-center text-center px-4 sm:px-6 md:px-12">
       <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center">
