@@ -8,11 +8,22 @@ const OverviewTab = ({ onNavigate }) => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('artworks').select('listing_type, category, is_featured, price');
+      // Match Gallery/Shop tabs: select('*') so missing optional columns (e.g. listing_type) don't break the query
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Overview stats failed:', error);
+        setLoading(false);
+        return;
+      }
+
       const rows = data || [];
       const gallery = rows.filter(isGalleryListing).length;
       const shop = rows.filter(isShopListing).length;
-      const featured = rows.filter((a) => isShopListing(a) && a.is_featured).length;
+      const featured = rows.filter((a) => a.is_featured).length;
       const upcoming = rows.filter((a) => a.category === 'Upcoming').length;
       setStats({ gallery, shop, featured, upcoming });
       setLoading(false);
@@ -40,7 +51,7 @@ const OverviewTab = ({ onNavigate }) => {
         </div>
         <div className="admin-stat-card admin-stat-card-green">
           <strong>{loading ? '—' : stats.featured}</strong>
-          <span>Featured on shop</span>
+          <span>Featured</span>
         </div>
         <div className="admin-stat-card admin-stat-card-purple">
           <strong>{loading ? '—' : stats.upcoming}</strong>
