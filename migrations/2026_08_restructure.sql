@@ -13,7 +13,19 @@ ALTER TABLE public.artworks
   ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS sub_category TEXT,
   ADD COLUMN IF NOT EXISTS sort_order INTEGER,
-  ADD COLUMN IF NOT EXISTS stock INTEGER;
+  ADD COLUMN IF NOT EXISTS stock INTEGER,
+  ADD COLUMN IF NOT EXISTS listing_type TEXT;
+
+-- Backfill: priced items → shop, everything else → gallery
+UPDATE public.artworks
+SET listing_type = 'shop'
+WHERE (listing_type IS NULL OR listing_type = 'gallery')
+  AND price IS NOT NULL
+  AND price > 0;
+
+UPDATE public.artworks
+SET listing_type = 'gallery'
+WHERE listing_type IS NULL;
 
 -- Backfill is_featured from legacy string tags
 UPDATE public.artworks

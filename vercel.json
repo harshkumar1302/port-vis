@@ -8,6 +8,9 @@
     { "source": "/api/change-password", "destination": "/api/auth?action=change-password" },
     { "source": "/api/request-reset", "destination": "/api/auth?action=request-reset" },
     { "source": "/api/reset-password", "destination": "/api/auth?action=reset-password" },
+    { "source": "/api/contact", "destination": "/api/submit?type=contact" },
+    { "source": "/api/enquire", "destination": "/api/submit?type=cart" },
+    { "source": "/api/newsletter", "destination": "/api/submit?type=newsletter" },
     { "source": "/api/manage-leads", "destination": "/api/manage-content?resource=leads" },
     { "source": "/api/manage-reviews", "destination": "/api/manage-content?resource=reviews" },
     {

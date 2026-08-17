@@ -31,7 +31,7 @@ This repo deploys to **two** Vercel projects from one push: `port-vis` and `vish
 
 1. **Auth / passwords / sessions?** → extend `auth.js` (+ rewrite in `vercel.json` if new public path)
 2. **Admin CMS write to DB?** → extend `manage-art.js` (`_resource`) or `manage-content.js` (`resource=`)
-3. **Public form / user submission?** → extend `contact.js`, `enquire.js`, or `newsletter.js` if same shape (POST + insert row)
+3. **Public form / user submission?** → extend `submit.js` (`?type=contact|cart|newsletter` + rewrite)
 4. **Site config read/write?** → extend `settings.js`
 5. **Cron / health ping?** → extend `keep-alive.js`
 6. **Only if none of the above fit** → new file is justified — but confirm count is **≤11** before pushing (leave 1 slot buffer)
@@ -50,17 +50,15 @@ This repo deploys to **two** Vercel projects from one push: `port-vis` and `vish
 
 **Tell the user which handler you considered merging into and why a new file was needed.**
 
-## API layout (8 functions — 4 slots free)
+## API layout (6 functions — 6 slots free)
 
 | File | Handles |
 |------|---------|
 | `auth.js` | login, logout, me, register, change-password, request-reset, reset-password (via rewrites) |
-| `manage-content.js` | leads + reviews (via rewrites from `/api/manage-leads`, `/api/manage-reviews`) |
-| `manage-art.js` | artworks + shop writes (`_resource: 'shop'`) |
-| `settings.js` | site CMS config |
-| `contact.js` | contact form submissions |
-| `enquire.js` | cart checkout → WhatsApp order intent |
-| `newsletter.js` | waitlist signups |
+| `manage-content.js` | leads, reviews, admin reads for contact/cart/newsletter (via rewrites) |
+| `manage-art.js` | gallery + shop artwork writes (`listing_type`, `_resource: 'shop'`) |
+| `settings.js` | site CMS config (categories, priorities, announcement, etc.) |
+| `submit.js` | public POST: contact, cart enquire, newsletter (`?type=` + rewrites from old URLs) |
 | `keep-alive.js` | daily Supabase cron ping |
 
 ## Before pushing deploy-sensitive changes

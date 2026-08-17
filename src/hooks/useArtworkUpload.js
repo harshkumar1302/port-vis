@@ -184,6 +184,7 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
         description: finalDescription,
         category: finalCategory,
         image_url: finalImageUrl,
+        listing_type: mode === 'shop' ? 'shop' : 'gallery',
         ...marketplaceFields,
       };
 

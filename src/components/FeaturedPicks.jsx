@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { isFeatured } from '../lib/artwork';
+import { isShopListing } from '../lib/categoryUtils';
 import ProductCardGrid, { FEATURED_GRID_CLASS } from './ProductCardGrid';
 
 const FeaturedPicks = () => {
@@ -17,8 +18,9 @@ const FeaturedPicks = () => {
           .order('created_at', { ascending: false });
         if (error) throw error;
 
-        const featured = (data || []).filter((a) => isFeatured(a));
-        setArtworks(featured.length > 0 ? featured.slice(0, 8) : (data || []).slice(0, 8));
+        const shopItems = (data || []).filter(isShopListing);
+        const featured = shopItems.filter((a) => isFeatured(a));
+        setArtworks(featured.length > 0 ? featured.slice(0, 8) : shopItems.slice(0, 8));
       } catch (err) {
         console.error(err);
       } finally {

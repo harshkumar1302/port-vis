@@ -11,6 +11,7 @@ import 'swiper/css/navigation';
 
 import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
+import { isGalleryListing } from '../lib/categoryUtils';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import ScrollRevealItem from './ScrollRevealItem';
 
@@ -52,7 +53,7 @@ const ArtGallery = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setArtworks(data || []);
+            setArtworks((data || []).filter(isGalleryListing));
         } catch (error) {
             console.error('Error fetching artworks:', error);
         } finally {

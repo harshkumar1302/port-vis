@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 const ARTWORK_FIELDS = [
   "title", "description", "category", "image_url", "user_id",
   "price", "original_price", "is_bestseller", "is_new", "is_featured",
-  "sub_category", "sort_order", "stock",
+  "sub_category", "sort_order", "stock", "listing_type",
 ];
 
 const SHOP_FIELDS = [

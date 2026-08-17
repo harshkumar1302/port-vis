@@ -128,11 +128,28 @@ export const artMatchesSubCategory = (art, subCategory) => {
   );
 };
 
-/** Shop listings on /shop — only hide upcoming studio previews */
-export const isProductListing = (art) => {
+/** Shop listings on /shop */
+export const isShopListing = (art) => {
+  if (!art) return false;
+  if (art.listing_type === 'shop') return true;
+  if (art.listing_type === 'gallery') return false;
   const cat = (art.category || '').trim().toLowerCase();
-  return cat !== 'upcoming';
+  if (cat === 'upcoming') return false;
+  return art.price != null && art.price !== '';
 };
+
+/** Portfolio pieces on /gallery */
+export const isGalleryListing = (art) => {
+  if (!art) return false;
+  if (art.listing_type === 'gallery') return true;
+  if (art.listing_type === 'shop') return false;
+  const cat = (art.category || '').trim().toLowerCase();
+  if (cat === 'upcoming') return true;
+  return art.price == null || art.price === '';
+};
+
+/** @deprecated use isShopListing */
+export const isProductListing = isShopListing;
 
 export const groupArtworksByCategory = (artworks, categories = FALLBACK_CATEGORIES) => {
   const groups = categories.map((cat) => ({

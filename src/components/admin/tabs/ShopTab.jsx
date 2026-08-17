@@ -1,12 +1,30 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { isProductListing } from '../../../lib/categoryUtils';
+import { FALLBACK_CATEGORIES as DEFAULT_CATEGORIES } from '../../../constants/categories';
+import { isShopListing } from '../../../lib/categoryUtils';
 import { formatPriceShop } from '../../../lib/artwork';
 import { useArtworkUpload } from '../../../hooks/useArtworkUpload';
 
-const ShopTab = ({ session, categoryDefinitions = [] }) => {
+const ShopTab = ({ session }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoryDefinitions, setCategoryDefinitions] = useState(DEFAULT_CATEGORIES);
+
+  const loadCategories = async () => {
+    try {
+      const res = await fetch('/api/settings?id=category_definitions', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.value?.length) setCategoryDefinitions(data.value);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const loadItems = async () => {
     setLoading(true);
@@ -14,7 +32,7 @@ const ShopTab = ({ session, categoryDefinitions = [] }) => {
       .from('artworks')
       .select('*')
       .order('created_at', { ascending: false });
-    if (!error) setItems((data || []).filter(isProductListing));
+      if (!error) setItems((data || []).filter(isShopListing));
     setLoading(false);
   };
 
@@ -47,7 +65,7 @@ const ShopTab = ({ session, categoryDefinitions = [] }) => {
           </div>
 
           <p className="text-xs text-ghibli-charcoal/60 mb-6 leading-relaxed">
-            Items here appear on <strong>/shop</strong>. Price is required. Gallery-only pieces are managed in the Gallery tab.
+            Upload products for <strong>/shop</strong> only — separate from gallery portfolio pieces. Price is required.
           </p>
 
           <form onSubmit={upload.handleUpload} className="space-y-6">

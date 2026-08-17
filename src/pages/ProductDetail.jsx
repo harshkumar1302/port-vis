@@ -6,7 +6,7 @@ import { formatPrice, getDiscountPct } from '../lib/artwork';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
 import ArtworkImage from '../components/ArtworkImage';
-import { titleToSlug } from '../lib/categoryUtils';
+import { titleToSlug, isShopListing } from '../lib/categoryUtils';
 import usePageSEO from '../hooks/usePageSEO';
 import {
   buildProductTitle,
@@ -46,7 +46,7 @@ const ProductDetail = () => {
           if (artError) throw artError;
 
           const match = (item) => titleToSlug(item.title, item.id) === slug;
-          const found = (artworks || []).find(match);
+          const found = (artworks || []).filter(isShopListing).find(match);
 
           if (found) setArt(found);
           else navigate('/shop');

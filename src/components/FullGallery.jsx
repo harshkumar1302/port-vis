@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
+import { isGalleryListing } from '../lib/categoryUtils';
 import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
@@ -57,7 +58,7 @@ const FullGallery = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setArtworks(data || []);
+            setArtworks((data || []).filter(isGalleryListing));
         } catch (error) {
             console.error('Error fetching artworks:', error);
         } finally {
