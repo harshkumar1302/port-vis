@@ -2,9 +2,9 @@
 
 :root {
   --announcement-offset: 0px;
-  --site-header-height: 72px;
+  --site-header-height: 52px;
   --page-wayfinding-height: 0px;
-  --sticky-offset: calc(var(--site-header-height, 72px) + var(--page-wayfinding-height, 0px));
+  --sticky-offset: calc(var(--site-header-height, 52px) + var(--page-wayfinding-height, 0px));
   /* 🎨 PALETTE: Warm Ghibli (Strict) */
   --ghibli-cream: #FFFDF5;
   /* Warm off-white, NOT pure white */
@@ -61,7 +61,7 @@
 /* 🌿 Reset & Base */
 html {
   scroll-behavior: auto;
-  scroll-padding-top: var(--site-header-height, 72px);
+  scroll-padding-top: var(--site-header-height, 52px);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -134,11 +134,11 @@ h6 {
 }
 
 .sticky-below-header {
-  top: var(--sticky-offset, 72px);
+  top: var(--sticky-offset, 52px);
 }
 
 .sticky-below-header-padded {
-  top: calc(var(--sticky-offset, 72px) + 0.75rem);
+  top: calc(var(--sticky-offset, 52px) + 0.75rem);
 }
 
 .no-scrollbar {
@@ -911,4 +911,9 @@ h6 {
   .hero-scroll-wheel {
     animation: none !important;
   }
+}
+
+/* Homepage hero banner */
+.hero-banner-section {
+  scroll-margin-top: var(--site-header-height, 52px);
 }

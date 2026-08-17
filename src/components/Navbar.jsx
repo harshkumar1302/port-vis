@@ -4,6 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { collectImageUrls, preloadImagesBackground } from '../lib/preloadImages';
 
+const iconBtn =
+  'relative flex items-center justify-center w-9 h-9 rounded-full text-ghibli-charcoal/55 hover:text-ghibli-wood hover:bg-ghibli-paper/80 transition-colors';
+
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,12 +23,9 @@ const Navbar = () => {
     };
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', handleScroll);
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
+        const handleScroll = () => setScrolled(window.scrollY > 12);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     useEffect(() => {
@@ -33,11 +33,7 @@ const Navbar = () => {
     }, [location.pathname]);
 
     useEffect(() => {
-        if (mobileMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
+        document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
         return () => {
             document.body.style.overflow = '';
         };
@@ -66,48 +62,49 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="relative w-full transition-all duration-300">
-                <div className={`
-                relative flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-14 py-3 sm:py-4
-                bg-white/95 backdrop-blur-xl 
-                border-b border-ghibli-wood/10 shadow-sm
-                transition-all duration-300
-                ${scrolled ? 'py-2 sm:py-2.5 shadow-md bg-white/98' : ''}
-            `}>
-                    <Link to="/" aria-label="Visheshkala home" className="font-bold text-lg sm:text-xl tracking-tighter text-ghibli-wood hover:scale-105 transition-transform flex items-center gap-1.5">
-                        <span className="text-xl sm:text-2xl" aria-hidden="true">✨</span>
-                        <span className="hidden xs:inline">Visheshkala</span>
-                        <span className="inline xs:hidden">VK</span>
+            <nav className="relative w-full" aria-label="Main">
+                <div
+                    className={`flex items-center justify-between gap-4 px-4 sm:px-5 md:px-8 lg:px-10 transition-[padding] duration-200 ${
+                        scrolled ? 'py-1.5' : 'py-2'
+                    }`}
+                >
+                    <Link
+                        to="/"
+                        aria-label="Visheshkala home"
+                        className="font-serif font-bold text-[15px] sm:text-base tracking-tight text-ghibli-wood hover:text-ghibli-charcoal transition-colors shrink-0"
+                    >
+                        <span className="hidden sm:inline">Visheshkala</span>
+                        <span className="sm:hidden">VK</span>
                     </Link>
 
-                    <div className="hidden md:flex items-center gap-1">
+                    <div className="hidden md:flex items-center gap-0.5 lg:gap-1">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 to={link.href}
-                                className={`text-sm font-semibold transition-all duration-300 relative px-4 py-2 rounded-full ${isNavActive(link.href) ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal/60 hover:text-ghibli-charcoal hover:bg-ghibli-charcoal/5'}`}
+                                className={`text-[11px] lg:text-xs font-semibold uppercase tracking-[0.12em] px-2.5 lg:px-3 py-1.5 rounded-md transition-colors ${
+                                    isNavActive(link.href)
+                                        ? 'text-ghibli-wood bg-ghibli-wood/8'
+                                        : 'text-ghibli-charcoal/55 hover:text-ghibli-charcoal hover:bg-ghibli-charcoal/5'
+                                }`}
                             >
                                 {link.name}
                             </Link>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        
+                    <div className="flex items-center gap-1 sm:gap-1.5">
                         <Link
                             to="/wishlist"
                             onMouseEnter={prefetchWishlist}
                             onFocus={prefetchWishlist}
                             onTouchStart={prefetchWishlist}
                             aria-label={wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : 'Wishlist'}
-                            className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
+                            className={iconBtn}
                         >
-                            <span className="sr-only">
-                              {wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : 'Wishlist'}
-                            </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart" aria-hidden="true" focusable="false"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                             {wishlistCount > 0 && (
-                                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center" aria-hidden="true">
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[9px] font-bold flex items-center justify-center" aria-hidden="true">
                                     {wishlistCount}
                                 </span>
                             )}
@@ -119,86 +116,66 @@ const Navbar = () => {
                             onFocus={prefetchCart}
                             onTouchStart={prefetchCart}
                             aria-label={cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
-                            className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal/60 hover:bg-ghibli-paper hover:text-ghibli-wood transition-colors"
+                            className={iconBtn}
                         >
-                            <span className="sr-only">
-                              {cartCount > 0 ? `Shopping cart, ${cartCount} items` : 'Shopping cart'}
-                            </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-bag" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                             {cartCount > 0 && (
-                                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[10px] font-bold flex items-center justify-center" aria-hidden="true">
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-ghibli-gold text-ghibli-charcoal text-[9px] font-bold flex items-center justify-center" aria-hidden="true">
                                     {cartCount}
                                 </span>
                             )}
                         </Link>
 
-                        <div className="w-px h-6 bg-ghibli-charcoal/10 mx-1 hidden md:block"></div>
-
                         <button
+                            type="button"
                             onClick={toggleAudio}
                             aria-label={isPlaying ? 'Pause background music' : 'Play background music'}
-                            className={`w-10 h-10 rounded-full hidden md:flex items-center justify-center transition-all duration-300 border ${isPlaying
-                                ? 'bg-ghibli-gold text-ghibli-cream border-ghibli-gold shadow-[0_0_15px_rgba(250,205,96,0.5)]'
-                                : 'bg-transparent text-ghibli-charcoal/40 border-ghibli-charcoal/10 hover:border-ghibli-gold hover:text-ghibli-gold'
-                                }`}
-                            title={isPlaying ? 'Pause Music' : 'Play Music'}
+                            className={`hidden md:flex w-8 h-8 items-center justify-center rounded-full transition-colors border text-xs ${
+                                isPlaying
+                                    ? 'bg-ghibli-gold/15 text-ghibli-wood border-ghibli-gold/40'
+                                    : 'bg-transparent text-ghibli-charcoal/40 border-transparent hover:border-ghibli-wood/20 hover:text-ghibli-wood'
+                            }`}
                         >
-                            {isPlaying ? <span aria-hidden="true">⏸</span> : <span aria-hidden="true" className="ml-0.5">▶</span>}
-                            <span className="sr-only">{isPlaying ? 'Pause background music' : 'Play background music'}</span>
+                            {isPlaying ? '⏸' : '▶'}
                         </button>
                         <AudioPlayer ref={audioRef} />
 
                         <button
-                            className="md:hidden min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center text-ghibli-charcoal hover:bg-ghibli-paper focus:outline-none"
+                            type="button"
+                            className={`md:hidden ${iconBtn}`}
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                             aria-expanded={mobileMenuOpen}
                         >
-                            {mobileMenuOpen ? '✕' : '☰'}
+                            {mobileMenuOpen ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                            ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                            )}
                         </button>
                     </div>
                 </div>
             </nav>
 
             <div
-                className={`fixed inset-0 z-[120] bg-ghibli-cream/98 backdrop-blur-3xl transition-all duration-500 flex flex-col items-center justify-center gap-8 md:hidden ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 z-[120] bg-white/95 backdrop-blur-md transition-all duration-300 flex flex-col pt-[var(--site-header-height,52px)] md:hidden ${
+                    mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
                 aria-hidden={!mobileMenuOpen}
             >
-                <button
-                    type="button"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="absolute top-5 right-5 min-w-[48px] min-h-[48px] w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 text-ghibli-charcoal flex items-center justify-center text-lg shadow-sm active:scale-95 transition-transform"
-                    aria-label="Close menu"
-                >
-                    ✕
-                </button>
-                
-                <div className="absolute top-6 left-6">
-                    <span className="text-2xl">✨</span>
-                </div>
-
-                {navLinks.map((link, idx) => (
-                    <Link
-                        key={link.name}
-                        to={link.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`text-2xl font-serif font-bold transition-all duration-500 transform py-2 px-8 rounded-2xl ${isNavActive(link.href) ? 'text-ghibli-wood bg-ghibli-wood/10' : 'text-ghibli-charcoal hover:text-ghibli-wood'} ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
-                        style={{ transitionDelay: `${idx * 80 + 100}ms` }}
-                    >
-                        {link.name}
-                    </Link>
-                ))}
-                
-                {/* Mobile social row */}
-                <div className={`flex gap-4 mt-4 transition-all duration-500 ${mobileMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${navLinks.length * 80 + 100}ms` }}>
-                    <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} aria-label="Wishlist" className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
-                        <span className="sr-only">Wishlist</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                    </Link>
-                    <Link to="/cart" onClick={() => setMobileMenuOpen(false)} aria-label="Shopping cart" className="w-12 h-12 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal/60 shadow-sm">
-                        <span className="sr-only">Shopping cart</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    </Link>
+                <div className="flex flex-col px-6 py-4 gap-1 border-b border-ghibli-wood/10">
+                    {navLinks.map((link) => (
+                        <Link
+                            key={link.name}
+                            to={link.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`text-sm font-semibold py-3 border-b border-ghibli-wood/5 last:border-0 ${
+                                isNavActive(link.href) ? 'text-ghibli-wood' : 'text-ghibli-charcoal/70'
+                            }`}
+                        >
+                            {link.name}
+                        </Link>
+                    ))}
                 </div>
             </div>
         </>

@@ -47,10 +47,10 @@ const PageWayfinding = () => {
       aria-label="Page navigation"
       className="border-b border-ghibli-wood/8 bg-ghibli-cream/60"
     >
-      <div className="page-container max-w-[1400px] py-3">
+      <div className="page-container max-w-[1400px] py-2">
         <Link
           to={to}
-          className="inline-flex items-center gap-1.5 min-h-[44px] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-ghibli-charcoal/55 hover:text-ghibli-wood transition-colors"
+          className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-ghibli-charcoal/50 hover:text-ghibli-wood transition-colors"
         >
           <span aria-hidden>←</span>
           {label}

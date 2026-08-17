@@ -8,8 +8,8 @@ const AnnouncementBar = () => {
   const doubled = [...items, ...items];
 
   return (
-    <div className="bg-gold-gradient text-white text-[10px] font-bold tracking-[0.2em] uppercase overflow-hidden shadow-soft">
-      <div className="flex items-center h-7">
+    <div className="bg-gold-gradient text-white text-[9px] font-bold tracking-[0.18em] uppercase overflow-hidden">
+      <div className="flex items-center h-6">
         <div className="flex-1 overflow-hidden relative">
           <div className="flex animate-marquee whitespace-nowrap">
             {doubled.map((item, i) => (

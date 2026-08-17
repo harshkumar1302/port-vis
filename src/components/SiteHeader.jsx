@@ -9,11 +9,11 @@ const SiteHeader = () => {
 
   useEffect(() => {
     const syncHeaderMetrics = () => {
-      const height = headerRef.current?.offsetHeight ?? 72;
+      const height = headerRef.current?.offsetHeight ?? 52;
       document.documentElement.style.setProperty('--site-header-height', `${height}px`);
       document.documentElement.style.setProperty(
         '--announcement-offset',
-        isVisible ? '28px' : '0px'
+        isVisible ? '24px' : '0px'
       );
     };
 
@@ -29,7 +29,7 @@ const SiteHeader = () => {
   }, [isVisible]);
 
   return (
-    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-[110] bg-white/95 backdrop-blur-md md:backdrop-blur-xl">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-[110] border-b border-ghibli-wood/8 bg-white/90 backdrop-blur-sm">
       <AnnouncementBar />
       <Navbar />
     </header>

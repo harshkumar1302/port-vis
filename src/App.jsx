@@ -62,7 +62,7 @@ const Layout = ({ children }) => {
     <div className="relative min-h-screen bg-ghibli-cream text-ghibli-charcoal overflow-x-hidden selection:bg-ghibli-gold/30">
       {!isAdmin && !isResetPassword && <SiteHeader />}
 
-      <main className={!isAdmin && !isResetPassword ? 'pt-[var(--site-header-height,72px)]' : ''}>
+      <main className={!isAdmin && !isResetPassword ? 'pt-[var(--site-header-height,52px)]' : ''}>
         {!isAdmin && !isResetPassword && <PageWayfinding />}
         <Suspense fallback={null}>{children}</Suspense>
       </main>
