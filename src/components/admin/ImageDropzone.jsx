@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 
-const ImageDropzone = ({ previewUrl, onFile, onClear, required, editing }) => {
+const ImageDropzone = ({ previewUrl, onFile, onClear, required, editing, aspectRatio = 'aspect-[4/5]' }) => {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -30,7 +30,7 @@ const ImageDropzone = ({ previewUrl, onFile, onClear, required, editing }) => {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={`aspect-[4/5] rounded-xl cursor-pointer overflow-hidden relative transition-all duration-300 flex items-center justify-center
+        className={`${aspectRatio} rounded-xl cursor-pointer overflow-hidden relative transition-all duration-300 flex items-center justify-center
           ${dragOver ? 'bg-white border-2 border-dashed border-ghibli-wood shadow-sm scale-[0.98]' : ''}
           ${!dragOver && !previewUrl ? 'bg-white/40 border-2 border-dashed border-ghibli-wood/20 hover:bg-white hover:border-ghibli-wood/40' : ''}
           ${previewUrl && !dragOver ? 'border-2 border-solid border-white/60 shadow-sm' : ''}

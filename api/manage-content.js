@@ -85,18 +85,18 @@ const handleReviews = async (req, res, supabase) => {
   if (!adminOnly(req, res)) return;
 
   if (req.method === "POST") {
-    const { name, message, rating, avatar_url, verified, sort_order } = req.body;
+    const { name, message, rating, avatar_url, verified, sort_order, time_ago, review_image_url } = req.body;
     if (!name || !message) return res.status(400).json({ error: "Name and message required" });
     const { data, error } = await supabase
       .from("reviews")
-      .insert([{ name, message, rating: rating ?? 5, avatar_url, verified: verified ?? true, sort_order: sort_order ?? 0 }])
+      .insert([{ name, message, rating: rating ?? 5, avatar_url, verified: verified ?? true, sort_order: sort_order ?? 0, time_ago, review_image_url }])
       .select();
     if (error) throw error;
     return res.status(201).json(data[0]);
   }
 
   if (req.method === "PUT") {
-    const { id, name, message, rating, avatar_url, verified, sort_order } = req.body;
+    const { id, name, message, rating, avatar_url, verified, sort_order, time_ago, review_image_url } = req.body;
     if (!id) return res.status(400).json({ error: "ID required" });
     const payload = {};
     if (name !== undefined) payload.name = name;
@@ -105,6 +105,8 @@ const handleReviews = async (req, res, supabase) => {
     if (avatar_url !== undefined) payload.avatar_url = avatar_url;
     if (verified !== undefined) payload.verified = verified;
     if (sort_order !== undefined) payload.sort_order = sort_order;
+    if (time_ago !== undefined) payload.time_ago = time_ago;
+    if (review_image_url !== undefined) payload.review_image_url = review_image_url;
     const { data, error } = await supabase.from("reviews").update(payload).eq("id", id).select();
     if (error) throw error;
     return res.status(200).json(data[0]);
