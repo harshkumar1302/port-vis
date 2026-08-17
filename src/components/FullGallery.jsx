@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
@@ -9,6 +8,8 @@ import { isGalleryListing } from '../lib/categoryUtils';
 import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
+import ProductCardSkeleton from './ProductCardSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
@@ -16,8 +17,8 @@ const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 const FullGallery = () => {
     const { category } = useParams();
     const navigate = useNavigate();
-    const [artworks, setArtworks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { artworks: catalog, loading } = useArtworksCatalog();
+    const artworks = catalog.filter(isGalleryListing);
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
@@ -27,7 +28,6 @@ const FullGallery = () => {
     const currentCategory = categories.find(c => c.id === category);
 
     useEffect(() => {
-        fetchArtworks();
         fetchSettings();
         window.scrollTo(0, 0);
     }, [category]);
@@ -49,22 +49,6 @@ const FullGallery = () => {
         setArtworkOrders(orders || {});
     };
 
-    const fetchArtworks = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('artworks')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setArtworks((data || []).filter(isGalleryListing));
-        } catch (error) {
-            console.error('Error fetching artworks:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const filteredArtworks = artworks.filter(art => {
         if (!category) return false;
@@ -214,16 +198,39 @@ const FullGallery = () => {
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 md:gap-8 min-h-[50vh]">
-                    {displayArtworks.length > 0 ? (
+                    {loading ? (
+                        Array.from({ length: 8 }).map((_, i) => (
+                            <ProductCardSkeleton key={i} />
+                        ))
+                    ) : displayArtworks.length > 0 ? (
                         displayArtworks.map((art, index) => (
+                            index >= 8 ? (
+                                <div key={art.id} className="h-full">
+                                    <div
+                                        onClick={() => setSelectedArt(art)}
+                                        className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-300 border border-ghibli-wood/5 flex flex-col relative overflow-hidden h-full"
+                                    >
+                                        <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6">
+                                            <div className="w-full aspect-[4/5] relative">
+                                                <ArtworkImage src={art.image_url} alt={art.title} size="card" objectFit="object-contain" className="absolute inset-0" imgClassName="p-4" />
+                                            </div>
+                                        </div>
+                                        {art.title && (
+                                            <div className="px-1 sm:px-2 pb-1 sm:pb-2">
+                                                <h4 className="font-bold text-ghibli-charcoal text-sm sm:text-lg font-serif line-clamp-2">{art.title}</h4>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
                             <ScrollRevealItem
                                 key={art.id}
                                 index={index}
                                 amount={0.18}
-                                delayStep={0.06}
-                                duration={0.9}
-                                y={26}
-                                scale={0.986}
+                                delayStep={0.05}
+                                duration={0.55}
+                                y={16}
+                                scale={0.99}
                                 className="h-full"
                             >
                                 <div
@@ -269,20 +276,13 @@ const FullGallery = () => {
                                     </div>
                                 </div>
                             </ScrollRevealItem>
+                            )
                         ))
                     ) : (
-                        /* Empty State Placeholders - LIGHT MUSEUM */
-                        Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 border border-ghibli-wood/5 opacity-60 h-full">
-                                <div className="aspect-[4/5] bg-ghibli-paper/20 rounded-2xl mb-6 flex items-center justify-center">
-                                    <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-charcoal/20 uppercase">Coming Soon</span>
-                                </div>
-                                <div className="px-2 pb-2">
-                                    <span className="text-[10px] font-bold tracking-[0.2em] text-ghibli-wood/30 uppercase block mb-2">Gallery Slot</span>
-                                    <h4 className="font-bold text-ghibli-charcoal/40 text-xl font-serif">Masterpiece {i + 1}</h4>
-                                </div>
-                            </div>
-                        ))
+                        <div className="col-span-full text-center py-24">
+                            <h3 className="text-xl font-bold text-ghibli-charcoal mb-2">Coming soon</h3>
+                            <p className="text-ghibli-charcoal/60">New pieces for this collection are on the way.</p>
+                        </div>
                     )}
                 </div>
             </div>

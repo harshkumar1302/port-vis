@@ -55,8 +55,8 @@ const Reviews = () => {
   // Use mockReviews if reviews state is somehow empty
   const displayReviews = reviews.length > 0 ? reviews : MOCK_REVIEWS;
 
-  // Duplicate reviews heavily to ensure the marquee is wide enough to infinitely scroll seamlessly
-  const marqueeItems = [...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews];
+  // Duplicate once so the marquee loop is wide enough without bloating the DOM
+  const marqueeItems = [...displayReviews, ...displayReviews];
   
   // Split into two rows for the dual-marquee effect
   const half = Math.ceil(marqueeItems.length / 2);

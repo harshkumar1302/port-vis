@@ -57,20 +57,30 @@ const ProductCardGrid = ({
 
   return (
     <div className={gridClass}>
-      {items.map((art, i) => (
-        <ScrollRevealItem
-          key={art.id}
-          index={i}
-          className="flex flex-col h-full"
-          amount={0.18}
-          delayStep={0.06}
-          duration={0.9}
-          y={26}
-          scale={0.986}
-        >
-          <Card art={art} priority={i < 4} />
-        </ScrollRevealItem>
-      ))}
+      {items.map((art, i) => {
+        const card = <Card art={art} priority={i < 4} />;
+        if (i >= 8) {
+          return (
+            <div key={art.id} className="flex flex-col h-full">
+              {card}
+            </div>
+          );
+        }
+        return (
+          <ScrollRevealItem
+            key={art.id}
+            index={i}
+            className="flex flex-col h-full"
+            amount={0.18}
+            delayStep={0.05}
+            duration={0.55}
+            y={16}
+            scale={0.99}
+          >
+            {card}
+          </ScrollRevealItem>
+        );
+      })}
     </div>
   );
 };

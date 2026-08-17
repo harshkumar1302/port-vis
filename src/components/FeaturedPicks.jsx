@@ -1,34 +1,17 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
 import { isFeatured } from '../lib/artwork';
 import { isShopListing } from '../lib/categoryUtils';
+import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import ProductCardGrid, { FEATURED_GRID_CLASS } from './ProductCardGrid';
 
 const FeaturedPicks = () => {
-  const [artworks, setArtworks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { artworks: catalog, loading } = useArtworksCatalog();
 
-  useEffect(() => {
-    const fetchArtworks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('artworks')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-
-        const shopItems = (data || []).filter(isShopListing);
-        const featured = shopItems.filter((a) => isFeatured(a));
-        setArtworks(featured.length > 0 ? featured.slice(0, 8) : shopItems.slice(0, 8));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchArtworks();
-  }, []);
+  const artworks = (() => {
+    const shopItems = catalog.filter(isShopListing);
+    const featured = shopItems.filter((a) => isFeatured(a));
+    return featured.length > 0 ? featured.slice(0, 8) : shopItems.slice(0, 8);
+  })();
 
   return (
     <section id="featured" className="relative py-20 md:py-28 scroll-mt-28 overflow-hidden bg-ghibli-cream/20 border-b border-ghibli-wood/5">

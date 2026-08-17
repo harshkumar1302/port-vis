@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { invalidateArtworksCache } from './useArtworksCatalog';
 
 /**
  * Shared upload/edit logic for admin Gallery and Shop tabs.
@@ -207,6 +208,7 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
       }
 
       setSuccess(true);
+      invalidateArtworksCache();
       setTimeout(() => setSuccess(false), 3000);
       resetForm();
       onSuccess?.();

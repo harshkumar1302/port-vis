@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import ProductCardGrid from '../components/ProductCardGrid';
+import ShopPageSkeleton from '../components/skeletons/ShopPageSkeleton';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import {
   resolveCategoryLabel,
   getCategoryId,
@@ -39,8 +40,7 @@ const FilterSelect = ({ label, value, onChange, children, className = '' }) => (
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [artworks, setArtworks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { artworks, loading } = useArtworksCatalog();
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
 
   const categoryParam = searchParams.get('category') || 'All';
@@ -59,24 +59,9 @@ const Shop = () => {
   }, [categoryParam, searchParams, categories]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const catValue = await fetchSiteSetting('category_definitions', null);
-        if (catValue?.length) setCategories(catValue);
-
-        const { data, error } = await supabase
-          .from('artworks')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-        setArtworks(data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchSiteSetting('category_definitions', null).then((catValue) => {
+      if (catValue?.length) setCategories(catValue);
+    });
   }, []);
 
   const updateUrl = (catLabel, subCat = null) => {
@@ -140,6 +125,10 @@ const Shop = () => {
 
   const pageTitle = activeCategory === 'All' ? 'Shop' : activeSubCategory || activeCategory;
 
+  if (loading) {
+    return <ShopPageSkeleton />;
+  }
+
   return (
     <div className="pt-6 sm:pt-10 pb-20 sm:pb-24 min-h-screen bg-[#f8f7f5]">
       <div className="page-container max-w-[1400px]">
@@ -189,7 +178,7 @@ const Shop = () => {
 
           <div className="flex flex-wrap items-center gap-4 lg:gap-6">
             <span className="text-sm text-ghibli-charcoal/60">
-              {!loading ? `${displayArtworks.length} products` : 'Loading…'}
+              {`${displayArtworks.length} products`}
             </span>
             <FilterSelect label="Sort by:" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="featured">Featured</option>
@@ -202,7 +191,7 @@ const Shop = () => {
 
         <ProductCardGrid
           items={displayArtworks}
-          dataLoading={loading}
+          dataLoading={false}
           variant="shop"
           empty={
             <div className="text-center py-24">

@@ -28,13 +28,11 @@ const ScrollRevealItem = ({
           opacity: 0,
           y,
           scale,
-          filter: 'blur(8px)',
         },
         visible: (itemIndex) => ({
           opacity: 1,
           y: 0,
           scale: 1,
-          filter: 'blur(0px)',
           transition: {
             duration,
             delay: Math.min(itemIndex * delayStep, 0.48),

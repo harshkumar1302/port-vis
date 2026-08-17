@@ -38,6 +38,9 @@ const Hero = () => {
 
     let cancelled = false;
     let gsapInstance = null;
+    const infiniteTweens = [];
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     const runAnimations = async () => {
       const { default: gsap } = await import('gsap');
@@ -112,6 +115,7 @@ const Hero = () => {
         yoyo: true,
         ease: 'sine.inOut',
       });
+      infiniteTweens.push(gsap.getTweensOf('[data-hero-blob="1"]')[0]);
       gsap.to('[data-hero-blob="2"]', {
         x: -25,
         y: 25,
@@ -121,6 +125,7 @@ const Hero = () => {
         ease: 'sine.inOut',
         delay: 0.5,
       });
+      infiniteTweens.push(gsap.getTweensOf('[data-hero-blob="2"]')[0]);
       gsap.to('[data-hero-blob="3"]', {
         scale: 1.12,
         duration: 7,
@@ -128,30 +133,38 @@ const Hero = () => {
         yoyo: true,
         ease: 'sine.inOut',
       });
+      infiniteTweens.push(gsap.getTweensOf('[data-hero-blob="3"]')[0]);
 
-      gsap.to('[data-hero-ring-wrap]', {
-        rotation: 360,
-        transformOrigin: '200px 200px',
-        duration: 28,
-        repeat: -1,
-        ease: 'none',
-      });
-
-      ORBIT_LINES.forEach((line, i) => {
-        gsap.to(`[data-hero-orbit-line="${i}"]`, {
-          rotation: line.reverse ? -360 : 360,
+      if (!isMobile) {
+        gsap.to('[data-hero-ring-wrap]', {
+          rotation: 360,
           transformOrigin: '200px 200px',
-          duration: line.duration,
+          duration: 28,
           repeat: -1,
           ease: 'none',
         });
-        gsap.to(`[data-hero-orbit-line="${i}"] ellipse`, {
-          strokeDashoffset: line.reverse ? 800 : -800,
-          duration: line.duration * 1.2,
-          repeat: -1,
-          ease: 'none',
+        infiniteTweens.push(gsap.getTweensOf('[data-hero-ring-wrap]')[0]);
+
+        ORBIT_LINES.forEach((line, i) => {
+          gsap.to(`[data-hero-orbit-line="${i}"]`, {
+            rotation: line.reverse ? -360 : 360,
+            transformOrigin: '200px 200px',
+            duration: line.duration,
+            repeat: -1,
+            ease: 'none',
+          });
+          gsap.to(`[data-hero-orbit-line="${i}"] ellipse`, {
+            strokeDashoffset: line.reverse ? 800 : -800,
+            duration: line.duration * 1.2,
+            repeat: -1,
+            ease: 'none',
+          });
+          infiniteTweens.push(
+            gsap.getTweensOf(`[data-hero-orbit-line="${i}"]`)[0],
+            gsap.getTweensOf(`[data-hero-orbit-line="${i}"] ellipse`)[0]
+          );
         });
-      });
+      }
 
       gsap.to('[data-hero-avatar]', {
         y: -14,
@@ -161,6 +174,7 @@ const Hero = () => {
         ease: 'sine.inOut',
         delay: 2,
       });
+      infiniteTweens.push(gsap.getTweensOf('[data-hero-avatar]')[0]);
 
       gsap.to('[data-hero-glow]', {
         scale: 1.15,
@@ -170,30 +184,59 @@ const Hero = () => {
         yoyo: true,
         ease: 'sine.inOut',
       });
+      infiniteTweens.push(gsap.getTweensOf('[data-hero-glow]')[0]);
 
       const parallax = root.querySelector('[data-hero-parallax]');
+      let moveRaf = null;
+      let pendingEvent = null;
       const onMove = (e) => {
-        const rect = root.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        gsap.to(parallax, {
-          x: x * 28,
-          y: y * 18,
-          rotateY: x * 6,
-          rotateX: -y * 6,
-          duration: 0.8,
-          ease: 'power2.out',
+        if (!parallax) return;
+        pendingEvent = e;
+        if (moveRaf) return;
+        moveRaf = requestAnimationFrame(() => {
+          moveRaf = null;
+          const ev = pendingEvent;
+          if (!ev || !parallax) return;
+          const rect = root.getBoundingClientRect();
+          const x = (ev.clientX - rect.left) / rect.width - 0.5;
+          const y = (ev.clientY - rect.top) / rect.height - 0.5;
+          gsap.to(parallax, {
+            x: x * 28,
+            y: y * 18,
+            rotateY: x * 6,
+            rotateX: -y * 6,
+            duration: 0.8,
+            ease: 'power2.out',
+          });
         });
       };
       const onLeave = () => {
+        if (!parallax) return;
         gsap.to(parallax, { x: 0, y: 0, rotateY: 0, rotateX: 0, duration: 1, ease: 'power3.out' });
       };
-      root.addEventListener('mousemove', onMove);
-      root.addEventListener('mouseleave', onLeave);
+      if (!isCoarsePointer && !isMobile) {
+        root.addEventListener('mousemove', onMove);
+        root.addEventListener('mouseleave', onLeave);
+      }
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          infiniteTweens.filter(Boolean).forEach((tween) => {
+            if (entry.isIntersecting) tween.play();
+            else tween.pause();
+          });
+        },
+        { threshold: 0.15 }
+      );
+      observer.observe(root);
 
       return () => {
-        root.removeEventListener('mousemove', onMove);
-        root.removeEventListener('mouseleave', onLeave);
+        observer.disconnect();
+        if (!isCoarsePointer && !isMobile) {
+          root.removeEventListener('mousemove', onMove);
+          root.removeEventListener('mouseleave', onLeave);
+        }
+        if (moveRaf) cancelAnimationFrame(moveRaf);
       };
     };
 
@@ -205,7 +248,7 @@ const Hero = () => {
     return () => {
       cancelled = true;
       cleanupParallax();
-      gsapInstance?.killTweensOf(root.querySelectorAll('*'));
+      infiniteTweens.filter(Boolean).forEach((tween) => tween.kill());
     };
   }, []);
 

@@ -6,6 +6,8 @@ import Hero from './components/Hero';
 import ShopByCategory from './components/ShopByCategory';
 import FeaturedPicks from './components/FeaturedPicks';
 import RouteSEO from './components/RouteSEO';
+import ShopPageSkeleton from './components/skeletons/ShopPageSkeleton';
+import GalleryPageSkeleton from './components/skeletons/GalleryPageSkeleton';
 
 import { StoreProvider } from './context/StoreContext';
 import { ProductsRedirect, ProductSlugRedirect } from './pages/LegacyRedirects';
@@ -27,6 +29,10 @@ const Cart = lazy(() => import('./pages/Cart'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+
+const PageFallback = () => (
+  <div className="min-h-[50vh] animate-pulse bg-ghibli-cream/40" aria-hidden />
+);
 
 const BelowFold = ({ children }) => (
   <Suspense fallback={null}>{children}</Suspense>
@@ -107,21 +113,21 @@ const App = () => {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/:slug" element={<ProductDetail />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/gallery/:category" element={<FullGallery />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/cart" element={<Cart />} />
+            <Route path="/shop" element={<Suspense fallback={<ShopPageSkeleton />}><Shop /></Suspense>} />
+            <Route path="/shop/:slug" element={<Suspense fallback={<PageFallback />}><ProductDetail /></Suspense>} />
+            <Route path="/gallery" element={<Suspense fallback={<GalleryPageSkeleton />}><Gallery /></Suspense>} />
+            <Route path="/gallery/:category" element={<Suspense fallback={<GalleryPageSkeleton />}><FullGallery /></Suspense>} />
+            <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
+            <Route path="/contact" element={<Suspense fallback={<PageFallback />}><Contact /></Suspense>} />
+            <Route path="/wishlist" element={<Suspense fallback={<PageFallback />}><Wishlist /></Suspense>} />
+            <Route path="/cart" element={<Suspense fallback={<PageFallback />}><Cart /></Suspense>} />
 
             <Route path="/products" element={<ProductsRedirect />} />
             <Route path="/product/:slug" element={<ProductSlugRedirect />} />
 
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/admin" element={<Suspense fallback={<PageFallback />}><AdminDashboard /></Suspense>} />
+            <Route path="/reset-password" element={<Suspense fallback={<PageFallback />}><ResetPassword /></Suspense>} />
+            <Route path="*" element={<Suspense fallback={<PageFallback />}><NotFound /></Suspense>} />
           </Routes>
         </Layout>
       </Router>

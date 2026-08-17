@@ -4,22 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectCoverflow, Navigation, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
 
-import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { isGalleryListing } from '../lib/categoryUtils';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
+import GalleryPageSkeleton from './skeletons/GalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
 const ArtGallery = () => {
-    const [artworks, setArtworks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { artworks: catalog, loading } = useArtworksCatalog();
+    const artworks = catalog.filter(isGalleryListing);
     const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
@@ -27,7 +27,6 @@ const ArtGallery = () => {
 
     useEffect(() => {
         fetchCategories();
-        fetchArtworks();
         fetchShowcaseSettings();
     }, []);
 
@@ -43,23 +42,6 @@ const ArtGallery = () => {
         setArtworkOrders(orders || {});
     };
 
-
-    const fetchArtworks = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('artworks')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setArtworks((data || []).filter(isGalleryListing));
-        } catch (error) {
-            console.error('Error fetching artworks:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const getCategoryItems = (catLabel) => {
         const catDef = categories.find(c => c.label === catLabel);
@@ -124,9 +106,13 @@ const ArtGallery = () => {
 
     const featuredItems = getFeaturedItems();
     let displayFeatured = getDisplayItems(featuredItems, 8, 5);
-    
-    if (displayFeatured.length > 0 && displayFeatured.length < 10) {
-        displayFeatured = [...displayFeatured, ...displayFeatured, ...displayFeatured].slice(0, 15);
+
+    if (displayFeatured.length > 0 && displayFeatured.length < 6) {
+        displayFeatured = [...displayFeatured, ...displayFeatured];
+    }
+
+    if (loading) {
+        return <GalleryPageSkeleton />;
     }
 
     return (

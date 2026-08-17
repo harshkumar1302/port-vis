@@ -29,7 +29,7 @@ const SiteHeader = () => {
   }, [isVisible]);
 
   return (
-    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-[110] bg-white/95 backdrop-blur-xl">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-[110] bg-white/95 backdrop-blur-md md:backdrop-blur-xl">
       <AnnouncementBar />
       <Navbar />
     </header>
