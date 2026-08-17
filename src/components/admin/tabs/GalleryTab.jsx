@@ -118,7 +118,7 @@ const GalleryTab = ({ session }) => {
   };
 
   return (
-    <div className="admin-module-shell animate-in fade-in duration-300">
+    <div className="animate-in fade-in duration-500 max-w-5xl mx-auto w-full space-y-6">
       <AdminSubnav
         views={VIEWS}
         active={view}
@@ -136,19 +136,19 @@ const GalleryTab = ({ session }) => {
       )}
 
       {view === 'browse' && (
-        <div className="admin-browse-panel card-ghibli p-4 sm:p-6 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="card-ghibli p-4 sm:p-6 bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] rounded-[2rem]">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by title or category…"
-              className="flex-1 p-2.5 rounded-xl border border-ghibli-wood/10 bg-white/50 text-sm font-medium"
+              className="flex-1 p-3 rounded-2xl border border-white/60 bg-white/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ghibli-gold/30 shadow-sm transition-all"
             />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="p-2.5 rounded-xl border border-ghibli-wood/10 bg-white/50 text-sm font-bold text-ghibli-wood cursor-pointer sm:min-w-[11rem]"
+              className="p-3 rounded-2xl border border-white/60 bg-white/50 text-sm font-bold text-ghibli-wood cursor-pointer sm:min-w-[12rem] focus:outline-none focus:ring-2 focus:ring-ghibli-gold/30 shadow-sm transition-all"
             >
               <option value="all">All pieces</option>
               <option value="featured">Featured</option>
@@ -160,11 +160,16 @@ const GalleryTab = ({ session }) => {
           </div>
 
           {loading ? (
-            <p className="text-center py-12 text-ghibli-charcoal/50 text-sm">Loading…</p>
+            <div className="flex items-center justify-center py-20 text-ghibli-charcoal/50">
+              <span className="text-sm font-bold animate-pulse">Loading pieces…</span>
+            </div>
           ) : paged.length === 0 ? (
-            <p className="text-center py-12 text-ghibli-charcoal/50 text-sm">No pieces match. Upload one or change filters.</p>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <span className="text-4xl mb-3 opacity-30">📭</span>
+              <p className="text-ghibli-charcoal/50 text-sm font-medium">No pieces match your search.<br/>Try adjusting your filters or upload a new piece.</p>
+            </div>
           ) : (
-            <div className="admin-compact-list">
+            <div className="space-y-3">
               {paged.map((art) => (
                 <CompactArtworkRow key={art.id} art={art} onEdit={handleEdit} onDelete={handleDelete} />
               ))}
@@ -172,8 +177,8 @@ const GalleryTab = ({ session }) => {
           )}
 
           {filtered.length > PAGE_SIZE && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-ghibli-wood/10">
-              <span className="text-xs text-ghibli-charcoal/50">
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/60">
+              <span className="text-[0.7rem] font-bold uppercase tracking-widest text-ghibli-charcoal/50">
                 {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
               <div className="flex gap-2">
@@ -181,7 +186,7 @@ const GalleryTab = ({ session }) => {
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="admin-page-btn"
+                  className="px-4 py-2 bg-white/50 hover:bg-white text-ghibli-wood font-bold text-xs uppercase tracking-wider rounded-lg border border-white/80 shadow-sm hover:shadow transition-all disabled:opacity-30 disabled:pointer-events-none"
                 >
                   Prev
                 </button>
@@ -189,7 +194,7 @@ const GalleryTab = ({ session }) => {
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="admin-page-btn"
+                  className="px-4 py-2 bg-white/50 hover:bg-white text-ghibli-wood font-bold text-xs uppercase tracking-wider rounded-lg border border-white/80 shadow-sm hover:shadow transition-all disabled:opacity-30 disabled:pointer-events-none"
                 >
                   Next
                 </button>

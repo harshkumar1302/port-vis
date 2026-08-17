@@ -1,34 +1,46 @@
 import ImageDropzone from './ImageDropzone';
 
 const Field = ({ label, hint, children, required }) => (
-  <div className="upload-field">
-    <label className="upload-label">
+  <div className="flex flex-col gap-1.5">
+    <label className="text-sm font-bold text-ghibli-charcoal">
       {label}
-      {required && <span className="upload-required">*</span>}
+      {required && <span className="text-red-500 ml-1">*</span>}
     </label>
     {children}
-    {hint && <p className="upload-hint">{hint}</p>}
+    {hint && <p className="text-xs font-medium text-ghibli-charcoal/50 mt-1">{hint}</p>}
   </div>
 );
 
 const TypeCard = ({ active, onClick, title, desc, emoji }) => (
-  <button type="button" onClick={onClick} className={`upload-type-card ${active ? 'is-active' : ''}`}>
-    <span className="upload-type-emoji" aria-hidden>{emoji}</span>
-    <span className="upload-type-title">{title}</span>
-    <span className="upload-type-desc">{desc}</span>
+  <button
+    type="button"
+    onClick={onClick}
+    className={`flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
+      active
+        ? 'bg-white border-ghibli-gold shadow-[0_8px_20px_rgba(0,0,0,0.04)] scale-[1.02]'
+        : 'bg-white/40 border-transparent hover:bg-white hover:border-ghibli-gold/30 hover:shadow-sm'
+    }`}
+  >
+    <span className="text-3xl mb-2" aria-hidden>{emoji}</span>
+    <span className={`text-sm font-bold mb-1 ${active ? 'text-ghibli-charcoal' : 'text-ghibli-charcoal/70'}`}>{title}</span>
+    <span className={`text-[10px] uppercase tracking-wider font-extrabold ${active ? 'text-ghibli-wood' : 'text-ghibli-charcoal/40'}`}>{desc}</span>
   </button>
 );
 
 const BadgeToggle = ({ active, onClick, label }) => (
-  <button type="button" onClick={onClick} className={`upload-badge-toggle ${active ? 'is-active' : ''}`}>
+  <button
+    type="button"
+    onClick={onClick}
+    className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-300 ${
+      active
+        ? 'bg-ghibli-wood border-ghibli-wood text-white shadow-sm'
+        : 'bg-white/50 border-white/80 text-ghibli-charcoal/60 hover:bg-white hover:border-ghibli-wood/30'
+    }`}
+  >
     {label}
   </button>
 );
 
-/**
- * Polished upload form for gallery & shop admin.
- * @param {{ mode: 'gallery'|'shop', upload: object, categoryDefinitions: array, onCancel?: () => void }} props
- */
 const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
   const isGallery = mode === 'gallery';
   const isEditing = Boolean(upload.editingId);
@@ -58,12 +70,16 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
           ? 'Publish to gallery'
           : 'Publish to shop';
 
+  const inputClass = "w-full p-3 bg-white/50 border border-white/80 rounded-xl text-ghibli-charcoal placeholder-ghibli-charcoal/30 focus:outline-none focus:ring-2 focus:ring-ghibli-gold/40 focus:bg-white transition-all shadow-sm font-medium";
+
   return (
-    <div className="upload-shell card-ghibli">
-      <header className="upload-header">
+    <div className="card-ghibli bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] rounded-[2rem] overflow-hidden">
+      <header className="p-6 sm:p-8 border-b border-white/60 flex items-center justify-between">
         <div>
-          <p className="upload-header-eyebrow">{isGallery ? 'Gallery' : 'Shop'}</p>
-          <h2 className="upload-header-title">
+          <p className="text-[0.65rem] font-extrabold uppercase tracking-widest text-ghibli-wood mb-1">
+            {isGallery ? 'Gallery' : 'Shop'}
+          </p>
+          <h2 className="text-2xl font-serif font-bold text-ghibli-charcoal tracking-tight">
             {isEditing
               ? isGallery
                 ? 'Edit gallery piece'
@@ -74,38 +90,46 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
           </h2>
         </div>
         {isEditing && onCancel && (
-          <button type="button" onClick={onCancel} className="upload-cancel-btn">
+          <button type="button" onClick={onCancel} className="px-4 py-2 bg-white/60 hover:bg-white text-ghibli-charcoal font-bold text-sm rounded-xl border border-white/80 hover:border-ghibli-wood/30 transition-all shadow-sm">
             Cancel edit
           </button>
         )}
       </header>
 
-      <form onSubmit={upload.handleUpload} className="upload-form">
-        <div className="upload-layout">
+      <form onSubmit={upload.handleUpload} className="p-6 sm:p-8">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* ── Left: photo ── */}
-          <aside className="upload-photo-col">
+          <aside className="w-full lg:w-[320px] xl:w-[380px] shrink-0 space-y-6">
             <Field label="Cover photo" required={!isEditing}>
-              <ImageDropzone
-                previewUrl={upload.previewUrl}
-                onFile={handleFile}
-                onClear={upload.previewUrl ? upload.clearImage : null}
-                required={!isEditing}
-                editing={isEditing}
-              />
+              <div className="bg-white/50 border border-white/80 rounded-2xl p-2 shadow-sm">
+                <ImageDropzone
+                  previewUrl={upload.previewUrl}
+                  onFile={handleFile}
+                  onClear={upload.previewUrl ? upload.clearImage : null}
+                  required={!isEditing}
+                  editing={isEditing}
+                />
+              </div>
             </Field>
 
             {(upload.previewUrl || upload.title) && (
-              <div className="upload-live-preview" aria-hidden>
-                <p className="upload-live-label">Preview</p>
-                <div className="upload-live-card">
-                  {upload.previewUrl && (
-                    <div className="upload-live-thumb">
-                      <img src={upload.previewUrl} alt="" />
+              <div className="space-y-2 animate-in fade-in zoom-in duration-300">
+                <p className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Preview</p>
+                <div className="flex items-center gap-4 p-3 bg-white/60 rounded-2xl border border-white/80 shadow-sm">
+                  {upload.previewUrl ? (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/80 shadow-sm">
+                      <img src={upload.previewUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-ghibli-paper/50 flex items-center justify-center shrink-0 border border-white/80">
+                      <span className="opacity-30">🖼</span>
                     </div>
                   )}
-                  <div className="upload-live-body">
-                    <p className="upload-live-title">{upload.title || 'Untitled'}</p>
-                    <p className="upload-live-meta">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-ghibli-charcoal truncate">
+                      {upload.title || 'Untitled'}
+                    </p>
+                    <p className="text-[0.65rem] font-extrabold uppercase tracking-widest text-ghibli-charcoal/40 truncate mt-0.5">
                       {upload.category || (isGallery && upload.uploadType === 'upcoming' ? 'Upcoming' : 'Category')}
                       {!isGallery && upload.price ? ` · ₹${Number(upload.price).toLocaleString('en-IN')}` : ''}
                     </p>
@@ -116,11 +140,11 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
           </aside>
 
           {/* ── Right: fields ── */}
-          <div className="upload-fields-col">
+          <div className="flex-1 space-y-10 min-w-0">
             {isGallery && (
-              <section className="upload-section">
-                <h3 className="upload-section-title">Piece type</h3>
-                <div className="upload-type-grid">
+              <section className="space-y-4">
+                <h3 className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Piece type</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <TypeCard
                     active={upload.uploadType === 'gallery'}
                     onClick={() => upload.setUploadType('gallery')}
@@ -146,15 +170,15 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
               </section>
             )}
 
-            <section className="upload-section">
-              <h3 className="upload-section-title">Details</h3>
-              <div className="upload-fields-stack">
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Details</h3>
+              <div className="space-y-5">
                 <Field label={isGallery ? 'Title' : 'Product name'} hint={isGallery ? 'Optional but recommended' : undefined}>
                   <input
                     type="text"
                     value={upload.title}
                     onChange={(e) => upload.setTitle(e.target.value)}
-                    className="upload-input"
+                    className={inputClass}
                     placeholder={isGallery ? 'e.g. Radha Krishna Madhubani' : 'e.g. Mandala wall plate'}
                   />
                 </Field>
@@ -163,7 +187,7 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
                   <textarea
                     value={upload.desc}
                     onChange={(e) => upload.setDesc(e.target.value)}
-                    className="upload-textarea"
+                    className={`${inputClass} min-h-[100px] resize-y`}
                     rows={4}
                     placeholder="Materials, size, inspiration…"
                   />
@@ -172,14 +196,14 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
             </section>
 
             {(isGallery ? upload.uploadType !== 'upcoming' : true) && (
-              <section className="upload-section">
-                <h3 className="upload-section-title">Category</h3>
-                <div className="upload-row-2">
+              <section className="space-y-4">
+                <h3 className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Category</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Main category" required>
                     <select
                       value={upload.category}
                       onChange={(e) => upload.setCategory(e.target.value)}
-                      className="upload-select"
+                      className={inputClass}
                       required
                     >
                       <option value="" disabled>Select category</option>
@@ -192,7 +216,7 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
                     <select
                       value={subCategory}
                       onChange={(e) => upload.setSubCategory(e.target.value)}
-                      className="upload-select"
+                      className={inputClass}
                     >
                       <option value="">None</option>
                       {catDef?.subCategories?.map((sub) => (
@@ -206,16 +230,16 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
 
             {!isGallery && (
               <>
-                <section className="upload-section">
-                  <h3 className="upload-section-title">Pricing & inventory</h3>
-                  <div className="upload-row-3">
+                <section className="space-y-4">
+                  <h3 className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Pricing & inventory</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <Field label="Sale price (₹)" required>
                       <input
                         type="number"
                         min="0"
                         value={upload.price}
                         onChange={(e) => upload.setPrice(e.target.value)}
-                        className="upload-input"
+                        className={inputClass}
                         placeholder="799"
                         required
                       />
@@ -226,7 +250,7 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
                         min="0"
                         value={upload.originalPrice}
                         onChange={(e) => upload.setOriginalPrice(e.target.value)}
-                        className="upload-input"
+                        className={inputClass}
                         placeholder="999"
                       />
                     </Field>
@@ -236,16 +260,16 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
                         min="0"
                         value={upload.stock}
                         onChange={(e) => upload.setStock(e.target.value)}
-                        className="upload-input"
+                        className={inputClass}
                         placeholder="∞"
                       />
                     </Field>
                   </div>
                 </section>
 
-                <section className="upload-section">
-                  <h3 className="upload-section-title">Shop badges</h3>
-                  <div className="upload-badge-row">
+                <section className="space-y-4">
+                  <h3 className="text-xs font-bold text-ghibli-charcoal/50 uppercase tracking-widest">Shop badges</h3>
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <BadgeToggle
                       label="Featured"
                       active={upload.isFeatured}
@@ -268,8 +292,8 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
           </div>
         </div>
 
-        <footer className="upload-footer">
-          <p className="upload-footer-note">
+        <footer className="mt-10 pt-6 border-t border-white/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[0.7rem] font-medium text-ghibli-charcoal/50">
             {isGallery
               ? 'Publishes to /gallery · separate from shop products'
               : 'Publishes to /shop · requires a price'}
@@ -277,7 +301,11 @@ const AdminUploadForm = ({ mode, upload, categoryDefinitions, onCancel }) => {
           <button
             type="submit"
             disabled={upload.uploading}
-            className={`upload-submit ${upload.success ? 'is-success' : ''}`}
+            className={`px-8 py-3 rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-all duration-300 w-full sm:w-auto ${
+              upload.success
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-ghibli-wood text-ghibli-cream hover:bg-ghibli-navy hover:shadow-ghibli-navy/20'
+            }`}
           >
             {submitLabel}
           </button>
