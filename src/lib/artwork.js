@@ -30,6 +30,14 @@ export const formatPrice = (amount) => {
   }).format(num);
 };
 
+/** Afzaai-style: Rs. 799.00 */
+export const formatPriceShop = (amount) => {
+  if (amount == null || amount === '') return null;
+  const num = Number(amount);
+  if (Number.isNaN(num)) return null;
+  return `Rs. ${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 export const getBadges = (art) => {
   const badges = [];
   const discount = getDiscountPct(art);

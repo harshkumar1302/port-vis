@@ -94,7 +94,7 @@ const SiteTab = () => {
         <div>
           <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">WhatsApp Number (with country code)</label>
           <input value={contact.whatsapp_number || ''} onChange={e => setContact({ ...contact, whatsapp_number: e.target.value })} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50" placeholder="" />
-          <p className="text-xs text-ghibli-charcoal/50 mt-1">WhatsApp checkout is locked on the site for now — save your number here for when you enable it.</p>
+          <p className="text-xs text-ghibli-charcoal/50 mt-1">Powers WhatsApp buttons, cart checkout, and contact page when set. Include country code (e.g. 91…).</p>
         </div>
         <div>
           <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">WhatsApp Message Template (use {'{title}'})</label>

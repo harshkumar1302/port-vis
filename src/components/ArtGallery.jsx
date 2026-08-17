@@ -12,6 +12,7 @@ import 'swiper/css/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import ScrollRevealItem from './ScrollRevealItem';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
@@ -439,14 +440,20 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                 />
 
                 {/* Embla Viewport */}
-                <div className="overflow-hidden py-12 -my-12 pl-5 md:pl-10 lg:pl-14" ref={emblaRef}>
+                    <div className="overflow-hidden py-12 -my-12 pl-5 md:pl-10 lg:pl-14" ref={emblaRef}>
                     <div className="flex gap-6 md:gap-8 select-none touch-pan-y items-start">
                         {items.map((item, index) => (
-                            <div
+                            <ScrollRevealItem
                                 key={`${item.id || 'cat'}-${index}`}
-                                onClick={() => !item.isPlaceholder && onCardClick(item)}
+                                index={index}
+                                amount={0.18}
+                                delayStep={0.06}
+                                duration={0.9}
+                                y={20}
+                                scale={0.986}
                                 className={`flex-[0_0_72vw] sm:flex-[0_0_280px] md:flex-[0_0_320px] flex flex-col group ${item.isPlaceholder ? '' : 'cursor-pointer'}`}
                             >
+                                <div onClick={() => !item.isPlaceholder && onCardClick(item)} className="flex flex-col h-full">
                                 {/* Card Image */}
                                 <div className={`aspect-[4/5] rounded-[32px] mb-4 relative overflow-hidden transition-all duration-700 ${
                                     item.isPlaceholder
@@ -487,7 +494,8 @@ const CategorySlider = ({ cat, items, isEmpty, onCardClick }) => {
                                         </h4>
                                     </div>
                                 )}
-                            </div>
+                                </div>
+                            </ScrollRevealItem>
                         ))}
                     </div>
                 </div>

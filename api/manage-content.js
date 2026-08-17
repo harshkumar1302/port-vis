@@ -1,5 +1,35 @@
 import { getSupabase, verifyOwner, isMissingTable, tableMissingResponse } from "../lib/apiUtils.js";
 
+const adminOnly = (req, res) => {
+  const auth = verifyOwner(req);
+  if (!auth.ok) {
+    res.status(auth.status).json({ error: auth.error });
+    return null;
+  }
+  return auth;
+};
+
+const adminList = async (req, res, supabase, table, tableLabel) => {
+  if (!adminOnly(req, res)) return;
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  const { data, error } = await supabase.from(table).select("*").order("created_at", { ascending: false });
+  if (error) {
+    if (isMissingTable(error)) return tableMissingResponse(res, tableLabel);
+    throw error;
+  }
+  return res.status(200).json(data || []);
+};
+
+const adminMarkRead = async (req, res, supabase, table) => {
+  if (!adminOnly(req, res)) return;
+  if (req.method !== "PUT") return res.status(405).json({ error: "Method not allowed" });
+  const { id, status } = req.body;
+  if (!id || !status) return res.status(400).json({ error: "ID and status are required" });
+  const { data, error } = await supabase.from(table).update({ status }).eq("id", id).select();
+  if (error) throw error;
+  return res.status(200).json(data[0]);
+};
+
 const handleLeads = async (req, res, supabase) => {
   if (req.method === "POST") {
     const { name, contact_info, message } = req.body;
@@ -12,26 +42,25 @@ const handleLeads = async (req, res, supabase) => {
     return res.status(201).json({ success: true, lead: data[0] });
   }
 
-  const auth = verifyOwner(req);
-  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  if (req.method === "GET") return adminList(req, res, supabase, "chatbot_leads", "chatbot_leads");
+  if (req.method === "PUT") return adminMarkRead(req, res, supabase, "chatbot_leads");
+  return res.status(405).json({ error: "Method not allowed" });
+};
 
-  if (req.method === "GET") {
-    const { data, error } = await supabase.from("chatbot_leads").select("*").order("created_at", { ascending: false });
-    if (error) {
-      if (isMissingTable(error)) return res.status(200).json([]);
-      throw error;
-    }
-    return res.status(200).json(data || []);
-  }
+const handleContact = async (req, res, supabase) => {
+  if (req.method === "GET") return adminList(req, res, supabase, "contact_enquiries", "contact_enquiries");
+  if (req.method === "PUT") return adminMarkRead(req, res, supabase, "contact_enquiries");
+  return res.status(405).json({ error: "Method not allowed" });
+};
 
-  if (req.method === "PUT") {
-    const { id, status } = req.body;
-    if (!id || !status) return res.status(400).json({ error: "ID and status are required" });
-    const { data, error } = await supabase.from("chatbot_leads").update({ status }).eq("id", id).select();
-    if (error) throw error;
-    return res.status(200).json(data[0]);
-  }
+const handleCart = async (req, res, supabase) => {
+  if (req.method === "GET") return adminList(req, res, supabase, "cart_enquiries", "cart_enquiries");
+  if (req.method === "PUT") return adminMarkRead(req, res, supabase, "cart_enquiries");
+  return res.status(405).json({ error: "Method not allowed" });
+};
 
+const handleNewsletter = async (req, res, supabase) => {
+  if (req.method === "GET") return adminList(req, res, supabase, "newsletter_subscribers", "newsletter_subscribers");
   return res.status(405).json({ error: "Method not allowed" });
 };
 
@@ -53,8 +82,7 @@ const handleReviews = async (req, res, supabase) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const auth = verifyOwner(req);
-  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  if (!adminOnly(req, res)) return;
 
   if (req.method === "POST") {
     const { name, message, rating, avatar_url, verified, sort_order } = req.body;
@@ -91,18 +119,25 @@ const handleReviews = async (req, res, supabase) => {
   }
 };
 
+const RESOURCES = {
+  leads: handleLeads,
+  reviews: handleReviews,
+  contact: handleContact,
+  cart: handleCart,
+  newsletter: handleNewsletter,
+};
+
 export default async function handler(req, res) {
   const resource = req.query?.resource || req.body?._resource;
-  if (!resource || !["leads", "reviews"].includes(resource)) {
-    return res.status(400).json({ error: "Unknown resource. Use ?resource=leads|reviews" });
+  if (!resource || !RESOURCES[resource]) {
+    return res.status(400).json({ error: "Unknown resource. Use ?resource=leads|reviews|contact|cart|newsletter" });
   }
 
   const supabase = getSupabase();
   if (!supabase) return res.status(500).json({ error: "Server configuration error" });
 
   try {
-    if (resource === "leads") return handleLeads(req, res, supabase);
-    return handleReviews(req, res, supabase);
+    return RESOURCES[resource](req, res, supabase);
   } catch (err) {
     console.error(`Error in manage-content (${resource}, ${req.method}):`, err);
     return res.status(500).json({ error: err.message || "Database operation failed" });

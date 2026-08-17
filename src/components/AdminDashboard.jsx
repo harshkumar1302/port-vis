@@ -24,6 +24,31 @@ import LeadsTab from './admin/tabs/LeadsTab';
 import SiteTab from './admin/tabs/SiteTab';
 import ShopTab from './admin/tabs/ShopTab';
 
+const dashboardTabs = [
+    { id: 'gallery', label: 'Gallery', shortLabel: 'Gallery', icon: 'grid', description: 'Upload portfolio pieces for /gallery — categories, stories, featured & upcoming.' },
+    { id: 'shop', label: 'Shop', shortLabel: 'Shop', icon: 'bag', description: 'Upload items for sale on /shop — price, stock, and badges.' },
+    { id: 'reviews', label: 'Testimonials', shortLabel: 'Reviews', icon: 'heart', description: 'Keep your collector stories up to date.' },
+    { id: 'leads', label: 'Inquiries', shortLabel: 'Leads', icon: 'message', description: 'Chatbot, contact form, cart orders, and newsletter.' },
+    { id: 'site', label: 'Site settings', shortLabel: 'Settings', icon: 'settings', description: 'Fine-tune the public studio experience.' },
+];
+
+const DashboardIcon = ({ name, className = 'w-5 h-5' }) => {
+    const paths = {
+        grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+        bag: <><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></>,
+        heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />,
+        message: <><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.3 8.3 0 0 1-3.6-.8L4 20l1.4-3.5A7.3 7.3 0 0 1 4 12a7.5 7.5 0 0 1 8-7.5 7.5 7.5 0 0 1 8 7Z" /><path d="M8 12h.01M12 12h.01M16 12h.01" /></>,
+        settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.1 2.1-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-3v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-2.1-2.1.1-.1A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.5-1H5.3v-3h.2A1.7 1.7 0 0 0 7 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.1-2.1.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h3v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.1 2.1-.1.1A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.5 1h.2v3h-.2a1.7 1.7 0 0 0-1.5 1Z" /></>,
+        arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+    };
+
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {paths[name]}
+        </svg>
+    );
+};
+
 // Sortable Item Component
 const SortableArtworkRow = ({ art, isFeatured, handleEdit, handleDelete, isOverlay }) => {
     if (!art) return null;
@@ -141,7 +166,8 @@ const AdminDashboard = () => {
     const [isNew, setIsNew] = useState(false);
     const [price, setPrice] = useState('');
     const [originalPrice, setOriginalPrice] = useState('');
-    const [adminTab, setAdminTab] = useState('artworks');
+    const [stock, setStock] = useState('');
+    const [adminTab, setAdminTab] = useState('gallery');
     const [editingId, setEditingId] = useState(null);
     const subCategoryOverrideRef = useRef(null);
 
@@ -225,7 +251,7 @@ const AdminDashboard = () => {
             const res = await fetch('/api/me', { credentials: 'include' });
             if (res.ok) {
                 const data = await res.json();
-                setSession({ user: { id: 'admin-master', email: 'owner' } });
+                setSession({ user: { id: 'admin-master', email: data.email || 'owner' } });
             } else {
                 setSession(null);
             }
@@ -570,6 +596,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         setDesc(cleanDesc);
         setPrice(art.price ?? '');
         setOriginalPrice(art.original_price ?? '');
+        setStock(art.stock ?? '');
         setIsFeatured(art.is_featured || isFeaturedItem);
         setIsBestseller(art.is_bestseller || false);
         setIsNew(art.is_new || false);
@@ -578,9 +605,9 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         if (art.category === 'Upcoming') {
             setUploadType('upcoming');
             setCategory('');
-        } else if (art.category === 'Featured' || isFeaturedItem || art.is_featured) {
+        } else if (art.is_featured || isFeaturedItem) {
             setUploadType('featured');
-            setCategory('');
+            setCategory(art.category === 'Featured' ? '' : (art.category || ''));
         } else {
             setUploadType('gallery');
             setCategory(art.category || '');
@@ -647,14 +674,27 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                 if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
             }
 
-            const marketplaceFields = {
-                price: price ? Number(price) : null,
-                original_price: originalPrice ? Number(originalPrice) : null,
-                is_featured: uploadType === 'featured' || isFeatured,
-                is_bestseller: isBestseller,
-                is_new: isNew,
-                sub_category: subCategory || null,
-            };
+            const existingArt = editingId ? artworks.find((a) => a.id === editingId) : null;
+            const marketplaceFields =
+                adminTab === 'gallery' && existingArt
+                    ? {
+                        price: existingArt.price ?? null,
+                        original_price: existingArt.original_price ?? null,
+                        stock: existingArt.stock ?? null,
+                        is_featured: uploadType === 'featured' || isFeatured,
+                        is_bestseller: existingArt.is_bestseller ?? false,
+                        is_new: existingArt.is_new ?? false,
+                        sub_category: subCategory || null,
+                    }
+                    : {
+                        price: price ? Number(price) : null,
+                        original_price: originalPrice ? Number(originalPrice) : null,
+                        is_featured: uploadType === 'featured' || isFeatured,
+                        is_bestseller: isBestseller,
+                        is_new: isNew,
+                        sub_category: subCategory || null,
+                        stock: stock === '' ? null : Number(stock),
+                    };
 
             if (editingId) {
                 const res = await fetch('/api/manage-art', {
@@ -724,6 +764,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         setUploadType('gallery');
         setPrice('');
         setOriginalPrice('');
+        setStock('');
         setIsFeatured(false);
         setIsBestseller(false);
         setIsNew(false);
@@ -1005,60 +1046,91 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         );
     }
 
-    return (
-        <div className="min-h-screen p-4 sm:p-10 pt-24 sm:pt-32 bg-ghibli-cream transition-colors duration-500">
-            <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                    <div className="flex flex-col w-full sm:w-auto">
-                        <a href="/" className="text-sm font-bold text-ghibli-wood hover:text-ghibli-navy transition-colors mb-2 flex items-center gap-1 group active:scale-95">
-                            <span className="group-hover:-translate-x-1 transition-transform">←</span> Exit to Site
-                        </a>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-wood font-serif">Artist Dashboard</h1>
-                    </div>
-                    <div className="flex flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
-                        <button
-                            onClick={() => setShowChangePassword(true)}
-                            className="flex-1 sm:flex-none px-6 py-2.5 bg-ghibli-wood/10 hover:bg-ghibli-wood/20 text-ghibli-wood border border-ghibli-wood/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            <span>⚙️</span> <span className="hidden sm:inline">Reset Password</span><span className="sm:hidden">Settings</span>
-                        </button>
-                        <button onClick={handleSignOut} className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
-                            <span>🚪</span> Sign Out
-                        </button>
-                    </div>
-                </div>
+    const activeTab = dashboardTabs.find((tab) => tab.id === adminTab) || dashboardTabs[0];
+    const featuredCount = artworks.filter((art) => art.description?.includes('[FEATURED]')).length;
+    const upcomingCount = artworks.filter((art) => art.category === 'Upcoming').length;
 
-                <div className="flex overflow-x-auto no-scrollbar bg-ghibli-paper/20 p-1 rounded-xl gap-1">
-                    {[
-                        { id: 'artworks', label: 'Artworks' },
-                        { id: 'shop', label: 'Products' },
-                        { id: 'reviews', label: 'Reviews' },
-                        { id: 'leads', label: 'Leads' },
-                        { id: 'site', label: 'Site Settings' },
-                    ].map(tab => (
+    return (
+        <div className="admin-shell min-h-screen bg-ghibli-cream">
+            <aside className="admin-sidebar">
+                <a href="/" className="admin-brand" aria-label="Return to Visheshkala website">
+                    <span className="admin-brand-mark">V</span>
+                    <span><strong>Visheshkala</strong><small>Artist studio</small></span>
+                </a>
+
+                <nav className="admin-navigation" aria-label="Dashboard navigation">
+                    <span className="admin-nav-label">Workspace</span>
+                    {dashboardTabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setAdminTab(tab.id)}
-                            className={`flex-shrink-0 min-w-[88px] sm:flex-1 py-2.5 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${adminTab === tab.id ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
+                            className={`admin-nav-item ${adminTab === tab.id ? 'is-active' : ''}`}
                         >
-                            {tab.label}
+                            <DashboardIcon name={tab.icon} />
+                            <span>{tab.label}</span>
+                            {tab.id === 'artworks' && artworks.length > 0 && <b>{artworks.length}</b>}
                         </button>
                     ))}
+                </nav>
+
+                <div className="admin-sidebar-footer">
+                    <a href="/" className="admin-site-link"><span>View public site</span><DashboardIcon name="arrow" className="w-4 h-4" /></a>
+                    <button onClick={handleSignOut} className="admin-signout">Sign out</button>
                 </div>
+            </aside>
 
-                {adminTab === 'shop' && <ShopTab />}
-                {adminTab === 'reviews' && <ReviewsTab />}
-                {adminTab === 'leads' && <LeadsTab />}
-                {adminTab === 'site' && <SiteTab />}
+            <main className="admin-main">
+                <header className="admin-topbar">
+                    <div>
+                        <p className="admin-eyebrow">Studio workspace</p>
+                        <h1>{activeTab.label}</h1>
+                    </div>
+                    <div className="admin-topbar-actions">
+                        <a href="/" className="admin-view-site">View site <DashboardIcon name="arrow" className="w-4 h-4" /></a>
+                        <button onClick={() => setShowChangePassword(true)} className="admin-account-button" aria-label="Change password">
+                            <DashboardIcon name="settings" className="w-[18px] h-[18px]" />
+                            <span>Account</span>
+                        </button>
+                    </div>
+                </header>
 
-                {adminTab === 'artworks' && (<>
+                <nav className="admin-mobile-nav no-scrollbar" aria-label="Dashboard navigation">
+                    {dashboardTabs.map((tab) => (
+                        <button key={tab.id} onClick={() => setAdminTab(tab.id)} className={adminTab === tab.id ? 'is-active' : ''}>
+                            <DashboardIcon name={tab.icon} className="w-[18px] h-[18px]" />
+                            {tab.shortLabel}
+                        </button>
+                    ))}
+                </nav>
+
+                <section className="admin-welcome-card">
+                    <div>
+                        <p className="admin-eyebrow">Today in your studio</p>
+                        <h2>{adminTab === 'gallery' ? 'Your collection, beautifully in order.' : activeTab.description}</h2>
+                    </div>
+                    <div className="admin-quick-stats" aria-label="Collection summary">
+                        <div><strong>{artworks.length}</strong><span>pieces</span></div>
+                        <div><strong>{featuredCount}</strong><span>featured</span></div>
+                        <div><strong>{upcomingCount}</strong><span>upcoming</span></div>
+                    </div>
+                </section>
+
+                <section className="admin-workspace">
+                    {adminTab === 'shop' && (
+                        <ShopTab session={session} categoryDefinitions={categoryDefinitions} />
+                    )}
+                    {adminTab === 'reviews' && <ReviewsTab />}
+                    {adminTab === 'leads' && <LeadsTab />}
+                    {adminTab === 'site' && <SiteTab />}
+
+                {adminTab === 'gallery' && (<>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
                     {/* Upload Form */}
                     <div className="lg:col-span-1">
                         <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] lg:sticky lg:top-32">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-ghibli-navy">{editingId ? 'Edit Artwork' : 'New Creation'}</h2>
+                                <h2 className="text-2xl font-bold text-ghibli-navy">{editingId ? 'Edit gallery piece' : 'Add to gallery'}</h2>
                                 {editingId && (
                                     <button onClick={resetForm} className="text-[10px] font-bold text-red-500 uppercase tracking-widest hover:text-red-600 transition-colors active:scale-90">Cancel</button>
                                 )}
@@ -1070,7 +1142,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     onClick={() => setUploadType('gallery')}
                                     className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${uploadType === 'gallery' ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40 hover:text-ghibli-charcoal/60'}`}
                                 >
-                                    Product
+                                    Gallery
                                 </button>
                                 <button
                                     onClick={() => setUploadType('featured')}
@@ -1133,31 +1205,14 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                     <textarea value={desc} onChange={(e) => setDesc(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood h-24" />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Price (₹)</label>
-                                        <input type="number" min="0" step="1" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" placeholder="799" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Original Price (₹)</label>
-                                        <input type="number" min="0" step="1" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold" placeholder="999" />
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap gap-4">
+                                {uploadType === 'featured' && (
                                     <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
                                         <input type="checkbox" checked={isFeatured || uploadType === 'featured'} onChange={(e) => setIsFeatured(e.target.checked)} disabled={uploadType === 'featured'} />
-                                        Featured
+                                        Show in Featured Picks
                                     </label>
-                                    <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
-                                        <input type="checkbox" checked={isBestseller} onChange={(e) => setIsBestseller(e.target.checked)} />
-                                        Bestseller
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm font-bold text-ghibli-charcoal/70">
-                                        <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} />
-                                        New Launch
-                                    </label>
-                                </div>
+                                )}
+
+                                <p className="text-[10px] text-ghibli-charcoal/50">Prices and stock are managed in the <strong>Shop</strong> tab.</p>
 
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70 text-left">Image File {editingId && '(Optional if not changing)'}</label>
@@ -1777,6 +1832,8 @@ Check your internet connection. If this is on Vercel, please ensure you have run
 
                 </>)}
 
+                </section>
+
                 {/* Change Password Modal */}
                 {showChangePassword && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1904,7 +1961,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                         </div>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

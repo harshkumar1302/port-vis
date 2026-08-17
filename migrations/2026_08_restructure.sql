@@ -12,7 +12,8 @@ ALTER TABLE public.artworks
   ADD COLUMN IF NOT EXISTS is_new BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS sub_category TEXT,
-  ADD COLUMN IF NOT EXISTS sort_order INTEGER;
+  ADD COLUMN IF NOT EXISTS sort_order INTEGER,
+  ADD COLUMN IF NOT EXISTS stock INTEGER;
 
 -- Backfill is_featured from legacy string tags
 UPDATE public.artworks

@@ -8,6 +8,7 @@ import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
 import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import ScrollRevealItem from './ScrollRevealItem';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
@@ -213,50 +214,60 @@ const FullGallery = () => {
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 md:gap-8 min-h-[50vh]">
                     {displayArtworks.length > 0 ? (
-                        displayArtworks.map((art) => (
-                            <div
+                        displayArtworks.map((art, index) => (
+                            <ScrollRevealItem
                                 key={art.id}
-                                onClick={() => setSelectedArt(art)}
-                                className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-700 border border-ghibli-wood/5 flex flex-col hover:-translate-y-2 relative overflow-hidden h-full"
+                                index={index}
+                                amount={0.18}
+                                delayStep={0.06}
+                                duration={0.9}
+                                y={26}
+                                scale={0.986}
+                                className="h-full"
                             >
-                                {/* Subtle hover glow in background */}
-                                <div className="absolute inset-0 bg-ghibli-cream/0 group-hover:bg-ghibli-cream/50 transition-colors duration-500 z-0 rounded-2xl sm:rounded-[32px]"></div>
-                                
-                                <div className="relative z-10">
-                                    <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6 relative">
-                                        <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-700 z-10"></div>
-                                        <div className="w-full aspect-[4/5] relative">
-                                            <ArtworkImage
-                                                src={art.image_url}
-                                                alt={art.title}
-                                                size="card"
-                                                objectFit="object-contain"
-                                                className="absolute inset-0"
-                                                imgClassName="p-4 transition-transform duration-1000 group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </div>
+                                <div
+                                    onClick={() => setSelectedArt(art)}
+                                    className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-700 border border-ghibli-wood/5 flex flex-col hover:-translate-y-2 relative overflow-hidden h-full"
+                                >
+                                    {/* Subtle hover glow in background */}
+                                    <div className="absolute inset-0 bg-ghibli-cream/0 group-hover:bg-ghibli-cream/50 transition-colors duration-500 z-0 rounded-2xl sm:rounded-[32px]"></div>
 
-                                    {art.title && (
-                                        <div className="px-1 sm:px-2 pb-1 sm:pb-2">
-                                            <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.15em] sm:tracking-[0.2em] text-ghibli-wood/50 uppercase block mb-1 sm:mb-3">
-                                                {category}
-                                            </span>
-                                            <h4 className="font-bold text-ghibli-charcoal text-sm sm:text-lg md:text-2xl font-serif group-hover:text-ghibli-wood transition-colors duration-300 leading-snug line-clamp-2">
-                                                {art.title}
-                                            </h4>
-                                            {art.price && (
-                                                <div className="mt-2 sm:mt-4 flex items-baseline gap-2 sm:gap-3 border-t border-ghibli-wood/10 pt-2 sm:pt-4">
-                                                    <span className="font-black text-sm sm:text-lg md:text-xl text-ghibli-charcoal">{formatPrice(art.price)}</span>
-                                                    {art.original_price && getDiscountPct(art) && (
-                                                        <span className="text-sm text-ghibli-charcoal/30 line-through font-bold">{formatPrice(art.original_price)}</span>
-                                                    )}
-                                                </div>
-                                            )}
+                                    <div className="relative z-10">
+                                        <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6 relative">
+                                            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-700 z-10"></div>
+                                            <div className="w-full aspect-[4/5] relative">
+                                                <ArtworkImage
+                                                    src={art.image_url}
+                                                    alt={art.title}
+                                                    size="card"
+                                                    objectFit="object-contain"
+                                                    className="absolute inset-0"
+                                                    imgClassName="p-4 transition-transform duration-1000 group-hover:scale-105"
+                                                />
+                                            </div>
                                         </div>
-                                    )}
+
+                                        {art.title && (
+                                            <div className="px-1 sm:px-2 pb-1 sm:pb-2">
+                                                <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.15em] sm:tracking-[0.2em] text-ghibli-wood/50 uppercase block mb-1 sm:mb-3">
+                                                    {category}
+                                                </span>
+                                                <h4 className="font-bold text-ghibli-charcoal text-sm sm:text-lg md:text-2xl font-serif group-hover:text-ghibli-wood transition-colors duration-300 leading-snug line-clamp-2">
+                                                    {art.title}
+                                                </h4>
+                                                {art.price && (
+                                                    <div className="mt-2 sm:mt-4 flex items-baseline gap-2 sm:gap-3 border-t border-ghibli-wood/10 pt-2 sm:pt-4">
+                                                        <span className="font-black text-sm sm:text-lg md:text-xl text-ghibli-charcoal">{formatPrice(art.price)}</span>
+                                                        {art.original_price && getDiscountPct(art) && (
+                                                            <span className="text-sm text-ghibli-charcoal/30 line-through font-bold">{formatPrice(art.original_price)}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            </ScrollRevealItem>
                         ))
                     ) : (
                         /* Empty State Placeholders - LIGHT MUSEUM */

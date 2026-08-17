@@ -15,10 +15,7 @@
   --ghibli-navy: #1F2937;
   /* Deep cozy night */
 
-  /* Dark Mode specific base */
-  --ghibli-dark-bg: #23211F;
-  /* Warm dark charcoal */
-  --ghibli-dark-card: #2D2A28;
+
 
   /* Accents */
   --ghibli-gold: #FACD60;
@@ -42,8 +39,6 @@
   --color-ghibli-paper: var(--ghibli-paper);
   --color-ghibli-charcoal: var(--ghibli-charcoal);
   --color-ghibli-navy: var(--ghibli-navy);
-  --color-ghibli-dark-bg: var(--ghibli-dark-bg);
-  --color-ghibli-dark-card: var(--ghibli-dark-card);
   --color-ghibli-gold: var(--ghibli-gold);
   --color-ghibli-moss: var(--ghibli-moss);
   --color-ghibli-wood: var(--ghibli-wood);
@@ -72,6 +67,10 @@ html {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
+}
+
+a, button, input, select, textarea {
+  touch-action: manipulation;
 }
 
 body {
@@ -104,8 +103,6 @@ h6 {
   font-family: var(--font-body) !important;
 }
 
-/* Dark Mode Overrides */
-
 /* 🧼 Components */
 .page-container {
   width: 100%;
@@ -113,7 +110,6 @@ h6 {
   margin-right: auto;
   padding-left: 1rem;
   padding-right: 1rem;
-  max-width: 100vw;
 }
 
 @media (min-width: 640px) {
@@ -229,6 +225,136 @@ h6 {
 .animate-star {
   display: inline-block;
   animation: star-float 3s ease-in-out infinite;
+}
+
+/* Studio dashboard */
+.admin-shell {
+  --admin-ink: #302821;
+  --admin-muted: #82776d;
+  --admin-line: rgba(89, 66, 47, 0.12);
+  --admin-surface: rgba(255, 253, 247, 0.84);
+  background:
+    radial-gradient(circle at 75% 0%, rgba(250, 205, 96, 0.17), transparent 25rem),
+    linear-gradient(135deg, #f6f0e4 0%, #fffdf5 48%, #f4ecdf 100%);
+  color: var(--admin-ink);
+  display: grid;
+  grid-template-columns: 16.5rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background: rgba(49, 39, 31, 0.98);
+  color: #f8f1e5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2rem 1.1rem 1.35rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-brand {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  gap: 0.75rem;
+  margin: 0 0 3.5rem 0.45rem;
+  text-decoration: none;
+}
+
+.admin-brand-mark {
+  align-items: center;
+  background: #f5c960;
+  border-radius: 0.8rem;
+  color: #382a20;
+  display: inline-flex;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  height: 2.35rem;
+  justify-content: center;
+  width: 2.35rem;
+}
+
+.admin-brand strong,
+.admin-brand small { display: block; }
+.admin-brand strong { font-family: var(--font-heading); font-size: 0.95rem; letter-spacing: -0.02em; }
+.admin-brand small { color: rgba(248, 241, 229, 0.5); font-size: 0.62rem; letter-spacing: 0.12em; margin-top: 0.05rem; text-transform: uppercase; }
+
+.admin-navigation { display: grid; gap: 0.35rem; }
+.admin-nav-label { color: rgba(248, 241, 229, 0.4); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; margin: 0 0 0.7rem 0.75rem; text-transform: uppercase; }
+
+.admin-nav-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.7rem;
+  color: rgba(248, 241, 229, 0.62);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: 0.83rem;
+  font-weight: 700;
+  gap: 0.8rem;
+  padding: 0.78rem 0.75rem;
+  text-align: left;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+  width: 100%;
+}
+
+.admin-nav-item:hover { color: #fffaf2; transform: translateX(2px); }
+.admin-nav-item.is-active { background: rgba(255, 255, 255, 0.12); color: #fffaf2; }
+.admin-nav-item b { background: rgba(245, 201, 96, 0.18); border-radius: 999px; color: #f5d986; font-size: 0.65rem; margin-left: auto; padding: 0.15rem 0.45rem; }
+
+.admin-sidebar-footer { display: grid; gap: 0.8rem; margin-top: auto; padding: 1.1rem 0.75rem 0 0.75rem; }
+.admin-site-link { align-items: center; color: rgba(248, 241, 229, 0.66); display: flex; font-size: 0.75rem; font-weight: 700; gap: 0.5rem; justify-content: space-between; text-decoration: none; }
+.admin-site-link:hover { color: #f5d986; }
+.admin-signout { background: transparent; border: 0; color: rgba(248, 241, 229, 0.4); cursor: pointer; font-family: var(--font-body); font-size: 0.72rem; font-weight: 700; padding: 0; text-align: left; }
+.admin-signout:hover { color: #ffb5a5; }
+
+.admin-main { max-width: 100rem; padding: 2rem clamp(1.25rem, 4vw, 4.5rem) 4.5rem; width: 100%; }
+.admin-topbar { align-items: center; display: flex; justify-content: space-between; min-height: 3.75rem; }
+.admin-eyebrow { color: var(--ghibli-wood); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.17em; margin: 0 0 0.32rem; text-transform: uppercase; }
+.admin-topbar h1 { color: var(--admin-ink); font-size: clamp(1.55rem, 2.5vw, 2.25rem); line-height: 1.05; margin: 0; }
+.admin-topbar-actions { align-items: center; display: flex; gap: 0.6rem; }
+.admin-view-site, .admin-account-button { align-items: center; border-radius: 0.65rem; display: inline-flex; font-family: var(--font-body); font-size: 0.75rem; font-weight: 800; gap: 0.45rem; padding: 0.65rem 0.8rem; transition: 180ms ease; }
+.admin-view-site { color: var(--admin-muted); text-decoration: none; }
+.admin-view-site:hover { color: var(--admin-ink); }
+.admin-account-button { background: #382f28; border: 1px solid #382f28; color: #fffaf2; cursor: pointer; }
+.admin-account-button:hover { background: var(--ghibli-wood); border-color: var(--ghibli-wood); }
+
+.admin-mobile-nav { display: none; }
+.admin-welcome-card { align-items: end; background: var(--admin-surface); border: 1px solid rgba(255, 255, 255, 0.86); border-radius: 1.25rem; box-shadow: 0 1rem 3.5rem rgba(75, 55, 36, 0.07); display: flex; gap: 2rem; justify-content: space-between; margin: 2.6rem 0 1.75rem; overflow: hidden; padding: clamp(1.35rem, 3vw, 2rem); position: relative; }
+.admin-welcome-card::after { background: radial-gradient(circle, rgba(245, 201, 96, 0.32), transparent 70%); content: ''; height: 13rem; position: absolute; right: -4rem; top: -8rem; width: 13rem; }
+.admin-welcome-card > * { position: relative; z-index: 1; }
+.admin-welcome-card h2 { color: var(--admin-ink); font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.3; margin: 0; max-width: 34rem; }
+.admin-quick-stats { display: flex; gap: clamp(0.9rem, 3vw, 2.6rem); padding: 0.2rem 0.45rem; }
+.admin-quick-stats div { display: grid; gap: 0.08rem; min-width: 3.5rem; }
+.admin-quick-stats strong { color: var(--admin-ink); font-family: var(--font-heading); font-size: 1.45rem; line-height: 1; }
+.admin-quick-stats span { color: var(--admin-muted); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.admin-workspace > .grid { margin-top: 0.5rem; }
+.admin-workspace .card-ghibli,
+.admin-workspace .bg-white.rounded-2xl,
+.admin-workspace .bg-white\/40 { box-shadow: 0 0.85rem 2.4rem rgba(67, 48, 31, 0.06); }
+
+@media (max-width: 900px) {
+  .admin-shell { display: block; }
+  .admin-sidebar { display: none; }
+  .admin-main { padding: 1.35rem 1rem 3rem; }
+  .admin-mobile-nav { background: rgba(255, 253, 247, 0.7); border: 1px solid rgba(89, 66, 47, 0.09); border-radius: 0.8rem; display: flex; gap: 0.25rem; margin: 1.5rem 0 0; overflow-x: auto; padding: 0.25rem; }
+  .admin-mobile-nav button { align-items: center; background: transparent; border: 0; border-radius: 0.6rem; color: var(--admin-muted); cursor: pointer; display: flex; flex: 0 0 auto; font-family: var(--font-body); font-size: 0.68rem; font-weight: 800; gap: 0.35rem; padding: 0.65rem 0.72rem; white-space: nowrap; }
+  .admin-mobile-nav button.is-active { background: #382f28; color: #fffaf2; }
+  .admin-welcome-card { margin-top: 1.25rem; }
+}
+
+@media (max-width: 560px) {
+  .admin-topbar-actions .admin-view-site { display: none; }
+  .admin-account-button span { display: none; }
+  .admin-account-button { padding: 0.65rem; }
+  .admin-welcome-card { align-items: start; flex-direction: column; gap: 1.25rem; }
+  .admin-quick-stats { gap: 1.35rem; padding: 0; }
 }
 
 @keyframes fade-in {
