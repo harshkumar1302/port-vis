@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ANNOUNCEMENT_UPDATE_EVENT } from '../../../hooks/useAnnouncementBar';
-import { HERO_BANNER_UPDATE_EVENT } from '../../../hooks/useHeroBanner';
-import { DEFAULT_HERO_BANNER } from '../../../constants/heroBanners';
 import { fetchSiteSetting } from '../../../lib/fetchSettings';
-import { supabase } from '../../../lib/supabaseClient';
-import ImageDropzone from '../ImageDropzone';
 
 const SiteTab = () => {
   const [announcement, setAnnouncement] = useState({ enabled: true, items: [] });
   const [contact, setContact] = useState({ instagram_url: '', whatsapp_number: '', whatsapp_message_template: '' });
   const [stats, setStats] = useState({ handmade_pct: 100, happy_homes: 500, rating: 5 });
-  const [heroBanner, setHeroBanner] = useState(DEFAULT_HERO_BANNER);
-  const [bannerFile, setBannerFile] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState('');
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -23,12 +16,10 @@ const SiteTab = () => {
       fetchSiteSetting('announcement_bar', { enabled: true, items: [] }),
       fetchSiteSetting('contact_channels', { instagram_url: '', whatsapp_number: '', whatsapp_message_template: '' }),
       fetchSiteSetting('hero_stats', { handmade_pct: 100, happy_homes: 500, rating: 5 }),
-      fetchSiteSetting('hero_banner', DEFAULT_HERO_BANNER),
-    ]).then(([ann, con, st, banner]) => {
+    ]).then(([ann, con, st]) => {
       if (ann) setAnnouncement({ ...ann, items: ann.items || [] });
       if (con) setContact(con);
       if (st) setStats(st);
-      if (banner) setHeroBanner(banner);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -42,47 +33,14 @@ const SiteTab = () => {
     if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
   };
 
-  const uploadBannerFile = async (file) => {
-    const ext = file.name.split('.').pop() || 'jpg';
-    const filePath = `hero-banners/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('artworks').upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false,
-    });
-    if (error) throw error;
-    const { data: { publicUrl } } = supabase.storage.from('artworks').getPublicUrl(filePath);
-    return publicUrl;
-  };
-
-  const handleBannerFile = (file) => {
-    if (bannerPreview.startsWith('blob:')) URL.revokeObjectURL(bannerPreview);
-    setBannerFile(file);
-    setBannerPreview(URL.createObjectURL(file));
-  };
-
-  const clearBannerFile = () => {
-    if (bannerPreview.startsWith('blob:')) URL.revokeObjectURL(bannerPreview);
-    setBannerFile(null);
-    setBannerPreview('');
-  };
-
   const handleSave = async () => {
     setSaving(true);
     setSuccess(false);
     try {
-      let bannerToSave = { ...heroBanner };
-      if (bannerFile) {
-        bannerToSave = { ...bannerToSave, src: await uploadBannerFile(bannerFile) };
-        setHeroBanner(bannerToSave);
-        clearBannerFile();
-      }
-
       await saveSetting('announcement_bar', announcement);
       await saveSetting('contact_channels', contact);
       await saveSetting('hero_stats', stats);
-      await saveSetting('hero_banner', bannerToSave);
       window.dispatchEvent(new Event(ANNOUNCEMENT_UPDATE_EVENT));
-      window.dispatchEvent(new Event(HERO_BANNER_UPDATE_EVENT));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -118,7 +76,7 @@ const SiteTab = () => {
       <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div>
           <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Site Settings</h2>
-          <p className="text-sm font-semibold text-ghibli-charcoal/60">Manage homepage banner, announcements, contact channels, and hero statistics.</p>
+          <p className="text-sm font-semibold text-ghibli-charcoal/60">Manage announcements, contact channels, and hero statistics.</p>
         </div>
       </div>
 
@@ -175,50 +133,6 @@ const SiteTab = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Homepage Banner */}
-        <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem] shadow-sm space-y-6">
-          <div>
-            <h3 className="text-xl font-bold text-ghibli-charcoal mb-1">Homepage Banner</h3>
-            <p className="text-xs font-semibold text-ghibli-charcoal/50">
-              Upload a wide banner for the home page. Best size: 2078×640 px (PNG or JPG).
-            </p>
-          </div>
-
-          <ImageDropzone
-            previewUrl={bannerPreview || heroBanner.src || ''}
-            onFile={handleBannerFile}
-            onClear={bannerPreview ? clearBannerFile : null}
-            aspectRatio="aspect-[2078/640]"
-          />
-
-          {bannerFile && (
-            <p className="text-xs font-semibold text-ghibli-wood">
-              New banner selected — click Save All Settings to upload and publish.
-            </p>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/70">
-              Or paste image URL
-            </label>
-            <input
-              value={heroBanner.src || ''}
-              onChange={(e) => setHeroBanner({ ...heroBanner, src: e.target.value })}
-              className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/80 focus:border-ghibli-wood/40 outline-none text-sm font-semibold"
-              placeholder="/hero-banner.png or https://..."
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/70">Alt text</label>
-            <input
-              value={heroBanner.alt || ''}
-              onChange={(e) => setHeroBanner({ ...heroBanner, alt: e.target.value })}
-              className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/80 focus:border-ghibli-wood/40 outline-none text-sm font-semibold"
-              placeholder="Describe the banner for accessibility"
-            />
           </div>
         </div>
 
