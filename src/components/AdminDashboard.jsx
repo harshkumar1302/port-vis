@@ -1,36 +1,18 @@
 import { useState, useEffect } from 'react';
-import OverviewTab from './admin/tabs/OverviewTab';
-import ReviewsTab from './admin/tabs/ReviewsTab';
-import LeadsTab from './admin/tabs/LeadsTab';
-import SiteTab from './admin/tabs/SiteTab';
-import ShopTab from './admin/tabs/ShopTab';
-import GalleryTab from './admin/tabs/GalleryTab';
+import DesktopAdminShell from './admin/DesktopAdminShell';
+import MobileAdminShell from './admin/MobileAdminShell';
 
-const dashboardTabs = [
-    { id: 'overview', label: 'Home', shortLabel: 'Home', icon: 'home', description: 'Quick overview and shortcuts to manage your studio.' },
-    { id: 'gallery', label: 'Gallery', shortLabel: 'Gallery', icon: 'grid', description: 'Portfolio for /gallery — add piece, browse, or manage categories.' },
-    { id: 'shop', label: 'Shop', shortLabel: 'Shop', icon: 'bag', description: 'Products for /shop — add product, browse, or manage categories.' },
-    { id: 'reviews', label: 'Testimonials', shortLabel: 'Reviews', icon: 'heart', description: 'Collector stories and testimonials.' },
-    { id: 'leads', label: 'Inquiries', shortLabel: 'Leads', icon: 'message', description: 'Contact form, cart orders, chatbot, and newsletter.' },
-    { id: 'site', label: 'Settings', shortLabel: 'Settings', icon: 'settings', description: 'Announcement bar, WhatsApp, and hero stats.' },
-];
-
-const DashboardIcon = ({ name, className = 'w-5 h-5' }) => {
-    const paths = {
-        grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
-        home: <><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" /></>,
-        bag: <><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></>,
-        heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />,
-        message: <><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.3 8.3 0 0 1-3.6-.8L4 20l1.4-3.5A7.3 7.3 0 0 1 4 12a7.5 7.5 0 0 1 8-7.5 7.5 7.5 0 0 1 8 7Z" /><path d="M8 12h.01M12 12h.01M16 12h.01" /></>,
-        settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.1 2.1-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-3v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-2.1-2.1.1-.1A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.5-1H5.3v-3h.2A1.7 1.7 0 0 0 7 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.1-2.1.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h3v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.1 2.1-.1.1A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.5 1h.2v3h-.2a1.7 1.7 0 0 0-1.5 1Z" /></>,
-        arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
-    };
-
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {paths[name]}
-        </svg>
-    );
+// Hook for responsive detection
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(false);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        if (media.matches !== matches) setMatches(media.matches);
+        const listener = () => setMatches(media.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [matches, query]);
+    return matches;
 };
 
 const AdminDashboard = () => {
@@ -48,6 +30,8 @@ const AdminDashboard = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
+    
+    // Auth modals state
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -55,10 +39,14 @@ const AdminDashboard = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+    
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [isSendingReset, setIsSendingReset] = useState(false);
     const [resetSuccess, setResetSuccess] = useState(false);
+
+    // Responsive State
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
         checkSession();
@@ -104,11 +92,7 @@ const AdminDashboard = () => {
             }
         } catch (err) {
             console.error('Login error:', err);
-            alert(`🔒 Connection error. 
-            
-If you are developing locally, please use "vercel dev" to start the server. 
-
-If this is production, please check your Vercel logs and ensure you have run the Supabase SQL setup.`);
+            alert(`🔒 Connection error. \n\nIf you are developing locally, please use "vercel dev" to start the server. \n\nIf this is production, please check your Vercel logs and ensure you have run the Supabase SQL setup.`);
         } finally {
             setLoading(false);
         }
@@ -157,9 +141,7 @@ If this is production, please check your Vercel logs and ensure you have run the
             }
         } catch (err) {
             console.error('Registration error:', err);
-            alert(`❌ Connection error. 
-            
-Check your internet connection. If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
+            alert(`❌ Connection error. \n\nCheck your internet connection. If this is on Vercel, please ensure you have run the Supabase SQL setup and configured your environment variables.`);
         } finally {
             setIsRegistering(false);
         }
@@ -201,7 +183,7 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                     <a href="/" className="inline-flex items-center gap-2 text-ghibli-wood hover:text-ghibli-navy mb-8 font-bold transition-all group">
                         <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Studio
                     </a>
-                    <div className="card-ghibli p-10 bg-white/40 backdrop-blur-xl border border-white/20 text-center shadow-2xl rounded-[2rem]">
+                    <div className="card-ghibli p-8 sm:p-10 bg-white/40 backdrop-blur-xl border border-white/20 text-center shadow-2xl rounded-[2rem]">
                         <h1 className="text-3xl font-bold text-ghibli-navy font-serif mb-2">Admin Dashboard</h1>
                         <span className="text-[10px] font-bold tracking-[0.3em] text-ghibli-wood/60 uppercase block mb-8">🔒 Secure Authentication System</span>
 
@@ -248,14 +230,9 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             title={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? (
-                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                                </svg>
+                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
                                             ) : (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             )}
                                         </button>
                                     </div>
@@ -297,17 +274,11 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors rounded-full hover:bg-white/50"
-                                            title={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? (
-                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                                </svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
                                             ) : (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             )}
                                         </button>
                                     </div>
@@ -327,17 +298,11 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             type="button"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors rounded-full hover:bg-white/50"
-                                            title={showConfirmPassword ? "Hide password" : "Show password"}
                                         >
                                             {showConfirmPassword ? (
-                                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                                </svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
                                             ) : (
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             )}
                                         </button>
                                     </div>
@@ -364,23 +329,17 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                             >
                                 ✕
                             </button>
-
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-ghibli-navy font-serif mb-3">Reset Password</h2>
                                 <p className="text-ghibli-charcoal/60 text-sm leading-relaxed">
                                     Enter your email address and we'll send you a link to reset your password.
                                 </p>
                             </div>
-
                             {resetSuccess ? (
                                 <div className="text-center py-8 animate-in fade-in zoom-in duration-500">
-                                    <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
-                                        ✨
-                                    </div>
+                                    <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">✨</div>
                                     <h3 className="text-xl font-bold text-ghibli-navy mb-2">Check Your Email</h3>
-                                    <p className="text-ghibli-charcoal/60 text-sm">
-                                        If that email exists, a reset link has been sent. This window will close shortly.
-                                    </p>
+                                    <p className="text-ghibli-charcoal/60 text-sm">If that email exists, a reset link has been sent. This window will close shortly.</p>
                                 </div>
                             ) : (
                                 <form onSubmit={handleRequestReset} className="space-y-6">
@@ -395,26 +354,10 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                                             required
                                         />
                                     </div>
-                                    <button
-                                        type="submit"
-                                        disabled={isSendingReset}
-                                        className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-2xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
-                                    >
-                                        {isSendingReset ? (
-                                            <>
-                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Sending...
-                                            </>
-                                        ) : 'Send Reset Link'}
+                                    <button type="submit" disabled={isSendingReset} className="w-full py-4 bg-ghibli-wood text-ghibli-cream rounded-2xl font-bold text-lg hover:bg-[#A0704F] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3">
+                                        {isSendingReset ? 'Sending...' : 'Send Reset Link'}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowForgotModal(false)}
-                                        className="w-full text-center text-sm font-bold text-ghibli-wood/50 hover:text-ghibli-wood transition-colors"
-                                    >
+                                    <button type="button" onClick={() => setShowForgotModal(false)} className="w-full text-center text-sm font-bold text-ghibli-wood/50 hover:text-ghibli-wood transition-colors">
                                         Cancel
                                     </button>
                                 </form>
@@ -426,214 +369,123 @@ Check your internet connection. If this is on Vercel, please ensure you have run
         );
     }
 
-    const activeTab = dashboardTabs.find((tab) => tab.id === adminTab) || dashboardTabs[0];
+    const Shell = isMobile ? MobileAdminShell : DesktopAdminShell;
 
     return (
-        <div className="admin-shell min-h-screen bg-ghibli-cream">
-            <aside className="admin-sidebar">
-                <a href="/" className="admin-brand" aria-label="Return to Visheshkala website">
-                    <span className="admin-brand-mark">V</span>
-                    <span><strong>Visheshkala</strong><small>Artist studio</small></span>
-                </a>
+        <>
+            <Shell 
+                adminTab={adminTab} 
+                setAdminTab={setAdminTab} 
+                session={session} 
+                handleSignOut={handleSignOut} 
+                setShowChangePassword={setShowChangePassword} 
+            />
 
-                <nav className="admin-navigation" aria-label="Dashboard navigation">
-                    <span className="admin-nav-label">Workspace</span>
-                    {dashboardTabs.map((tab) => (
+            {/* Change Password Modal (shared between mobile and desktop) */}
+            {showChangePassword && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative">
                         <button
-                            key={tab.id}
-                            onClick={() => setAdminTab(tab.id)}
-                            className={`admin-nav-item ${adminTab === tab.id ? 'is-active' : ''}`}
+                            onClick={() => {
+                                setShowChangePassword(false);
+                                setCurrentPassword('');
+                                setNewPassword('');
+                                setConfirmNewPassword('');
+                            }}
+                            className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
                         >
-                            <DashboardIcon name={tab.icon} />
-                            <span>{tab.label}</span>
-
+                            ✕
                         </button>
-                    ))}
-                </nav>
 
-                <div className="admin-sidebar-footer">
-                    <a href="/" className="admin-site-link"><span>View public site</span><DashboardIcon name="arrow" className="w-4 h-4" /></a>
-                    <button onClick={handleSignOut} className="admin-signout">Sign out</button>
-                </div>
-            </aside>
+                        <h2 className="text-xl sm:text-2xl font-bold text-ghibli-charcoal mb-2 sm:mb-4">Change Password</h2>
+                        <p className="text-sm text-ghibli-charcoal/60 mb-6">
+                            Update your password. You'll receive a confirmation email.
+                        </p>
 
-            <main className="admin-main">
-                <header className="admin-topbar">
-                    <div>
-                        <p className="admin-eyebrow">Studio workspace</p>
-                        <h1>{activeTab.label}</h1>
-                    </div>
-                    <div className="admin-topbar-actions">
-                        <a href="/" className="admin-view-site">View site <DashboardIcon name="arrow" className="w-4 h-4" /></a>
-                        <button onClick={() => setShowChangePassword(true)} className="admin-account-button" aria-label="Change password">
-                            <DashboardIcon name="settings" className="w-[18px] h-[18px]" />
-                            <span>Account</span>
-                        </button>
-                    </div>
-                </header>
-
-                <nav className="admin-mobile-nav no-scrollbar" aria-label="Dashboard navigation">
-                    {dashboardTabs.map((tab) => (
-                        <button key={tab.id} onClick={() => setAdminTab(tab.id)} className={adminTab === tab.id ? 'is-active' : ''}>
-                            <DashboardIcon name={tab.icon} className="w-[18px] h-[18px]" />
-                            {tab.shortLabel}
-                        </button>
-                    ))}
-                </nav>
-
-                {adminTab !== 'gallery' && adminTab !== 'shop' && adminTab !== 'overview' && (
-                <section className="admin-welcome-card admin-welcome-card-slim">
-                    <div>
-                        <p className="admin-eyebrow">Studio workspace</p>
-                        <h2>{activeTab.description}</h2>
-                    </div>
-                </section>
-                )}
-
-                <section className="admin-workspace">
-                    {adminTab === 'overview' && (
-                        <OverviewTab onNavigate={setAdminTab} />
-                    )}
-                    {adminTab === 'shop' && (
-                        <ShopTab session={session} />
-                    )}
-                    {adminTab === 'reviews' && <ReviewsTab />}
-                    {adminTab === 'leads' && <LeadsTab />}
-                    {adminTab === 'site' && <SiteTab />}
-
-                    {adminTab === 'gallery' && <GalleryTab session={session} />}
-
-                </section>
-
-                {/* Change Password Modal */}
-                {showChangePassword && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full relative">
-                            <button
-                                onClick={() => {
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (newPassword !== confirmNewPassword) {
+                                alert('New passwords do not match!');
+                                return;
+                            }
+                            if (newPassword.length < 8) {
+                                alert('New password must be at least 8 characters');
+                                return;
+                            }
+                            try {
+                                const res = await fetch('/api/change-password', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ currentPassword, newPassword }),
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    alert('✅ Password updated successfully! Check your email for confirmation.');
                                     setShowChangePassword(false);
                                     setCurrentPassword('');
                                     setNewPassword('');
                                     setConfirmNewPassword('');
-                                }}
-                                className="absolute top-6 right-6 text-ghibli-charcoal/40 hover:text-ghibli-charcoal text-2xl transition-colors active:scale-90"
-                            >
-                                ✕
-                            </button>
-
-                            <h2 className="text-2xl font-bold text-ghibli-charcoal mb-4">Change Password</h2>
-                            <p className="text-ghibli-charcoal/60 mb-6">
-                                Update your password. You'll receive a confirmation email.
-                            </p>
-
-                            <form onSubmit={async (e) => {
-                                e.preventDefault();
-
-                                if (newPassword !== confirmNewPassword) {
-                                    alert('New passwords do not match!');
-                                    return;
+                                } else {
+                                    alert(`❌ ${data.error || 'Failed to update password'}`);
                                 }
-
-                                if (newPassword.length < 8) {
-                                    alert('New password must be at least 8 characters');
-                                    return;
-                                }
-
-                                try {
-                                    const res = await fetch('/api/change-password', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({ currentPassword, newPassword }),
-                                    });
-
-                                    const data = await res.json();
-
-                                    if (res.ok) {
-                                        alert('✅ Password updated successfully! Check your email for confirmation.');
-                                        setShowChangePassword(false);
-                                        setCurrentPassword('');
-                                        setNewPassword('');
-                                        setConfirmNewPassword('');
-                                    } else {
-                                        alert(`❌ ${data.error || 'Failed to update password'}`);
-                                    }
-                                } catch (err) {
-                                    console.error('Password change error:', err);
-                                    alert('Connection error. Please try again.');
-                                }
-                            }} className="space-y-4">
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Current Password</label>
-                                    <input
-                                        type={showCurrentPassword ? "text" : "password"}
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Enter current password"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">New Password</label>
-                                    <input
-                                        type={showNewPassword ? "text" : "password"}
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Enter new password"
-                                        required
-                                        minLength={8}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showNewPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <div className="relative">
-                                    <label className="block text-sm font-bold mb-2 text-ghibli-charcoal/70">Confirm New Password</label>
-                                    <input
-                                        type={showConfirmNewPassword ? "text" : "password"}
-                                        value={confirmNewPassword}
-                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                        className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
-                                        placeholder="Confirm new password"
-                                        required
-                                        minLength={8}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                                        className="absolute right-3 top-[42px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors"
-                                    >
-                                        {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
-                                    </button>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg"
-                                >
-                                    Update Password
+                            } catch (err) {
+                                console.error('Password change error:', err);
+                                alert('Connection error. Please try again.');
+                            }
+                        }} className="space-y-4">
+                            <div className="relative">
+                                <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">Current Password</label>
+                                <input
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    required
+                                />
+                                <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
+                                    {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
                                 </button>
-                            </form>
-                        </div>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">New Password</label>
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    required
+                                    minLength={8}
+                                />
+                                <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
+                                    {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-xs font-bold mb-1.5 text-ghibli-charcoal/70 uppercase tracking-widest">Confirm New Password</label>
+                                <input
+                                    type={showConfirmNewPassword ? "text" : "password"}
+                                    value={confirmNewPassword}
+                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                    className="w-full p-3 pr-12 rounded-xl border border-ghibli-wood/10 bg-white/50 focus:bg-white transition-all text-ghibli-wood font-bold"
+                                    required
+                                    minLength={8}
+                                />
+                                <button type="button" onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)} className="absolute right-3 top-[34px] w-8 h-8 flex items-center justify-center text-ghibli-wood/40 hover:text-ghibli-wood transition-colors">
+                                    {showConfirmNewPassword ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+
+                            <button type="submit" className="w-full py-3.5 bg-ghibli-wood text-white rounded-xl font-bold hover:bg-[#A0704F] transition-all mt-6 active:scale-95 shadow-lg text-sm tracking-wider uppercase">
+                                Update Password
+                            </button>
+                        </form>
                     </div>
-                )}
-            </main>
-        </div>
+                </div>
+            )}
+        </>
     );
 };
 
