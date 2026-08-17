@@ -8,6 +8,7 @@ import FeaturedPicks from './components/FeaturedPicks';
 import RouteSEO from './components/RouteSEO';
 import ShopPageSkeleton from './components/skeletons/ShopPageSkeleton';
 import GalleryPageSkeleton from './components/skeletons/GalleryPageSkeleton';
+import FullGalleryPageSkeleton from './components/skeletons/FullGalleryPageSkeleton';
 
 import { StoreProvider } from './context/StoreContext';
 import { ProductsRedirect, ProductSlugRedirect } from './pages/LegacyRedirects';
@@ -116,7 +117,7 @@ const App = () => {
             <Route path="/shop" element={<Suspense fallback={<ShopPageSkeleton />}><Shop /></Suspense>} />
             <Route path="/shop/:slug" element={<Suspense fallback={<PageFallback />}><ProductDetail /></Suspense>} />
             <Route path="/gallery" element={<Suspense fallback={<GalleryPageSkeleton />}><Gallery /></Suspense>} />
-            <Route path="/gallery/:category" element={<Suspense fallback={<GalleryPageSkeleton />}><FullGallery /></Suspense>} />
+            <Route path="/gallery/:category" element={<Suspense fallback={<FullGalleryPageSkeleton />}><FullGallery /></Suspense>} />
             <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
             <Route path="/contact" element={<Suspense fallback={<PageFallback />}><Contact /></Suspense>} />
             <Route path="/wishlist" element={<Suspense fallback={<PageFallback />}><Wishlist /></Suspense>} />

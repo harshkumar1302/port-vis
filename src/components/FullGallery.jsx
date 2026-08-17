@@ -9,7 +9,7 @@ import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
-import ProductCardSkeleton from './ProductCardSkeleton';
+import FullGalleryPageSkeleton from './skeletons/FullGalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
 
 const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
@@ -110,6 +110,10 @@ const FullGallery = () => {
         displayArtworks = getPrioritizedItems(category, displayArtworks);
     }
 
+    if (loading) {
+        return <FullGalleryPageSkeleton categoryLabel={currentCategory?.label} />;
+    }
+
     if (!currentCategory) return null;
 
     return (
@@ -198,11 +202,7 @@ const FullGallery = () => {
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 md:gap-8 min-h-[50vh]">
-                    {loading ? (
-                        Array.from({ length: 8 }).map((_, i) => (
-                            <ProductCardSkeleton key={i} />
-                        ))
-                    ) : displayArtworks.length > 0 ? (
+                    {displayArtworks.length > 0 ? (
                         displayArtworks.map((art, index) => (
                             index >= 8 ? (
                                 <div key={art.id} className="h-full">

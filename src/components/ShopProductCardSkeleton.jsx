@@ -1,10 +1,18 @@
+import SkeletonBone from './skeletons/SkeletonBone';
+
+/** Matches ShopProductCard layout: square image, title, price, CTA button */
 const ShopProductCardSkeleton = () => (
-  <div className="flex flex-col h-full animate-pulse">
-    <div className="aspect-square bg-[#ebe8e4] mb-4" />
-    <div className="h-5 w-full bg-[#ebe8e4] rounded mb-2" />
-    <div className="h-5 w-2/3 bg-[#ebe8e4] rounded mb-4" />
-    <div className="h-11 w-full bg-[#ebe8e4] rounded-md mt-auto" />
-  </div>
+  <article className="group flex flex-col h-full">
+    <SkeletonBone className="aspect-square mb-4 w-full" rounded="rounded-none" />
+    <div className="flex flex-col flex-grow">
+      <SkeletonBone className="h-[18px] w-full mb-2" rounded="rounded-sm" />
+      <SkeletonBone className="h-[18px] w-4/5 mb-2" rounded="rounded-sm" />
+      <SkeletonBone className="h-[15px] w-1/3 mb-4" rounded="rounded-sm" />
+      <div className="mt-auto">
+        <SkeletonBone className="h-[46px] w-full" rounded="rounded-md" />
+      </div>
+    </div>
+  </article>
 );
 
 export default ShopProductCardSkeleton;
