@@ -45,7 +45,7 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       const reader = new FileReader();
@@ -55,6 +55,12 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
       setFile(null);
       setPreviewUrl(null);
     }
+  };
+
+  const clearImage = () => {
+    setFile(null);
+    setPreviewUrl(null);
+    if (preserveRef.current) preserveRef.current.image_url = null;
   };
 
   const loadForEdit = (art) => {
@@ -266,6 +272,7 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
     success,
     resetForm,
     handleFileChange,
+    clearImage,
     loadForEdit,
     handleUpload,
     handleDelete,

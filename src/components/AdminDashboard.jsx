@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import OverviewTab from './admin/tabs/OverviewTab';
 import ReviewsTab from './admin/tabs/ReviewsTab';
 import LeadsTab from './admin/tabs/LeadsTab';
 import SiteTab from './admin/tabs/SiteTab';
@@ -6,16 +7,18 @@ import ShopTab from './admin/tabs/ShopTab';
 import GalleryTab from './admin/tabs/GalleryTab';
 
 const dashboardTabs = [
-    { id: 'gallery', label: 'Gallery', shortLabel: 'Gallery', icon: 'grid', description: 'Upload portfolio pieces for /gallery — categories, stories, featured & upcoming.' },
-    { id: 'shop', label: 'Shop', shortLabel: 'Shop', icon: 'bag', description: 'Upload items for sale on /shop — price, stock, and badges.' },
-    { id: 'reviews', label: 'Testimonials', shortLabel: 'Reviews', icon: 'heart', description: 'Keep your collector stories up to date.' },
-    { id: 'leads', label: 'Inquiries', shortLabel: 'Leads', icon: 'message', description: 'Chatbot, contact form, cart orders, and newsletter.' },
-    { id: 'site', label: 'Site settings', shortLabel: 'Settings', icon: 'settings', description: 'Fine-tune the public studio experience.' },
+    { id: 'overview', label: 'Home', shortLabel: 'Home', icon: 'home', description: 'Quick overview and shortcuts to manage your studio.' },
+    { id: 'gallery', label: 'Gallery', shortLabel: 'Gallery', icon: 'grid', description: 'Portfolio for /gallery — add piece, browse, or manage categories.' },
+    { id: 'shop', label: 'Shop', shortLabel: 'Shop', icon: 'bag', description: 'Products for /shop — add product, browse, or manage categories.' },
+    { id: 'reviews', label: 'Testimonials', shortLabel: 'Reviews', icon: 'heart', description: 'Collector stories and testimonials.' },
+    { id: 'leads', label: 'Inquiries', shortLabel: 'Leads', icon: 'message', description: 'Contact form, cart orders, chatbot, and newsletter.' },
+    { id: 'site', label: 'Settings', shortLabel: 'Settings', icon: 'settings', description: 'Announcement bar, WhatsApp, and hero stats.' },
 ];
 
 const DashboardIcon = ({ name, className = 'w-5 h-5' }) => {
     const paths = {
         grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+        home: <><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" /></>,
         bag: <><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></>,
         heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />,
         message: <><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.3 8.3 0 0 1-3.6-.8L4 20l1.4-3.5A7.3 7.3 0 0 1 4 12a7.5 7.5 0 0 1 8-7.5 7.5 7.5 0 0 1 8 7Z" /><path d="M8 12h.01M12 12h.01M16 12h.01" /></>,
@@ -35,7 +38,7 @@ const AdminDashboard = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [adminTab, setAdminTab] = useState('gallery');
+    const [adminTab, setAdminTab] = useState('overview');
 
     // Setup mode state
     const [loginMode, setLoginMode] = useState('login'); // 'login' or 'register'
@@ -478,14 +481,19 @@ Check your internet connection. If this is on Vercel, please ensure you have run
                     ))}
                 </nav>
 
+                {adminTab !== 'gallery' && adminTab !== 'shop' && adminTab !== 'overview' && (
                 <section className="admin-welcome-card admin-welcome-card-slim">
                     <div>
                         <p className="admin-eyebrow">Studio workspace</p>
                         <h2>{activeTab.description}</h2>
                     </div>
                 </section>
+                )}
 
                 <section className="admin-workspace">
+                    {adminTab === 'overview' && (
+                        <OverviewTab onNavigate={setAdminTab} />
+                    )}
                     {adminTab === 'shop' && (
                         <ShopTab session={session} />
                     )}

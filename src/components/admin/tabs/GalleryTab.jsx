@@ -3,12 +3,14 @@ import { supabase } from '../../../lib/supabaseClient';
 import { FALLBACK_CATEGORIES as DEFAULT_CATEGORIES } from '../../../constants/categories';
 import { artMatchesCategory, isGalleryListing } from '../../../lib/categoryUtils';
 import { useArtworkUpload } from '../../../hooks/useArtworkUpload';
+import AdminUploadForm from '../AdminUploadForm';
+import AdminSubnav from '../AdminSubnav';
 import CompactArtworkRow from '../CompactArtworkRow';
 import CategoryManagerPanel from '../CategoryManagerPanel';
 
 const PAGE_SIZE = 18;
 const VIEWS = [
-  { id: 'upload', label: 'Upload' },
+  { id: 'upload', label: 'Add piece' },
   { id: 'browse', label: 'Browse' },
   { id: 'categories', label: 'Categories' },
 ];
@@ -115,148 +117,26 @@ const GalleryTab = ({ session }) => {
     setView('upload');
   };
 
-  const subCategory =
-    upload.subCategory || upload.subCategoryOverrideRef?.current || '';
-
   return (
-    <div className="admin-gallery-shell animate-in fade-in duration-300">
-      <div className="admin-subnav">
-        {VIEWS.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            onClick={() => setView(v.id)}
-            className={view === v.id ? 'is-active' : ''}
-          >
-            {v.label}
-          </button>
-        ))}
-        <span className="admin-subnav-count">{items.length} gallery pieces</span>
-      </div>
+    <div className="admin-module-shell animate-in fade-in duration-300">
+      <AdminSubnav
+        views={VIEWS}
+        active={view}
+        onChange={setView}
+        countLabel={`${items.length} gallery pieces`}
+      />
 
       {view === 'upload' && (
-        <div className="admin-gallery-upload max-w-xl">
-          <div className="card-ghibli p-6 sm:p-8 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-bold text-ghibli-navy">
-                {upload.editingId ? 'Edit gallery piece' : 'New gallery upload'}
-              </h2>
-              {upload.editingId && (
-                <button type="button" onClick={upload.resetForm} className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-                  Cancel
-                </button>
-              )}
-            </div>
-
-            <p className="text-xs text-ghibli-charcoal/60 mb-5">
-              Portfolio work for <strong>/gallery</strong>. Shop products are uploaded in the <strong>Shop</strong> tab.
-            </p>
-
-            <div className="flex bg-ghibli-paper/20 p-1 rounded-xl mb-6">
-              {['gallery', 'featured', 'upcoming'].map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => upload.setUploadType(mode)}
-                  className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
-                    upload.uploadType === mode ? 'bg-white text-ghibli-wood shadow-sm' : 'text-ghibli-charcoal/40'
-                  }`}
-                >
-                  {mode === 'gallery' ? 'Gallery' : mode === 'featured' ? 'Featured' : 'Upcoming'}
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={upload.handleUpload} className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">Title</label>
-                <input
-                  type="text"
-                  value={upload.title}
-                  onChange={(e) => upload.setTitle(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 text-ghibli-wood font-bold"
-                />
-              </div>
-
-              {upload.uploadType !== 'upcoming' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">Category</label>
-                    <select
-                      value={upload.category}
-                      onChange={(e) => upload.setCategory(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 text-ghibli-wood font-bold cursor-pointer"
-                      required
-                    >
-                      <option value="" disabled>Select</option>
-                      {categoryDefinitions.map((cat) => (
-                        <option key={cat.id} value={cat.label}>{cat.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">Sub-category</label>
-                    <select
-                      value={subCategory}
-                      onChange={(e) => upload.setSubCategory(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 text-ghibli-wood font-bold cursor-pointer"
-                    >
-                      <option value="">None</option>
-                      {categoryDefinitions
-                        .find(
-                          (c) =>
-                            c.label?.toLowerCase() === upload.category?.toLowerCase() ||
-                            c.id?.toLowerCase() === upload.category?.toLowerCase()
-                        )
-                        ?.subCategories?.map((sub) => (
-                          <option key={sub} value={sub}>{sub}</option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">Story</label>
-                <textarea
-                  value={upload.desc}
-                  onChange={(e) => upload.setDesc(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-ghibli-wood/10 bg-white/50 text-ghibli-wood h-20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-1 text-ghibli-charcoal/70">
-                  Image {upload.editingId && '(optional)'}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={upload.handleFileChange}
-                  className="w-full text-sm"
-                  required={!upload.editingId}
-                />
-                {upload.previewUrl && (
-                  <img src={upload.previewUrl} alt="" className="mt-2 h-32 w-full object-cover rounded-xl" />
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={upload.uploading}
-                className={`w-full py-3 rounded-xl font-bold transition-all ${
-                  upload.success ? 'bg-green-500 text-white' : 'bg-ghibli-wood text-ghibli-cream hover:bg-[#A0704F]'
-                } disabled:opacity-50`}
-              >
-                {upload.uploading ? 'Saving…' : upload.editingId ? 'Update piece' : 'Add to gallery'}
-              </button>
-            </form>
-          </div>
-        </div>
+        <AdminUploadForm
+          mode="gallery"
+          upload={upload}
+          categoryDefinitions={categoryDefinitions}
+          onCancel={upload.resetForm}
+        />
       )}
 
       {view === 'browse' && (
-        <div className="admin-gallery-browse card-ghibli p-4 sm:p-6 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
+        <div className="admin-browse-panel card-ghibli p-4 sm:p-6 bg-white/40 backdrop-blur-xl border border-white/20 rounded-[2rem]">
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <input
               type="search"
