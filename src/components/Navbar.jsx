@@ -23,9 +23,6 @@ const Navbar = () => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
 
-        document.documentElement.classList.remove('dark');
-        localStorage.removeItem('theme');
-
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
