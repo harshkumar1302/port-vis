@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 import { FALLBACK_CATEGORIES } from '../constants/categories';
-import { getSubCategory, formatPrice, getDiscountPct } from '../lib/artwork';
+import { getDiscountPct, formatPrice } from '../lib/artwork';
 import { isGalleryListing, artMatchesCategory, artMatchesSubCategory } from '../lib/categoryUtils';
-import WhatsAppButton from './WhatsAppButton';
+import { getGalleryPiecePath } from '../lib/pieceUrls';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
-import useSiteSetting from '../hooks/useSiteSettings';
-import { buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import FullGalleryPageSkeleton from './skeletons/FullGalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
@@ -20,10 +18,8 @@ const FullGallery = () => {
     const { category } = useParams();
     const navigate = useNavigate();
     const { artworks: catalog, loading } = useArtworksCatalog();
-    const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
     const artworks = catalog.filter(isGalleryListing);
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
-    const [selectedArt, setSelectedArt] = useState(null);
     const [categoryPriorities, setCategoryPriorities] = useState({});
     const [artworkOrders, setArtworkOrders] = useState({});
     const [categories, setCategories] = useState(FALLBACK_CATEGORIES_LOCAL);
@@ -201,10 +197,11 @@ const FullGallery = () => {
                         displayArtworks.map((art, index) => (
                             index >= 8 ? (
                                 <div key={art.id} className="h-full">
-                                    <div
-                                        onClick={() => setSelectedArt(art)}
-                                        className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-300 border border-ghibli-wood/5 flex flex-col relative overflow-hidden h-full"
-                                    >
+                                <Link
+                                    to={getGalleryPiecePath(art)}
+                                    state={{ art }}
+                                    className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-300 border border-ghibli-wood/5 flex flex-col relative overflow-hidden h-full block"
+                                >
                                         <div className="bg-ghibli-paper/20 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-6">
                                             <div className="w-full aspect-[4/5] relative">
                                                 <ArtworkImage src={art.image_url} alt={art.title} size="card" objectFit="object-contain" className="absolute inset-0" imgClassName="p-4" />
@@ -215,7 +212,7 @@ const FullGallery = () => {
                                                 <h4 className="font-bold text-ghibli-charcoal text-sm sm:text-lg font-serif line-clamp-2">{art.title}</h4>
                                             </div>
                                         )}
-                                    </div>
+                                </Link>
                                 </div>
                             ) : (
                             <ScrollRevealItem
@@ -228,9 +225,10 @@ const FullGallery = () => {
                                 scale={0.99}
                                 className="h-full"
                             >
-                                <div
-                                    onClick={() => setSelectedArt(art)}
-                                    className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-700 border border-ghibli-wood/5 flex flex-col hover:-translate-y-2 relative overflow-hidden h-full"
+                                <Link
+                                    to={getGalleryPiecePath(art)}
+                                    state={{ art }}
+                                    className="group cursor-pointer bg-white rounded-2xl sm:rounded-[32px] p-2 sm:p-4 shadow-[0_15px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)] transition-all duration-700 border border-ghibli-wood/5 flex flex-col hover:-translate-y-2 relative overflow-hidden h-full block"
                                 >
                                     {/* Subtle hover glow in background */}
                                     <div className="absolute inset-0 bg-ghibli-cream/0 group-hover:bg-ghibli-cream/50 transition-colors duration-500 z-0 rounded-2xl sm:rounded-[32px]"></div>
@@ -269,7 +267,7 @@ const FullGallery = () => {
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </Link>
                             </ScrollRevealItem>
                             )
                         ))
@@ -281,130 +279,6 @@ const FullGallery = () => {
                     )}
                 </div>
             </div>
-
-            {/* Modal - LIGHT STUDIO STYLE */}
-            <AnimatePresence>
-                {selectedArt && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setSelectedArt(null)}
-                        className="fixed inset-0 z-[200] bg-ghibli-charcoal/80 backdrop-blur-xl flex items-center justify-center p-4 md:p-8"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-ghibli-cream rounded-[2.5rem] overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={() => setSelectedArt(null)}
-                                className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-ghibli-charcoal/60 hover:text-ghibli-charcoal transition-all font-bold backdrop-blur-md"
-                            >✕</button>
-
-                            {/* Image Section */}
-                            <div className="w-full md:w-[55%] bg-ghibli-cream relative flex items-center justify-center p-6 md:p-12 hidden md:flex border-r border-ghibli-wood/10">
-                                <div className="relative w-full h-full shadow-2xl rounded-2xl overflow-hidden max-h-[75vh]">
-                                    {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
-                                        <div className="w-full h-full bg-white flex items-center justify-center">
-                                            <span className="text-6xl opacity-20">✨</span>
-                                        </div>
-                                    ) : (
-                                        <ArtworkImage
-                                            src={selectedArt.image_url}
-                                            alt={selectedArt.title}
-                                            size="detail"
-                                            objectFit="object-contain"
-                                            imgClassName="drop-shadow-2xl"
-                                        />
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Mobile Image (Full Visibility) */}
-                            <div className="w-full h-[45vh] md:hidden bg-ghibli-cream relative flex items-center justify-center overflow-hidden p-6 border-b border-ghibli-wood/10">
-                                {(!selectedArt.image_url || selectedArt.image_url.trim() === '') ? (
-                                    <div className="w-full h-full bg-white flex items-center justify-center">
-                                        <span className="text-4xl opacity-20">✨</span>
-                                    </div>
-                                ) : (
-                                    <ArtworkImage
-                                        src={selectedArt.image_url}
-                                        alt={selectedArt.title}
-                                        size="detail"
-                                        objectFit="object-contain"
-                                        imgClassName="drop-shadow-2xl"
-                                    />
-                                )}
-                            </div>
-
-                            {/* Details Section */}
-                            <div className="w-full md:w-[45%] p-8 md:p-12 flex flex-col justify-center bg-white relative overflow-y-auto">
-                                {/* 1. TITLE */}
-                                {selectedArt.title && (
-                                    <h3 className="text-4xl md:text-5xl font-black font-serif text-ghibli-charcoal mb-6 leading-tight drop-shadow-sm">
-                                        {selectedArt.title}
-                                    </h3>
-                                )}
-
-                                {/* 2. NAME (Category + Subcategory) */}
-                                <div className="flex items-center gap-3 mb-8">
-                                    <span className="text-ghibli-wood font-bold tracking-[0.2em] uppercase text-[10px] md:text-xs bg-ghibli-cream border border-ghibli-wood/20 px-4 py-1.5 rounded-full shadow-sm">
-                                        {category?.toUpperCase() || 'COLLECTION'}
-                                    </span>
-                                    {getSubCategory(selectedArt) && (
-                                        <span className="text-ghibli-charcoal/40 font-bold tracking-[0.2em] uppercase text-[10px] md:text-xs">
-                                            • {getSubCategory(selectedArt)}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {(selectedArt.price || selectedArt.original_price) && (
-                                    <div className="flex items-baseline gap-4 mb-8 bg-ghibli-cream/50 p-4 rounded-2xl border border-ghibli-wood/5">
-                                        {selectedArt.price && <span className="text-3xl font-black text-ghibli-charcoal">{formatPrice(selectedArt.price)}</span>}
-                                        {selectedArt.original_price && getDiscountPct(selectedArt) && (
-                                            <span className="text-lg text-ghibli-charcoal/30 line-through font-bold">{formatPrice(selectedArt.original_price)}</span>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* 3. STORY */}
-                                {selectedArt.description && selectedArt.description.replace(/\[FEATURED\]/g, '').replace(/\[SubCategory:.*?\]/g, '').trim() && (
-                                    <div className="prose prose-sm md:prose-base text-ghibli-charcoal/70 leading-loose mb-12 font-sans">
-                                        <span className="text-[10px] font-bold tracking-widest uppercase opacity-30 block mb-3 text-ghibli-charcoal">The Legend</span>
-                                        <p className="font-light text-lg">
-                                            {selectedArt.description
-                                                .replace(/\[FEATURED\]/g, '')
-                                                .replace(/\[SubCategory:.*?\]/g, '')
-                                                .trim()
-                                            }
-                                        </p>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-auto">
-                                    <WhatsAppButton
-                                        href={buildWhatsAppUrl(selectedArt, channels, { source: 'gallery' })}
-                                        onClick={() => setSelectedArt(null)}
-                                        className="px-8 py-5 bg-[#25D366]/80 text-white rounded-full font-black tracking-[0.15em] text-xs uppercase self-start shadow-[0_10px_30px_rgba(37,211,102,0.2)] text-center flex-1"
-                                    >
-                                        Inquire About Piece
-                                    </WhatsAppButton>
-                                    <a
-                                        href="/#contact"
-                                        onClick={() => setSelectedArt(null)}
-                                        className="px-8 py-5 bg-white text-ghibli-charcoal rounded-full font-black tracking-[0.15em] text-xs uppercase hover:bg-ghibli-cream transition-all self-start border border-ghibli-wood/20 hover:border-ghibli-wood shadow-sm text-center flex-1"
-                                    >
-                                        Contact
-                                    </a>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };

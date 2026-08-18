@@ -3,6 +3,7 @@ import {
   SITE_WHATSAPP_DISPLAY,
 } from '../constants/site';
 import { formatPriceShop, getSubCategory } from './artwork';
+import { getAbsolutePieceUrl } from './pieceUrls';
 
 export { SITE_WHATSAPP_NUMBER, SITE_WHATSAPP_DISPLAY };
 
@@ -17,7 +18,8 @@ export const DEFAULT_CHANNELS = {
 /** Where the enquire button was tapped */
 export const ENQUIRE_SOURCES = {
   'gallery-home': 'Homepage Gallery',
-  gallery: 'Gallery',
+  gallery: 'Gallery category',
+  'gallery-piece': 'Gallery piece page',
   'wishlist-gallery': 'Wishlist (gallery piece)',
   'wishlist-shop': 'Wishlist (shop product)',
   shop: 'Shop',
@@ -45,8 +47,9 @@ export const resolveContactChannels = (channels = {}) => {
 
 /** Build a detailed WhatsApp message with piece + page context */
 export const buildEnquireMessage = (artwork = {}, options = {}) => {
-  const { source = 'site', sourceLabel } = options;
+  const { source = 'site', sourceLabel, pageUrl: pageUrlOverride } = options;
   const fromLabel = sourceLabel || ENQUIRE_SOURCES[source] || 'Visheshkala website';
+  const pageUrl = pageUrlOverride || getAbsolutePieceUrl(artwork);
   const title = cleanLabel(artwork?.title);
   const category = cleanLabel(artwork?.category);
   const subCategory = getSubCategory(artwork);
@@ -86,6 +89,7 @@ export const buildEnquireMessage = (artwork = {}, options = {}) => {
   }
 
   lines.push(`Opened from: ${fromLabel}`);
+  if (pageUrl) lines.push(`Link: ${pageUrl}`);
 
   lines.push('');
   lines.push('Could you share price, availability, and delivery details?');

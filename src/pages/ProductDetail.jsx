@@ -4,8 +4,10 @@ import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../context/StoreContext';
 import { formatPrice, getDiscountPct } from '../lib/artwork';
 import useSiteSetting from '../hooks/useSiteSettings';
-import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
+import { buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
+import { getShopPiecePath } from '../lib/pieceUrls';
 import ArtworkImage from '../components/ArtworkImage';
+import WhatsAppButton from '../components/WhatsAppButton';
 import { titleToSlug, isShopListing } from '../lib/categoryUtils';
 import usePageSEO from '../hooks/usePageSEO';
 import {
@@ -24,15 +26,16 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(!state?.art && !state?.product);
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
   const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
+  const piecePath = art ? getShopPiecePath(art) : `/shop/${slug}`;
   const waUrl = buildWhatsAppUrl(art, channels, { source: 'product' });
 
   usePageSEO({
     enabled: Boolean(art),
     title: art ? buildProductTitle(art.title) : PAGE_SEO.shop.title,
     description: art ? buildProductDescription(art) : PAGE_SEO.shop.description,
-    path: `/shop/${slug}`,
+    path: piecePath,
     image: art?.image_url || DEFAULT_OG_IMAGE,
-    jsonLd: art ? buildProductJsonLd({ ...art, slug }) : null,
+    jsonLd: art ? buildProductJsonLd({ ...art, slug: titleToSlug(art.title, art.id) }) : null,
     type: 'product',
   });
 
@@ -107,7 +110,7 @@ const ProductDetail = () => {
 
           <div className="w-full lg:w-1/2 flex flex-col">
             <span className="text-xs font-bold uppercase tracking-widest text-ghibli-wood/70 mb-2">
-              {art.category || 'Shop'}
+              Shop · {art.category || 'Collection'}
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4 leading-tight">
               {art.title}
@@ -157,7 +160,6 @@ const ProductDetail = () => {
               </div>
               <WhatsAppButton
                 href={waUrl}
-                disabled={!hasWhatsApp(channels)}
                 className="w-full text-center py-4 rounded-xl bg-[#25D366] text-white font-bold tracking-widest uppercase text-xs sm:text-sm shadow-sm hover:shadow-md transition-all min-h-[48px]"
               >
                 Enquire on WhatsApp

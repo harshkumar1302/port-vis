@@ -4,12 +4,11 @@ import { useStore } from '../context/StoreContext';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { formatPriceShop, getDiscountPct } from '../lib/artwork';
 import {
-  titleToSlug,
   isShopListing,
   isGalleryListing,
-  getGalleryCategoryUrl,
 } from '../lib/categoryUtils';
 import { buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
+import { getPiecePath } from '../lib/pieceUrls';
 import ArtworkImage from './ArtworkImage';
 import WhatsAppButton from './WhatsAppButton';
 
@@ -23,8 +22,7 @@ const WishlistCard = ({ art }) => {
   const price = formatPriceShop(art.price);
   const discount = getDiscountPct(art);
   const isOutOfStock = art.stock === 0;
-  const slug = titleToSlug(art.title, art.id);
-  const detailPath = isShop ? `/shop/${slug}` : getGalleryCategoryUrl(art.category);
+  const detailPath = getPiecePath(art);
   const waUrl = buildWhatsAppUrl(art, channels, {
     source: isGallery ? 'wishlist-gallery' : 'wishlist-shop',
   });
@@ -53,7 +51,7 @@ const WishlistCard = ({ art }) => {
       <div
         className={`w-full bg-white rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500 mb-4 border border-ghibli-wood/5 relative ${isRemoving ? 'opacity-50 scale-95' : ''}`}
       >
-        <Link to={detailPath} state={isShop ? { art } : undefined} className="block">
+        <Link to={detailPath} state={{ art }} className="block">
           <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-500 z-10 pointer-events-none" />
           <ArtworkImage
             src={art.image_url}

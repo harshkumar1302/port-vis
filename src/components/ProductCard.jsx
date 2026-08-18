@@ -14,10 +14,9 @@ const ProductCard = ({ art, priority = false, linkTo, linkState }) => {
   const isBestseller = badges.some(b => b.type === 'bestseller');
   const isOutOfStock = art.stock === 0;
 
-  const slug = titleToSlug(art.title, art.id);
-  const inWishlist = isInWishlist(art.id);
-  const detailPath = linkTo ?? `/shop/${slug}`;
+  const detailPath = linkTo ?? getShopPiecePath(art);
   const detailState = linkState ?? { art };
+  const inWishlist = isInWishlist(art.id);
 
   const handleWishlist = (e) => {
     e.preventDefault();

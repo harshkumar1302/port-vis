@@ -15,6 +15,7 @@ function isKnownRoute(pathname) {
   if (exact.includes(pathname)) return true;
   if (NOINDEX_PATHS.includes(pathname)) return true;
   if (/^\/shop\/[^/]+$/.test(pathname)) return true;
+  if (/^\/gallery\/piece\/[^/]+$/.test(pathname)) return true;
   if (/^\/gallery\/[^/]+$/.test(pathname)) return true;
   if (/^\/product\/[^/]+$/.test(pathname)) return true;
   return false;
@@ -32,6 +33,10 @@ function resolveRouteSEO(pathname, galleryCategory, shopCategory) {
   }
 
   if (pathname.startsWith('/shop/') && pathname !== '/shop') {
+    return null;
+  }
+
+  if (pathname.startsWith('/gallery/piece/')) {
     return null;
   }
 

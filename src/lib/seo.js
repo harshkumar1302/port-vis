@@ -1,4 +1,6 @@
 /** Canonical site URL — use www to match live domain */
+import { titleToSlug } from './categoryUtils';
+
 export const SITE_URL = 'https://www.visheshkala.com';
 export const SITE_NAME = 'Visheshkala';
 export const SITE_TAGLINE = 'Handmade Mandalas, Miniatures & Gifts by Vishakha Garg';
@@ -128,7 +130,7 @@ export function buildProductJsonLd(art) {
     name: art.title,
     brand: { '@type': 'Brand', name: SITE_NAME },
     manufacturer: { '@type': 'Person', name: 'Vishakha Garg' },
-    url: buildCanonical(`/shop/${art.slug || art.id}`),
+    url: buildCanonical(`/shop/${art.slug || titleToSlug(art.title, art.id)}`),
   };
   if (art.image_url) ld.image = art.image_url;
   if (art.description) {

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { formatPriceShop, getDiscountPct } from '../lib/artwork';
 import ArtworkImage from './ArtworkImage';
-import { titleToSlug } from '../lib/categoryUtils';
+import { getShopPiecePath } from '../lib/pieceUrls';
 
 const ShopProductCard = ({ art, priority = false }) => {
   const { toggleWishlist, isInWishlist, addToCart } = useStore();
@@ -11,9 +11,7 @@ const ShopProductCard = ({ art, priority = false }) => {
   const discount = getDiscountPct(art);
   const isOutOfStock = art.stock === 0;
   const inWishlist = isInWishlist(art.id);
-
-  const slug = titleToSlug(art.title, art.id);
-  const detailPath = `/shop/${slug}`;
+  const detailPath = getShopPiecePath(art);
 
   const handleWishlist = (e) => {
     e.preventDefault();

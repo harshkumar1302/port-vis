@@ -24,6 +24,7 @@ const Chatbot = lazy(() => import('./components/Chatbot'));
 const Shop = lazy(() => import('./pages/Products'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Gallery = lazy(() => import('./pages/Gallery'));
+const GalleryPieceDetail = lazy(() => import('./pages/GalleryPieceDetail'));
 const FullGallery = lazy(() => import('./components/FullGallery'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -110,6 +111,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Suspense fallback={<ShopPageSkeleton />}><Shop /></Suspense>} />
             <Route path="/shop/:slug" element={<Suspense fallback={<PageFallback />}><ProductDetail /></Suspense>} />
+            <Route path="/gallery/piece/:slug" element={<Suspense fallback={<PageFallback />}><GalleryPieceDetail /></Suspense>} />
             <Route path="/gallery" element={<Suspense fallback={<GalleryPageSkeleton />}><Gallery /></Suspense>} />
             <Route path="/gallery/:category" element={<Suspense fallback={<FullGalleryPageSkeleton />}><FullGallery /></Suspense>} />
             <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
