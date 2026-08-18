@@ -81,11 +81,11 @@ const LeadsTab = () => {
   const [missingTables, setMissingTables] = useState([]);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadAll = useCallback(async () => {
-    setLoading(true);
+    setRefreshing(true);
     setError(null);
-    setMissingTables([]);
 
     try {
       const results = await Promise.all([
@@ -105,7 +105,7 @@ const LeadsTab = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -212,8 +212,28 @@ const LeadsTab = () => {
           <h2 className="text-2xl font-bold text-ghibli-navy mb-1">Inquiries & Leads</h2>
           <p className="text-sm font-semibold text-ghibli-charcoal/60">Manage chatbot conversations, contact messages, cart drop-offs, and newsletter signups.</p>
         </div>
-        <button type="button" onClick={loadAll} className="w-10 h-10 shrink-0 bg-white hover:bg-ghibli-cream text-ghibli-wood rounded-full flex items-center justify-center border border-ghibli-wood/10 shadow-sm transition-all" title="Refresh">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <button
+          type="button"
+          onClick={loadAll}
+          disabled={refreshing}
+          aria-label="Refresh inquiries"
+          className="w-10 h-10 shrink-0 p-0 bg-white hover:bg-ghibli-cream text-ghibli-wood rounded-xl inline-flex items-center justify-center border border-ghibli-wood/15 shadow-sm transition-all disabled:opacity-60"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`w-[18px] h-[18px] shrink-0 block pointer-events-none ${refreshing ? 'animate-spin' : ''}`}
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M8 16H3v5" />
+          </svg>
         </button>
       </div>
 
