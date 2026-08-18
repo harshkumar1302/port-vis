@@ -30,11 +30,41 @@ const adminMarkRead = async (req, res, supabase, table) => {
   return res.status(200).json(data[0]);
 };
 
+const adminDelete = async (req, res, supabase, table) => {
+  if (!adminOnly(req, res)) return;
+  if (req.method !== "DELETE") return res.status(405).json({ error: "Method not allowed" });
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: "ID is required" });
+  const { error } = await supabase.from(table).delete().eq("id", id);
+  if (error) throw error;
+  return res.status(200).json({ success: true });
+};
+
 const handleLeads = async (req, res, supabase) => {
   if (req.method === "POST") {
-    const { name, contact_info, message } = req.body;
-    if (!message) return res.status(400).json({ error: "Message is required" });
-    const { data, error } = await supabase.from("chatbot_leads").insert([{ name, contact_info, message }]).select();
+    const { name, contact_info, message, phone, email } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: "Message is required" });
+
+    let storedContact = contact_info?.trim() || null;
+    if (phone != null || email != null) {
+      const phoneDigits = String(phone || "").replace(/\D/g, "");
+      if (phoneDigits.length !== 10) {
+        return res.status(400).json({ error: "Phone must be a 10-digit number" });
+      }
+      const trimmedEmail = email?.trim() || "";
+      if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        return res.status(400).json({ error: "Valid email is required" });
+      }
+      storedContact = JSON.stringify({
+        phone: phoneDigits,
+        email: trimmedEmail || null,
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("chatbot_leads")
+      .insert([{ name: name?.trim() || null, contact_info: storedContact, message: message.trim() }])
+      .select();
     if (error) {
       if (isMissingTable(error)) return tableMissingResponse(res, "chatbot_leads");
       throw error;
@@ -44,23 +74,27 @@ const handleLeads = async (req, res, supabase) => {
 
   if (req.method === "GET") return adminList(req, res, supabase, "chatbot_leads", "chatbot_leads");
   if (req.method === "PUT") return adminMarkRead(req, res, supabase, "chatbot_leads");
+  if (req.method === "DELETE") return adminDelete(req, res, supabase, "chatbot_leads");
   return res.status(405).json({ error: "Method not allowed" });
 };
 
 const handleContact = async (req, res, supabase) => {
   if (req.method === "GET") return adminList(req, res, supabase, "contact_enquiries", "contact_enquiries");
   if (req.method === "PUT") return adminMarkRead(req, res, supabase, "contact_enquiries");
+  if (req.method === "DELETE") return adminDelete(req, res, supabase, "contact_enquiries");
   return res.status(405).json({ error: "Method not allowed" });
 };
 
 const handleCart = async (req, res, supabase) => {
   if (req.method === "GET") return adminList(req, res, supabase, "cart_enquiries", "cart_enquiries");
   if (req.method === "PUT") return adminMarkRead(req, res, supabase, "cart_enquiries");
+  if (req.method === "DELETE") return adminDelete(req, res, supabase, "cart_enquiries");
   return res.status(405).json({ error: "Method not allowed" });
 };
 
 const handleNewsletter = async (req, res, supabase) => {
   if (req.method === "GET") return adminList(req, res, supabase, "newsletter_subscribers", "newsletter_subscribers");
+  if (req.method === "DELETE") return adminDelete(req, res, supabase, "newsletter_subscribers");
   return res.status(405).json({ error: "Method not allowed" });
 };
 

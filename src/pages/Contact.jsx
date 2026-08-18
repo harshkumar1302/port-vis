@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { SITE_EMAIL, SITE_WHATSAPP_DISPLAY } from '../constants/site';
 import { buildInstagramUrl, buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
+import { fetchJson } from '../lib/fetchJson';
 
 const INQUIRY_TYPES = [
   'Custom Artwork',
@@ -36,6 +37,7 @@ const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: 'Custom Artwork', message: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [submitted, setSubmitted] = useState(null);
   const [openFaq, setOpenFaq] = useState(0); // first item open by default
 
   useEffect(() => {
@@ -59,13 +61,17 @@ const Contact = () => {
     setStatus('sending');
     setErrorMsg('');
     try {
-      const res = await fetch('/api/contact', {
+      const { data } = await fetchJson('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not send message');
+      if (!data?.success) throw new Error('Could not send message');
+      setSubmitted({
+        name: form.name.trim(),
+        subject: form.subject || selectedType,
+        message: form.message.trim(),
+      });
       setStatus('success');
       setForm({ name: '', email: '', subject: selectedType, message: '' });
     } catch (err) {
@@ -107,22 +113,51 @@ const Contact = () => {
                 <h2 className="font-serif text-3xl text-ghibli-charcoal mt-1">Inquiry Form</h2>
               </div>
 
-              {status === 'success' ? (
-                <div className="text-center py-12 px-4">
-                  <div className="w-16 h-16 rounded-full bg-ghibli-wood/10 text-ghibli-wood flex items-center justify-center mx-auto mb-6 text-2xl border border-ghibli-wood/20">
-                    ✨
-                  </div>
-                  <h3 className="font-serif text-3xl text-ghibli-charcoal mb-3">Message Received</h3>
-                  <p className="text-ghibli-charcoal/70 text-sm max-w-md mx-auto leading-relaxed mb-8">
-                    Thank you for reaching out to Visheshkala. We usually review and respond to inquiries within 24 hours.
+              {status === 'success' && submitted ? (
+                <div className="text-center py-10 px-4 animate-in fade-in duration-300">
+                  <img
+                    src="/logo.png"
+                    alt="Visheshkala"
+                    className="w-24 h-24 mx-auto mb-6 object-contain"
+                  />
+                  <h3 className="font-serif text-3xl text-ghibli-charcoal mb-3">Message sent!</h3>
+                  <p className="text-ghibli-charcoal/70 text-sm max-w-md mx-auto leading-relaxed mb-6">
+                    Thank you{submitted.name ? `, ${submitted.name.split(' ')[0]}` : ''}! Vishakha will read your note personally and get back to you soon — usually within 24 hours.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setStatus('idle')}
-                    className="px-8 py-3 rounded-full bg-ghibli-charcoal text-white text-xs font-bold uppercase tracking-widest hover:bg-ghibli-wood transition-colors"
-                  >
-                    Send Another Note
-                  </button>
+
+                  <div className="text-left max-w-md mx-auto mb-8 rounded-2xl border border-ghibli-wood/10 bg-ghibli-cream/40 p-5 space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood/70 mb-1">Inquiry</p>
+                      <p className="text-sm font-semibold text-ghibli-charcoal">{submitted.subject}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood/70 mb-1">Your message</p>
+                      <p className="text-sm text-ghibli-charcoal/75 leading-relaxed whitespace-pre-wrap">{submitted.message}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStatus('idle');
+                        setSubmitted(null);
+                      }}
+                      className="px-8 py-3 rounded-full bg-ghibli-charcoal text-white text-xs font-bold uppercase tracking-widest hover:bg-ghibli-wood transition-colors"
+                    >
+                      Send another note
+                    </button>
+                    {waGeneral && (
+                      <a
+                        href={waGeneral}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-8 py-3 rounded-full border-2 border-[#25D366] text-[#128C7E] text-xs font-bold uppercase tracking-widest hover:bg-[#25D366] hover:text-white transition-colors"
+                      >
+                        Chat on WhatsApp
+                      </a>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-8">

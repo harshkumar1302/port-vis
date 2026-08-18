@@ -8,6 +8,26 @@ const SOURCES = [
   { id: 'newsletter', label: 'Newsletter' },
 ];
 
+const parseChatbotContact = (contactInfo) => {
+  if (!contactInfo) return { phone: '', email: '' };
+  try {
+    const parsed = JSON.parse(contactInfo);
+    if (parsed && typeof parsed === 'object') {
+      return {
+        phone: parsed.phone || '',
+        email: parsed.email || '',
+      };
+    }
+  } catch {
+    /* legacy plain-text format */
+  }
+  if (contactInfo.includes('@')) {
+    return { phone: '', email: contactInfo.trim() };
+  }
+  const digits = contactInfo.replace(/\D/g, '');
+  return { phone: digits.length === 10 ? digits : contactInfo.trim(), email: '' };
+};
+
 const parseCartContact = (contactInfo) => {
   if (!contactInfo) return { email: '', phone: '', address: '' };
   try {
@@ -119,6 +139,13 @@ const LeadsTab = () => {
   const markAsRead = async (item) => {
     if (item.source === 'newsletter') return;
     const resource = item.source === 'chatbot' ? 'leads' : item.source;
+
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id && i.source === item.source ? { ...i, status: 'read' } : i
+      )
+    );
+
     try {
       const res = await fetch(`/api/manage-content?resource=${resource}`, {
         method: 'PUT',
@@ -127,9 +154,35 @@ const LeadsTab = () => {
         body: JSON.stringify({ id: item.id, status: 'read' }),
       });
       if (!res.ok) throw new Error('Failed to update');
-      loadAll();
     } catch {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id && i.source === item.source ? { ...i, status: 'new' } : i
+        )
+      );
       alert('Failed to update status');
+    }
+  };
+
+  const deleteInquiry = async (item) => {
+    if (!window.confirm('Delete this inquiry? This cannot be undone.')) return;
+
+    const resource = item.source === 'chatbot' ? 'leads' : item.source;
+    const previous = items;
+
+    setItems((prev) => prev.filter((i) => !(i.id === item.id && i.source === item.source)));
+
+    try {
+      const res = await fetch(`/api/manage-content?resource=${resource}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id: item.id }),
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+    } catch {
+      setItems(previous);
+      alert('Failed to delete inquiry');
     }
   };
 
@@ -229,15 +282,24 @@ const LeadsTab = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 align-top">
-                      {item.status === 'new' && (
+                      <div className="flex flex-col gap-2">
+                        {item.status === 'new' && (
+                          <button
+                            type="button"
+                            onClick={() => markAsRead(item)}
+                            className="text-[10px] font-extrabold uppercase tracking-widest text-ghibli-wood hover:text-ghibli-navy transition-colors text-left"
+                          >
+                            Mark read
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => markAsRead(item)}
-                          className="text-[10px] font-extrabold uppercase tracking-widest text-ghibli-wood hover:text-ghibli-navy transition-colors"
+                          onClick={() => deleteInquiry(item)}
+                          className="text-[10px] font-extrabold uppercase tracking-widest text-red-500 hover:text-red-700 transition-colors text-left"
                         >
-                          Mark read
+                          Delete
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -277,7 +339,25 @@ const LeadsTab = () => {
                   <h3 className="text-lg font-bold text-ghibli-charcoal">
                     {item.name || item.email || 'Anonymous Visitor'}
                   </h3>
-                  {(item.email || item.contact_info) && (
+                  {item.source === 'chatbot' ? (() => {
+                    const { phone, email } = parseChatbotContact(item.contact_info);
+                    return (
+                      <div className="flex flex-col gap-1 mt-1">
+                        {phone && (
+                          <a href={`tel:+91${phone}`} className="text-sm font-semibold text-ghibli-wood hover:text-ghibli-navy transition-colors inline-flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                            +91 {phone}
+                          </a>
+                        )}
+                        {email && (
+                          <a href={`mailto:${email}`} className="text-sm font-semibold text-ghibli-wood hover:text-ghibli-navy transition-colors inline-flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            {email}
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })() : (item.email || item.contact_info) && (
                     <a href={`mailto:${item.email || item.contact_info}`} className="text-sm font-semibold text-ghibli-wood hover:text-ghibli-navy transition-colors inline-flex items-center gap-1.5 mt-1">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                       {item.email || item.contact_info}
@@ -320,8 +400,8 @@ const LeadsTab = () => {
               )}
 
               {/* Action Bar */}
-              {item.source !== 'newsletter' && item.status === 'new' && (
-                <div className="mt-5 flex justify-end">
+              <div className="mt-5 flex justify-end gap-2">
+                {item.source !== 'newsletter' && item.status === 'new' && (
                   <button
                     type="button"
                     onClick={() => markAsRead(item)}
@@ -330,8 +410,16 @@ const LeadsTab = () => {
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                     Mark as Read
                   </button>
-                </div>
-              )}
+                )}
+                <button
+                  type="button"
+                  onClick={() => deleteInquiry(item)}
+                  className="px-5 py-2 text-[0.65rem] font-extrabold uppercase tracking-widest text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+                  Delete
+                </button>
+              </div>
             </div>
           ))
         )}

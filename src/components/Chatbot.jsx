@@ -15,6 +15,7 @@ import {
 import { FALLBACK_CATEGORIES } from '../constants/categories';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
+import { fetchJson } from '../lib/fetchJson';
 import { useStore } from '../context/StoreContext';
 
 const TypingDots = () => (
@@ -97,8 +98,9 @@ const Chatbot = () => {
   const [step, setStep] = useState('chat');
   const [activeTopic, setActiveTopic] = useState('intro');
   const [input, setInput] = useState('');
-  const [formData, setFormData] = useState({ name: '', contact_info: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [formTopic, setFormTopic] = useState('note');
+  const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
@@ -160,6 +162,7 @@ const Chatbot = () => {
   const openForm = (topic = 'note') => {
     const preset = FORM_PRESETS[topic] || FORM_PRESETS.note;
     setFormTopic(topic);
+    setFormError('');
     setFormData((prev) => ({ ...prev, message: preset.message }));
     setStep('form');
   };
@@ -196,22 +199,36 @@ const Chatbot = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    const phone = formData.phone.replace(/\D/g, '');
+    const email = formData.email.trim();
+
+    if (phone.length !== 10) {
+      setFormError('Please enter a valid 10-digit phone number.');
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFormError('Please enter a valid email address.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/manage-leads', {
+      await fetchJson('/api/manage-leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          name: formData.name.trim(),
+          phone,
+          email: email || undefined,
           message: formatLeadMessage(formTopic, formData.message),
         }),
       });
-      if (!res.ok) throw new Error('Could not send');
       setStep('success');
-      setFormData({ name: '', contact_info: '', message: '' });
-    } catch {
-      setStep('chat');
-      mithiSay("Hmm, that didn't go through — try WhatsApp, or give it another go in a moment.", 'contact');
+      setFormData({ name: '', phone: '', email: '', message: '' });
+    } catch (err) {
+      setFormError(err.message || "Couldn't send — please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -222,7 +239,8 @@ const Chatbot = () => {
     setMessages([]);
     setHasGreeted(false);
     setActiveTopic('intro');
-    setFormData({ name: '', contact_info: '', message: '' });
+    setFormData({ name: '', phone: '', email: '', message: '' });
+    setFormError('');
     setInput('');
   };
 
@@ -345,7 +363,7 @@ const Chatbot = () => {
                   ← Back to chat
                 </button>
                 <Bubble from="mithi">Just a name and how to reach you — Vishakha will reply personally.</Bubble>
-                <form onSubmit={handleSubmit} className="space-y-2.5">
+                <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
                   <input
                     type="text"
                     required
@@ -355,11 +373,26 @@ const Chatbot = () => {
                     className="w-full p-2.5 text-[13px] rounded-xl border border-ghibli-wood/15 bg-white focus:outline-none focus:border-ghibli-wood"
                   />
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel"
                     required
-                    placeholder="Phone or email"
-                    value={formData.contact_info}
-                    onChange={(e) => setFormData({ ...formData, contact_info: e.target.value })}
+                    placeholder="Phone (10 digits)"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    title="Enter a 10-digit phone number"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })
+                    }
+                    className="w-full p-2.5 text-[13px] rounded-xl border border-ghibli-wood/15 bg-white focus:outline-none focus:border-ghibli-wood"
+                  />
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email (optional)"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full p-2.5 text-[13px] rounded-xl border border-ghibli-wood/15 bg-white focus:outline-none focus:border-ghibli-wood"
                   />
                   <textarea
@@ -370,6 +403,9 @@ const Chatbot = () => {
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full p-2.5 text-[13px] rounded-xl border border-ghibli-wood/15 bg-white focus:outline-none focus:border-ghibli-wood resize-none"
                   />
+                  {formError && (
+                    <p className="text-[12px] text-red-600 font-medium">{formError}</p>
+                  )}
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -383,7 +419,11 @@ const Chatbot = () => {
 
             {step === 'success' && (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in duration-300 py-6">
-                <div className="text-4xl">🌿</div>
+                <img
+                  src="/logo.png"
+                  alt="Visheshkala"
+                  className="w-20 h-20 object-contain"
+                />
                 <h4 className="font-bold text-ghibli-charcoal font-serif text-lg">Message sent!</h4>
                 <p className="text-[13px] text-ghibli-charcoal/70 px-2">
                   Vishakha will read your note and get back to you soon. Thank you for reaching out.
