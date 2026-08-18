@@ -46,11 +46,6 @@ const WishlistCard = ({ art }) => {
     navigate('/cart');
   };
 
-  const handleEnquire = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   return (
     <article className="group cursor-pointer flex flex-col items-center relative">
       <div
@@ -110,7 +105,6 @@ const WishlistCard = ({ art }) => {
           {isGallery ? (
             <WhatsAppButton
               href={waUrl}
-              onClick={handleEnquire}
               className="w-full py-3 px-4 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase shadow-lg backdrop-blur-md transition-colors border border-white/20 bg-[#25D366] text-white hover:bg-[#1da851] hover:scale-[1.02] text-center"
             >
               Enquire About Piece

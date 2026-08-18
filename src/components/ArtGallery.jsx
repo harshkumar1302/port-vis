@@ -8,7 +8,7 @@ import { fetchSiteSetting } from '../lib/fetchSettings';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { useStore } from '../context/StoreContext';
-import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
+import { buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
 import GalleryPageSkeleton from './skeletons/GalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
 import ArtworkImage from './ArtworkImage';
@@ -250,7 +250,6 @@ const ArtGallery = () => {
 
                                 <WhatsAppButton
                                     href={buildWhatsAppUrl(selectedArt, channels)}
-                                    disabled={!hasWhatsApp(channels)}
                                     onClick={() => setSelectedArt(null)}
                                     className="mt-auto px-8 py-4 bg-[#25D366] text-white rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#20bd5a] transition-all self-start text-center shadow-[0_8px_20px_rgba(37,211,102,0.25)]"
                                 >
