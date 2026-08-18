@@ -4,6 +4,7 @@ import {
 } from '../constants/site';
 import { formatPriceShop, getSubCategory } from './artwork';
 import { getAbsolutePieceUrl } from './pieceUrls';
+import { buildCanonical } from './seo';
 
 export { SITE_WHATSAPP_NUMBER, SITE_WHATSAPP_DISPLAY };
 
@@ -30,6 +31,8 @@ export const ENQUIRE_SOURCES = {
   checkout: 'Checkout',
 };
 
+const GENERIC_ONLY_SOURCES = new Set(['contact', 'chatbot']);
+
 const digitsOnly = (value) => (value || '').replace(/\D/g, '');
 
 const cleanLabel = (value) =>
@@ -37,6 +40,23 @@ const cleanLabel = (value) =>
     .replace(/\[FEATURED\]/g, '')
     .replace(/\[SubCategory:\s*.*?\]/g, '')
     .trim();
+
+const isPieceEnquiry = (source) =>
+  Boolean(source) &&
+  !GENERIC_ONLY_SOURCES.has(source) &&
+  (source.includes('gallery') ||
+    source.includes('wishlist') ||
+    source.includes('shop') ||
+    source === 'product' ||
+    source === 'cart' ||
+    source === 'checkout');
+
+const titleFromSlug = (slug) =>
+  (slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
 /** Merge admin settings with site defaults so WhatsApp stays live */
 export const resolveContactChannels = (channels = {}) => {
@@ -46,15 +66,23 @@ export const resolveContactChannels = (channels = {}) => {
 };
 
 /** Build a detailed WhatsApp message with piece + page context */
-export const buildEnquireMessage = (artwork = {}, options = {}) => {
-  const { source = 'site', sourceLabel, pageUrl: pageUrlOverride } = options;
+export const buildEnquireMessage = (artwork, options = {}) => {
+  const art = artwork ?? {};
+  const { source = 'site', sourceLabel, pageUrl: pageUrlOverride, slug } = options;
   const fromLabel = sourceLabel || ENQUIRE_SOURCES[source] || 'Visheshkala website';
-  const pageUrl = pageUrlOverride || getAbsolutePieceUrl(artwork);
-  const title = cleanLabel(artwork?.title);
-  const category = cleanLabel(artwork?.category);
-  const subCategory = getSubCategory(artwork);
-  const price = formatPriceShop(artwork?.price);
-  const listingType = artwork?.listing_type;
+  const pageUrl =
+    pageUrlOverride ||
+    getAbsolutePieceUrl(art) ||
+    (slug ? buildCanonical(source.includes('shop') || source === 'product' ? `/shop/${slug}` : `/gallery/piece/${slug}`) : null);
+
+  let title = cleanLabel(art.title);
+  if (!title && slug) title = titleFromSlug(slug);
+  if (!title && pageUrl) title = 'this piece';
+
+  const category = cleanLabel(art.category);
+  const subCategory = getSubCategory(art);
+  const price = formatPriceShop(art.price);
+  const listingType = art.listing_type;
 
   const isGalleryPiece =
     source.includes('gallery') ||
@@ -65,8 +93,7 @@ export const buildEnquireMessage = (artwork = {}, options = {}) => {
     source === 'product' ||
     listingType === 'shop';
 
-  // General site enquiries (contact page, chatbot, etc.)
-  if (!title || source === 'contact' || source === 'chatbot') {
+  if (GENERIC_ONLY_SOURCES.has(source) || (!isPieceEnquiry(source) && !title)) {
     return `Hi Visheshkala!\n\nI reached out from your ${fromLabel} and would love to connect.\n\nThank you!`;
   }
 
@@ -108,7 +135,7 @@ export const buildWhatsAppUrl = (artwork, channels = {}, options = {}) => {
   const template = merged.whatsapp_message_template || DEFAULT_CHANNELS.whatsapp_message_template;
   const message =
     options.message ||
-    (options.source
+    (options.source || isPieceEnquiry(options.source)
       ? buildEnquireMessage(artwork, options)
       : template.replace('{title}', artwork?.title || 'your artwork'));
 

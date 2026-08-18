@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../context/StoreContext';
 import { formatPrice, getDiscountPct } from '../lib/artwork';
@@ -16,6 +16,7 @@ import {
   buildProductJsonLd,
   DEFAULT_OG_IMAGE,
   PAGE_SEO,
+  buildCanonical,
 } from '../lib/seo';
 
 const ProductDetail = () => {
@@ -27,7 +28,15 @@ const ProductDetail = () => {
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
   const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
   const piecePath = art ? getShopPiecePath(art) : `/shop/${slug}`;
-  const waUrl = buildWhatsAppUrl(art, channels, { source: 'product' });
+
+  const waUrl = useMemo(() => {
+    if (!art) return null;
+    return buildWhatsAppUrl(art, channels, {
+      source: 'product',
+      slug,
+      pageUrl: buildCanonical(piecePath),
+    });
+  }, [art, channels, slug, piecePath]);
 
   usePageSEO({
     enabled: Boolean(art),

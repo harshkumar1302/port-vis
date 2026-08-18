@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../context/StoreContext';
 import { getSubCategory, stripMetaFromDescription } from '../lib/artwork';
@@ -27,7 +27,15 @@ const GalleryPieceDetail = () => {
   const { toggleWishlist, isInWishlist } = useStore();
   const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
   const piecePath = art ? getGalleryPiecePath(art) : `/gallery/piece/${slug}`;
-  const waUrl = buildWhatsAppUrl(art, channels, { source: 'gallery-piece' });
+
+  const waUrl = useMemo(() => {
+    if (!art) return null;
+    return buildWhatsAppUrl(art, channels, {
+      source: 'gallery-piece',
+      slug,
+      pageUrl: buildCanonical(piecePath),
+    });
+  }, [art, channels, slug, piecePath]);
 
   usePageSEO({
     enabled: Boolean(art),

@@ -9,6 +9,7 @@ import {
 } from '../lib/categoryUtils';
 import { buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
 import { getPiecePath } from '../lib/pieceUrls';
+import { buildCanonical } from '../lib/seo';
 import ArtworkImage from './ArtworkImage';
 import WhatsAppButton from './WhatsAppButton';
 
@@ -25,6 +26,7 @@ const WishlistCard = ({ art }) => {
   const detailPath = getPiecePath(art);
   const waUrl = buildWhatsAppUrl(art, channels, {
     source: isGallery ? 'wishlist-gallery' : 'wishlist-shop',
+    pageUrl: buildCanonical(getPiecePath(art)),
   });
 
   const [isRemoving, setIsRemoving] = useState(false);
