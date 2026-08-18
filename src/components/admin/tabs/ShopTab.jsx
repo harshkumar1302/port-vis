@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { FALLBACK_CATEGORIES as DEFAULT_CATEGORIES } from '../../../constants/categories';
 import { artMatchesCategory, isShopListing } from '../../../lib/categoryUtils';
+import { isBestseller } from '../../../lib/artwork';
 import { useArtworkUpload } from '../../../hooks/useArtworkUpload';
 import AdminUploadForm from '../AdminUploadForm';
 import AdminSubnav from '../AdminSubnav';
@@ -74,7 +75,7 @@ const ShopTab = ({ session }) => {
     if (filter === 'featured') {
       list = list.filter((a) => a.is_featured);
     } else if (filter === 'bestseller') {
-      list = list.filter((a) => a.is_bestseller);
+      list = list.filter((a) => isBestseller(a));
     } else if (filter === 'outofstock') {
       list = list.filter((a) => a.stock === 0);
     } else if (filter !== 'all') {

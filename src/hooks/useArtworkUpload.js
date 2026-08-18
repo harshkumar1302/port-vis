@@ -77,15 +77,21 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
     }
 
     const isFeaturedItem = cleanDesc.includes('[FEATURED]');
-    cleanDesc = cleanDesc.replace(/\[FEATURED\]/g, '').trim();
+    const isBestsellerItem = cleanDesc.includes('[BESTSELLER]');
+    const isNewItem = /\[NEW\]/.test(cleanDesc);
+    cleanDesc = cleanDesc
+      .replace(/\[FEATURED\]/g, '')
+      .replace(/\[BESTSELLER\]/g, '')
+      .replace(/\[NEW\]/g, '')
+      .trim();
 
     setDesc(cleanDesc);
     setPrice(art.price ?? '');
     setOriginalPrice(art.original_price ?? '');
     setStock(art.stock ?? '');
     setIsFeatured(art.is_featured || isFeaturedItem);
-    setIsBestseller(art.is_bestseller || false);
-    setIsNew(art.is_new || false);
+    setIsBestseller(art.is_bestseller || isBestsellerItem);
+    setIsNew(art.is_new || isNewItem);
 
     preserveRef.current = {
       price: art.price ?? null,
@@ -146,8 +152,14 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
         finalImageUrl = preserveRef.current?.image_url;
       }
 
-      let finalDescription = desc;
+      let finalDescription = desc
+        .replace(/\[FEATURED\]/g, '')
+        .replace(/\[BESTSELLER\]/g, '')
+        .replace(/\[NEW\]/g, '')
+        .trim();
       let finalCategory = category;
+
+      const showFeatured = mode === 'shop' ? isFeatured : uploadType === 'featured' || isFeatured;
 
       if (mode === 'shop') {
         if (!category) throw new Error('Please pick a category for this shop item.');
@@ -164,6 +176,10 @@ export function useArtworkUpload({ session, mode, onSuccess }) {
         finalCategory = category;
         if (subCategory) finalDescription += `\n\n[SubCategory: ${subCategory}]`;
       }
+
+      if (showFeatured) finalDescription = `[FEATURED] ${finalDescription}`.trim();
+      if (isBestseller) finalDescription = `[BESTSELLER] ${finalDescription}`.trim();
+      if (isNew) finalDescription = `[NEW] ${finalDescription}`.trim();
 
       const marketplaceFields =
         mode === 'gallery' && editingId && preserveRef.current

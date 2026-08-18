@@ -20,6 +20,33 @@ const pickFields = (body, fields) => {
   return payload;
 };
 
+const MISSING_COLUMN_RE = /Could not find the '(\w+)' column/i;
+
+/** Drop columns missing from Supabase schema and retry (legacy DBs before restructure migration). */
+const writeWithSchemaFallback = async (supabase, table, { method, payload, id }) => {
+  let attempt = { ...payload };
+
+  for (let i = 0; i < 16; i += 1) {
+    const query =
+      method === "insert"
+        ? supabase.from(table).insert([attempt]).select()
+        : supabase.from(table).update(attempt).eq("id", id).select();
+
+    const { data, error } = await query;
+    if (!error) {
+      return { row: data[0], stripped: Object.keys(payload).filter((k) => !(k in attempt)) };
+    }
+
+    const match = error.message?.match(MISSING_COLUMN_RE);
+    const missing = match?.[1];
+    if (!missing || !(missing in attempt)) throw error;
+
+    delete attempt[missing];
+  }
+
+  throw new Error("Database schema mismatch — run migrations/2026_08_restructure.sql in Supabase.");
+};
+
 const verifyOwner = (req) => {
   const cookies = req.headers.cookie;
   const token = cookies?.split(";").find(c => c.trim().startsWith("owner_token="))?.split("=")[1];
@@ -56,9 +83,12 @@ export default async function handler(req, res) {
   try {
     if (req.method === "POST") {
       const payload = pickFields(req.body, fields);
-      const { data, error } = await supabase.from(table).insert([payload]).select();
-      if (error) throw error;
-      return res.status(201).json(data[0]);
+      const { row, stripped } = await writeWithSchemaFallback(supabase, table, { method: "insert", payload });
+      return res.status(201).json(
+        stripped.length
+          ? { ...row, _schemaWarning: `Run migrations/2026_08_restructure.sql to enable: ${stripped.join(", ")}` }
+          : row
+      );
     }
 
     if (req.method === "PUT") {
@@ -79,13 +109,16 @@ export default async function handler(req, res) {
       if (!id) return res.status(400).json({ error: "ID is required for updates" });
 
       const payload = pickFields(rest, fields);
-      const { data, error } = await supabase
-        .from(table)
-        .update(payload)
-        .eq("id", id)
-        .select();
-      if (error) throw error;
-      return res.status(200).json(data[0]);
+      const { row, stripped } = await writeWithSchemaFallback(supabase, table, {
+        method: "update",
+        payload,
+        id,
+      });
+      return res.status(200).json(
+        stripped.length
+          ? { ...row, _schemaWarning: `Run migrations/2026_08_restructure.sql to enable: ${stripped.join(", ")}` }
+          : row
+      );
     }
 
     if (req.method === "DELETE") {

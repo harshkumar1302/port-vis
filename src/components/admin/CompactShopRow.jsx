@@ -1,4 +1,4 @@
-import { formatPriceShop, getSubCategory } from '../../lib/artwork';
+import { formatPriceShop, getSubCategory, isFeatured, isBestseller, isNewLaunch } from '../../lib/artwork';
 
 const CompactShopRow = ({ art, onEdit, onDelete }) => {
   if (!art) return null;
@@ -27,9 +27,9 @@ const CompactShopRow = ({ art, onEdit, onDelete }) => {
       </div>
 
       <div className="admin-compact-row-badges hidden sm:flex">
-        {art.is_featured && <span className="admin-badge admin-badge-gold">Featured</span>}
-        {art.is_bestseller && <span className="admin-badge">Bestseller</span>}
-        {art.is_new && <span className="admin-badge admin-badge-blue">New</span>}
+        {isFeatured(art) && <span className="admin-badge admin-badge-gold">Featured</span>}
+        {isBestseller(art) && <span className="admin-badge">Bestseller</span>}
+        {isNewLaunch(art) && <span className="admin-badge admin-badge-blue">New</span>}
         {outOfStock && <span className="admin-badge">Out of stock</span>}
       </div>
 
