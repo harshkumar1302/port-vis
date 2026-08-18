@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../context/StoreContext';
 import { formatPrice, getDiscountPct } from '../lib/artwork';
 import useSiteSetting from '../hooks/useSiteSettings';
-import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
+import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
 import ArtworkImage from '../components/ArtworkImage';
 import { titleToSlug, isShopListing } from '../lib/categoryUtils';
 import usePageSEO from '../hooks/usePageSEO';
@@ -23,7 +23,7 @@ const ProductDetail = () => {
   const [art, setArt] = useState(state?.art || state?.product || null);
   const [loading, setLoading] = useState(!state?.art && !state?.product);
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
-  const { value: channels } = useSiteSetting('contact_channels', {});
+  const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
   const waUrl = buildWhatsAppUrl(art, channels);
 
   usePageSEO({

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
-import { SITE_EMAIL } from '../constants/site';
-import { buildInstagramUrl, buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
+import { SITE_EMAIL, SITE_WHATSAPP_DISPLAY } from '../constants/site';
+import { buildInstagramUrl, buildWhatsAppUrl, DEFAULT_CHANNELS } from '../lib/enquire';
 
 const INQUIRY_TYPES = [
   'Custom Artwork',
@@ -31,7 +31,7 @@ const FAQS = [
 ];
 
 const Contact = () => {
-  const { value: channels } = useSiteSetting('contact_channels', {});
+  const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
   const [selectedType, setSelectedType] = useState('Custom Artwork');
   const [form, setForm] = useState({ name: '', email: '', subject: 'Custom Artwork', message: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
@@ -43,9 +43,7 @@ const Contact = () => {
   }, []);
 
   const instaUrl = buildInstagramUrl(channels) || 'https://instagram.com';
-  const waGeneral = hasWhatsApp(channels)
-    ? buildWhatsAppUrl({ title: 'Visheshkala Atelier' }, channels)
-    : null;
+  const waGeneral = buildWhatsAppUrl({ title: 'Visheshkala Atelier' }, channels);
 
   const handleTypeSelect = (type) => {
     setSelectedType(type);
@@ -272,9 +270,9 @@ const Contact = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* WhatsApp Card */}
           <a
-            href={waGeneral || '#'}
-            target={waGeneral ? '_blank' : undefined}
-            rel={waGeneral ? 'noopener noreferrer' : undefined}
+            href={waGeneral}
+            target="_blank"
+            rel="noopener noreferrer"
             className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
           >
             <div>
@@ -288,7 +286,7 @@ const Contact = () => {
               </p>
             </div>
             <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-              <span>Start conversation</span>
+              <span>{SITE_WHATSAPP_DISPLAY}</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </div>
           </a>

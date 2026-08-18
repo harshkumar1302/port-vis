@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { ANNOUNCEMENT_UPDATE_EVENT } from '../../../hooks/useAnnouncementBar';
 import { fetchSiteSetting } from '../../../lib/fetchSettings';
+import { DEFAULT_CHANNELS } from '../../../lib/enquire';
 
 const SiteTab = () => {
   const [announcement, setAnnouncement] = useState({ enabled: true, items: [] });
-  const [contact, setContact] = useState({ instagram_url: '', whatsapp_number: '', whatsapp_message_template: '' });
+  const [contact, setContact] = useState({ ...DEFAULT_CHANNELS });
   const [stats, setStats] = useState({ handmade_pct: 100, happy_homes: 500, rating: 5 });
 
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ const SiteTab = () => {
   useEffect(() => {
     Promise.all([
       fetchSiteSetting('announcement_bar', { enabled: true, items: [] }),
-      fetchSiteSetting('contact_channels', { instagram_url: '', whatsapp_number: '', whatsapp_message_template: '' }),
+      fetchSiteSetting('contact_channels', { ...DEFAULT_CHANNELS }),
       fetchSiteSetting('hero_stats', { handmade_pct: 100, happy_homes: 500, rating: 5 }),
     ]).then(([ann, con, st]) => {
       if (ann) setAnnouncement({ ...ann, items: ann.items || [] });
@@ -160,7 +161,7 @@ const SiteTab = () => {
                 value={contact.whatsapp_number || ''} 
                 onChange={e => setContact({ ...contact, whatsapp_number: e.target.value })} 
                 className="w-full p-4 rounded-xl border border-ghibli-wood/10 bg-white/60 focus:bg-white focus:border-ghibli-wood/40 transition-colors outline-none text-sm font-semibold" 
-                placeholder="e.g. 919876543210" 
+                placeholder="917310956254" 
               />
               <p className="text-xs text-ghibli-charcoal/50 font-medium">Include country code without the + (e.g. 91 for India).</p>
             </div>

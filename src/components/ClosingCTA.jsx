@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
-import { buildInstagramUrl } from '../lib/enquire';
+import { buildInstagramUrl, DEFAULT_CHANNELS } from '../lib/enquire';
 import { Link } from 'react-router-dom';
 import NewsletterModal from './NewsletterModal';
 
@@ -38,7 +38,7 @@ const SOCIAL_LINKS = [
 ];
 
 const ClosingCTA = () => {
-  const { value: channels } = useSiteSetting('contact_channels', {});
+  const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
   const [newsletterOpen, setNewsletterOpen] = useState(false);
 
   return (

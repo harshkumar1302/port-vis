@@ -9,7 +9,7 @@ import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
 import useSiteSetting from '../hooks/useSiteSettings';
-import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
+import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import FullGalleryPageSkeleton from './skeletons/FullGalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
@@ -20,7 +20,7 @@ const FullGallery = () => {
     const { category } = useParams();
     const navigate = useNavigate();
     const { artworks: catalog, loading } = useArtworksCatalog();
-    const { value: channels } = useSiteSetting('contact_channels', {});
+    const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
     const artworks = catalog.filter(isGalleryListing);
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [selectedArt, setSelectedArt] = useState(null);

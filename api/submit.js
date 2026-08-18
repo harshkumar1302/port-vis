@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { getSupabase, isMissingTable, tableMissingResponse } from "../lib/apiUtils.js";
-import { SITE_EMAIL, siteEmailFrom } from "../lib/siteContact.js";
+import { SITE_EMAIL, siteEmailFrom, DEFAULT_CONTACT_CHANNELS } from "../lib/siteContact.js";
 
 const formatPrice = (n) => (n != null ? `₹${Number(n).toLocaleString("en-IN")}` : "Price on request");
 
@@ -22,7 +22,9 @@ const buildCartMessage = (items, total, name, contact) => {
 
 const getWhatsAppChannels = async (supabase) => {
   const { data } = await supabase.from("site_settings").select("value").eq("id", "contact_channels").single();
-  return data?.value || {};
+  const stored = data?.value || {};
+  const number = (stored.whatsapp_number || "").replace(/\D/g, "") || DEFAULT_CONTACT_CHANNELS.whatsapp_number;
+  return { ...DEFAULT_CONTACT_CHANNELS, ...stored, whatsapp_number: number };
 };
 
 const handleContact = async (req, res, supabase) => {

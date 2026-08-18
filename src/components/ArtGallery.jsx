@@ -8,7 +8,7 @@ import { fetchSiteSetting } from '../lib/fetchSettings';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { useStore } from '../context/StoreContext';
-import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
+import { buildWhatsAppUrl, hasWhatsApp, DEFAULT_CHANNELS } from '../lib/enquire';
 import GalleryPageSkeleton from './skeletons/GalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
 import ArtworkImage from './ArtworkImage';
@@ -18,7 +18,7 @@ const FALLBACK_CATEGORIES_LOCAL = FALLBACK_CATEGORIES;
 
 const ArtGallery = () => {
     const { artworks: catalog, loading } = useArtworksCatalog();
-    const { value: channels } = useSiteSetting('contact_channels', {});
+    const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
     const { wishlist, toggleWishlist } = useStore();
     const artworks = catalog.filter(isGalleryListing);
     const [selectedArt, setSelectedArt] = useState(null);
