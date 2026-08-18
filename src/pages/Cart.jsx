@@ -1,35 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../lib/artwork';
 import { titleToSlug } from '../lib/categoryUtils';
 import ArtworkImage from '../components/ArtworkImage';
-import WhatsAppButton from '../components/WhatsAppButton';
 
 const Cart = () => {
-  const { cart: realCart, removeFromCart, updateCartQuantity } = useStore();
-  const [customer, setCustomer] = useState({ name: '', contact_info: '' });
-  const [checkoutStatus, setCheckoutStatus] = useState('idle'); // idle | loading | done | error
-  const [checkoutMsg, setCheckoutMsg] = useState('');
-  const [whatsappUrl, setWhatsappUrl] = useState(null);
-
-  // FORCE DUMMY DATA FOR PREVIEW (Bypasses React State cache)
-  const cart = [
-    {
-      id: 'dummy-1',
-      title: 'Hand-Poured Soy Candle: Santal & Oak',
-      price: 48,
-      quantity: 1,
-      image_url: 'https://images.unsplash.com/photo-1602262973161-591b920e8b2b?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 'dummy-2',
-      title: 'Linen Table Runner',
-      price: 65,
-      quantity: 2,
-      image_url: 'https://images.unsplash.com/photo-1617260517865-c725516a8b79?auto=format&fit=crop&q=80&w=800'
-    }
-  ];
+  const { cart, removeFromCart, updateCartQuantity } = useStore();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -37,36 +14,6 @@ const Cart = () => {
 
   const calculateTotal = () =>
     cart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
-
-  const handleCheckout = async () => {
-    setCheckoutStatus('loading');
-    setCheckoutMsg('');
-    try {
-      const res = await fetch('/api/enquire', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: customer.name.trim() || undefined,
-          contact_info: customer.contact_info.trim() || undefined,
-          items: cart.map(({ id, title, price, quantity, image_url }) => ({
-            id, title, price, quantity, image_url,
-          })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
-
-      setCheckoutStatus('done');
-      setCheckoutMsg(data.message);
-      if (data.whatsappUrl) {
-        setWhatsappUrl(data.whatsappUrl);
-        window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer');
-      }
-    } catch (err) {
-      setCheckoutStatus('error');
-      setCheckoutMsg(err.message || 'Could not process checkout. Try contacting us directly.');
-    }
-  };
 
   if (cart.length === 0) {
     return (
@@ -107,8 +54,6 @@ const Cart = () => {
 
       <div className="page-container max-w-[1200px]">
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          
-          {/* Left Side: Item List */}
           <div className="w-full lg:w-[58%] flex flex-col gap-0">
             {cart.map((item) => {
               const slug = titleToSlug(item.title, item.id);
@@ -138,7 +83,6 @@ const Cart = () => {
                         <h3 className="font-serif text-xl md:text-2xl text-ghibli-charcoal leading-snug group-hover/link:text-ghibli-wood transition-colors">
                           {item.title}
                         </h3>
-                        {/* Optional description placeholder if needed */}
                       </Link>
                       <button
                         onClick={() => removeFromCart(item.id)}
@@ -189,7 +133,6 @@ const Cart = () => {
             })}
           </div>
 
-          {/* Right Side: Floating Summary Card */}
           <div className="w-full lg:w-[42%]">
             <div className="sticky top-28 bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-[2rem] p-6 sm:p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <h2 className="font-serif text-2xl text-ghibli-charcoal mb-8 border-b border-ghibli-wood/10 pb-4">

@@ -8,6 +8,33 @@ const SOURCES = [
   { id: 'newsletter', label: 'Newsletter' },
 ];
 
+const parseCartContact = (contactInfo) => {
+  if (!contactInfo) return { email: '', phone: '', address: '' };
+  try {
+    const parsed = JSON.parse(contactInfo);
+    if (parsed && typeof parsed === 'object') {
+      return {
+        email: parsed.email || '',
+        phone: parsed.phone || '',
+        address: parsed.address || '',
+      };
+    }
+  } catch {
+    /* legacy plain-text format */
+  }
+  const email = contactInfo.match(/Email:\s*([^|]+)/)?.[1]?.trim() || '';
+  const phone = contactInfo.match(/Phone:\s*([^|]+)/)?.[1]?.trim() || '';
+  const address = contactInfo.match(/Address:\s*(.+)/)?.[1]?.trim() || contactInfo;
+  return { email, phone, address };
+};
+
+const formatCartItems = (items) => {
+  if (!Array.isArray(items) || items.length === 0) return '—';
+  return items
+    .map((line) => `${line.title}${line.quantity > 1 ? ` ×${line.quantity}` : ''}`)
+    .join(', ');
+};
+
 const fetchResource = async (resource) => {
   const res = await fetch(`/api/manage-content?resource=${resource}`, { credentials: 'include' });
   if (!res.ok) {
@@ -152,8 +179,76 @@ const LeadsTab = () => {
         ))}
       </div>
 
+      {filter === 'cart' && filtered.length === 0 && (
+        <div className="text-center bg-white/40 backdrop-blur-md rounded-3xl p-10 border border-white/30">
+          <p className="text-sm font-bold text-ghibli-charcoal/40 uppercase tracking-widest">No cart orders yet.</p>
+        </div>
+      )}
+
+      {/* Cart orders table */}
+      {filter === 'cart' && filtered.length > 0 && (
+        <div className="overflow-x-auto rounded-[1.5rem] border border-white/30 bg-white/50 backdrop-blur-xl shadow-sm">
+          <table className="w-full min-w-[960px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-ghibli-wood/10 bg-white/70">
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Date</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Name</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Email</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Phone</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Address</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Items</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Total</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Status</th>
+                <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest text-ghibli-charcoal/50">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item) => {
+                const contact = parseCartContact(item.contact_info);
+                return (
+                  <tr key={item.id} className="border-b border-ghibli-wood/5 hover:bg-white/60 transition-colors">
+                    <td className="px-4 py-3 align-top whitespace-nowrap text-xs font-semibold text-ghibli-charcoal/60">
+                      {new Date(item.created_at).toLocaleDateString()}<br />
+                      {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="px-4 py-3 align-top font-bold text-ghibli-charcoal">{item.name || '—'}</td>
+                    <td className="px-4 py-3 align-top text-ghibli-charcoal/80">{contact.email || '—'}</td>
+                    <td className="px-4 py-3 align-top text-ghibli-charcoal/80 whitespace-nowrap">{contact.phone || '—'}</td>
+                    <td className="px-4 py-3 align-top text-ghibli-charcoal/80 max-w-[220px]">{contact.address || '—'}</td>
+                    <td className="px-4 py-3 align-top text-ghibli-charcoal/80 max-w-[240px]">{formatCartItems(item.items)}</td>
+                    <td className="px-4 py-3 align-top font-bold text-ghibli-wood whitespace-nowrap">
+                      {item.total != null ? `₹${Number(item.total).toLocaleString('en-IN')}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md ${
+                        item.status === 'new'
+                          ? 'bg-amber-400/20 text-amber-700'
+                          : 'bg-ghibli-wood/10 text-ghibli-charcoal/50'
+                      }`}>
+                        {item.status === 'new' ? 'New' : 'Read'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {item.status === 'new' && (
+                        <button
+                          type="button"
+                          onClick={() => markAsRead(item)}
+                          className="text-[10px] font-extrabold uppercase tracking-widest text-ghibli-wood hover:text-ghibli-navy transition-colors"
+                        >
+                          Mark read
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Inquiries List */}
-      <div className="space-y-4">
+      <div className={`space-y-4 ${filter === 'cart' ? 'hidden' : ''}`}>
         {filtered.length === 0 ? (
           <div className="text-center bg-white/40 backdrop-blur-md rounded-3xl p-10 border border-white/30">
             <p className="text-sm font-bold text-ghibli-charcoal/40 uppercase tracking-widest">No inquiries match this filter.</p>

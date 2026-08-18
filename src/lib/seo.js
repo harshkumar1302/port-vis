@@ -89,6 +89,11 @@ export const PAGE_SEO = {
       'Get in touch with Visheshkala for custom mandala commissions, handmade gifts, order questions and collaborations. Reach Vishakha Garg via Instagram or our contact form.',
     path: '/contact',
   },
+  privacy: {
+    title: `Privacy Policy | ${SITE_NAME}`,
+    description: 'How Visheshkala collects and protects your personal information when you browse, enquire, or order handmade art.',
+    path: '/privacy',
+  },
   notFound: {
     title: `Page Not Found | ${SITE_NAME}`,
     description: 'The page you are looking for could not be found. Browse handmade art at Visheshkala.',

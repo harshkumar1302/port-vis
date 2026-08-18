@@ -41,8 +41,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- LCP: hero portrait — preloaded before JS bundle -->
-  <link rel="preload" as="image" href="/ghibli-avatar-576.jpg" fetchpriority="high"
+  <!-- LCP: homepage hero banner -->
+  <link rel="preload" as="image" href="/hero-banner.jpg" fetchpriority="high"
+    imagesrcset="/hero-banner.jpg 3072w, /hero-banner@2x.jpg 6144w"
+    imagesizes="(max-width: 639px) 100vw, min(100vw - 5rem, 2078px)" />
+  <link rel="preload" as="image" href="/ghibli-avatar-576.jpg" fetchpriority="low"
     imagesrcset="/ghibli-avatar-384.jpg 384w, /ghibli-avatar-576.jpg 576w"
     imagesizes="(max-width: 640px) 176px, (max-width: 768px) 240px, 288px" />
   <link

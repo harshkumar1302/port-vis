@@ -1,23 +1,20 @@
-import ProductCardSkeleton from '../ProductCardSkeleton';
+import WishlistCardSkeleton from './WishlistCardSkeleton';
 
-const WishlistPageSkeleton = ({ count = 8 }) => {
-  const slots = Math.min(Math.max(count, 4), 8);
+const WishlistPageSkeleton = ({ count = 6 }) => {
+  const slots = Math.min(Math.max(count, 3), 6);
 
   return (
-    <div className="min-h-screen bg-ghibli-cream pb-24 animate-pulse">
-      <div className="page-container max-w-[1400px] pt-8 pb-10 md:pb-12">
+    <div className="min-h-screen bg-ghibli-cream pb-24 pt-24 md:pt-32 animate-pulse">
+      <div className="page-container max-w-[1200px] mb-12">
         <div className="h-3 w-40 bg-ghibli-wood/10 rounded-full mb-4" />
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div className="h-12 w-48 bg-ghibli-wood/10 rounded-xl" />
-          <div className="h-4 w-28 bg-ghibli-wood/10 rounded-full" />
-        </div>
-        <div className="h-0.5 w-16 bg-ghibli-wood/10 mt-6 rounded-full" />
+        <div className="h-12 w-56 bg-ghibli-wood/10 rounded-xl mb-6" />
+        <div className="h-px w-full bg-ghibli-wood/10" />
       </div>
 
-      <div className="page-container max-w-[1400px]">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 gap-y-8">
+      <div className="page-container max-w-[1200px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {Array.from({ length: slots }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
+            <WishlistCardSkeleton key={i} />
           ))}
         </div>
       </div>

@@ -29,7 +29,6 @@ const ProductCardGrid = ({
 }) => {
   const urls = useMemo(() => collectImageUrls(items, 'image_url', 'card'), [items]);
   const isShop = variant === 'shop';
-  const isWishlist = variant === 'wishlist';
   const Card = isShop ? ShopProductCard : ProductCard;
   const Skeleton = isShop ? ShopProductCardSkeleton : ProductCardSkeleton;
   const gridClass = isShop ? (className === PRODUCT_GRID_CLASS ? SHOP_GRID_CLASS : className) : className;
@@ -63,7 +62,7 @@ const ProductCardGrid = ({
         const card = isShop ? (
           <Card art={art} priority={i < 4} />
         ) : (
-          <Card art={art} priority={i < 4} variant={isWishlist ? 'wishlist' : 'default'} />
+          <Card art={art} priority={i < 4} />
         );
         if (i >= 8) {
           return (

@@ -1,18 +1,21 @@
 import { Resend } from "resend";
 import { getSupabase, isMissingTable, tableMissingResponse } from "../lib/apiUtils.js";
+import { SITE_EMAIL, siteEmailFrom } from "../lib/siteContact.js";
 
 const formatPrice = (n) => (n != null ? `₹${Number(n).toLocaleString("en-IN")}` : "Price on request");
 
-const buildCartMessage = (items, total, name, contactInfo) => {
+const buildCartMessage = (items, total, name, contact) => {
   const lines = items.map((item) => {
     const qty = item.quantity || 1;
     const line = item.price ? formatPrice(item.price * qty) : "Enquire";
     return `• ${item.title}${qty > 1 ? ` ×${qty}` : ""} — ${line}`;
   });
-  let msg = `Hi Visheshkala! I'd like to enquire about my cart:\n\n${lines.join("\n")}`;
+  let msg = `Hi Visheshkala! I'd like to place an order:\n\n${lines.join("\n")}`;
   if (total) msg += `\n\nTotal: ${formatPrice(total)}`;
   if (name) msg += `\n\nName: ${name}`;
-  if (contactInfo) msg += `\nContact: ${contactInfo}`;
+  if (contact?.email) msg += `\nEmail: ${contact.email}`;
+  if (contact?.phone) msg += `\nPhone: ${contact.phone}`;
+  if (contact?.address) msg += `\nAddress: ${contact.address}`;
   msg += "\n\nPlease share payment and delivery details. Thank you!";
   return msg;
 };
@@ -44,8 +47,8 @@ const handleContact = async (req, res, supabase) => {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: "Visheshkala <studio@vishakhagarg.com>",
-        to: "hello@visheshkala.com",
+        from: siteEmailFrom(),
+        to: SITE_EMAIL,
         replyTo: email.trim(),
         subject: `[Contact] ${subject?.trim() || "New message"} — ${name.trim()}`,
         html: `<p><strong>From:</strong> ${name.trim()} (${email.trim()})</p><p>${message.trim().replace(/\n/g, "<br>")}</p>`,
@@ -58,19 +61,67 @@ const handleContact = async (req, res, supabase) => {
   return res.status(201).json({ success: true, enquiry: data[0] });
 };
 
+const sendOrderEmail = async ({ name, email, phone, address, items, total, enquiryId }) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const itemRows = items
+    .map((item) => {
+      const qty = item.quantity || 1;
+      const line = item.price ? formatPrice(item.price * qty) : "Enquire";
+      return `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee">${item.title}${qty > 1 ? ` ×${qty}` : ""}</td><td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${line}</td></tr>`;
+    })
+    .join("");
+
+  const html = `
+    <h2>New cart order — Visheshkala</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Phone:</strong> ${phone}</p>
+    ${email ? `<p><strong>Email:</strong> ${email}</p>` : ""}
+    <p><strong>Address:</strong> ${address.replace(/\n/g, "<br>")}</p>
+    ${enquiryId ? `<p><strong>Order ID:</strong> ${enquiryId}</p>` : ""}
+    <table style="width:100%;border-collapse:collapse;margin:16px 0">
+      <thead><tr><th style="text-align:left;padding:8px 12px;border-bottom:2px solid #ccc">Item</th><th style="text-align:right;padding:8px 12px;border-bottom:2px solid #ccc">Price</th></tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+    ${total ? `<p><strong>Total:</strong> ${formatPrice(total)}</p>` : ""}
+    <p style="color:#666;font-size:13px">View in Admin → Inquiries → Cart Checkout</p>
+  `;
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: siteEmailFrom(),
+      to: SITE_EMAIL,
+      replyTo: email || undefined,
+      subject: `[Order] ${name} — ${items.length} item${items.length > 1 ? "s" : ""}${total ? ` (${formatPrice(total)})` : ""}`,
+      html,
+    });
+  } catch (e) {
+    console.error("Cart order notification email failed:", e);
+  }
+};
+
 const handleCart = async (req, res, supabase) => {
-  const { name, contact_info, items, notes } = req.body || {};
+  const { name, email, phone, address, contact_info, items, notes } = req.body || {};
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "Cart items are required" });
   }
+  if (!name?.trim()) return res.status(400).json({ error: "Name is required" });
+  if (!phone?.trim()) return res.status(400).json({ error: "Phone number is required" });
+  if (!address?.trim()) return res.status(400).json({ error: "Shipping address is required" });
 
   const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+  const contact = {
+    email: email?.trim() || null,
+    phone: phone.trim(),
+    address: address.trim(),
+  };
 
   const { data, error } = await supabase
     .from("cart_enquiries")
     .insert([{
-      name: name?.trim() || null,
-      contact_info: contact_info?.trim() || null,
+      name: name.trim(),
+      contact_info: JSON.stringify(contact),
       items,
       total: total || null,
       notes: notes?.trim() || null,
@@ -84,8 +135,18 @@ const handleCart = async (req, res, supabase) => {
 
   const channels = await getWhatsAppChannels(supabase);
   const number = (channels.whatsapp_number || "").replace(/\D/g, "");
-  const message = buildCartMessage(items, total, name, contact_info);
+  const message = buildCartMessage(items, total, name.trim(), contact);
   const whatsappUrl = number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : null;
+
+  await sendOrderEmail({
+    name: name.trim(),
+    email: contact.email,
+    phone: contact.phone,
+    address: contact.address,
+    items,
+    total: total || null,
+    enquiryId: data[0]?.id,
+  });
 
   return res.status(201).json({
     success: true,
@@ -93,8 +154,8 @@ const handleCart = async (req, res, supabase) => {
     whatsappUrl,
     whatsappEnabled: Boolean(number),
     message: whatsappUrl
-      ? "Order saved! Opening WhatsApp to complete your enquiry."
-      : "Order saved! We'll reach out shortly — WhatsApp checkout is being set up.",
+      ? "Order saved! Opening WhatsApp to complete your order."
+      : "Order saved! We'll reach out shortly.",
   });
 };
 

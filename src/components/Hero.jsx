@@ -6,7 +6,9 @@ const Hero = () => (
     <div className="hero-banner-wrap">
       <HeroBanner
         src={DEFAULT_HERO_BANNER.src}
+        srcSet={DEFAULT_HERO_BANNER.srcSet}
         mobileSrc={DEFAULT_HERO_BANNER.mobileSrc}
+        mobileSrcSet={DEFAULT_HERO_BANNER.mobileSrcSet}
         alt={DEFAULT_HERO_BANNER.alt}
       />
     </div>

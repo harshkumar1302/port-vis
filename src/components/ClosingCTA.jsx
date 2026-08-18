@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
 import { buildInstagramUrl } from '../lib/enquire';
 import { Link } from 'react-router-dom';
+import NewsletterModal from './NewsletterModal';
 
 const SOCIAL_LINKS = [
   {
@@ -37,57 +39,72 @@ const SOCIAL_LINKS = [
 
 const ClosingCTA = () => {
   const { value: channels } = useSiteSetting('contact_channels', {});
+  const [newsletterOpen, setNewsletterOpen] = useState(false);
 
   return (
-    <section id="contact" className="defer-section relative py-16 md:py-32 scroll-mt-28 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-ghibli-paper/30 to-ghibli-cream pointer-events-none" />
-      <div className="max-w-7xl mx-auto page-container relative z-10 text-center">
-        <Link to="/admin" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase mb-6 cursor-default">
-          Handmade, just for you
-        </Link>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4 sm:mb-6 max-w-3xl mx-auto px-2 sm:px-0">
-          Looking for Something Special?
-        </h2>
-        <p className="text-lg text-ghibli-charcoal/70 mb-10 max-w-2xl mx-auto">
-          Browse the collection, or say hello — we'd love to hear from you.
-        </p>
-
-        <div className="flex flex-wrap gap-4 justify-center mb-12">
-          <a href="#featured" className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform shadow-lg">
-            Shop Collection
-          </a>
-          <a
-            href={buildInstagramUrl(channels)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white border border-ghibli-wood/20 text-ghibli-wood font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform"
+    <>
+      <section id="contact" className="defer-section relative py-16 md:py-32 scroll-mt-28 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-ghibli-paper/30 to-ghibli-cream pointer-events-none" />
+        <div className="max-w-7xl mx-auto page-container relative z-10 text-center">
+          <Link
+            to="/admin"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ghibli-wood/10 border border-ghibli-wood/20 text-ghibli-wood text-xs font-bold tracking-widest uppercase mb-6 cursor-default no-underline"
           >
-            @visheshkalaa
-          </a>
-        </div>
+            Handmade, just for you
+          </Link>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ghibli-charcoal font-serif tracking-tight mb-4 sm:mb-6 max-w-3xl mx-auto px-2 sm:px-0">
+            Looking for Something Special?
+          </h2>
+          <p className="text-lg text-ghibli-charcoal/70 mb-10 max-w-2xl mx-auto">
+            Browse the collection, or say hello — we&apos;d love to hear from you.
+          </p>
 
-        <div className="flex flex-wrap gap-4 justify-center items-center">
-          {SOCIAL_LINKS.map(link => (
+          <div className="flex flex-wrap gap-4 justify-center mb-12">
+            <Link to="/shop" className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform shadow-lg">
+              Shop Collection
+            </Link>
+            <button
+              type="button"
+              onClick={() => setNewsletterOpen(true)}
+              className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white border border-ghibli-wood/20 text-ghibli-wood font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform"
+            >
+              Join Newsletter
+            </button>
             <a
-              key={link.name}
-              href={link.getUrl ? link.getUrl(channels) : link.url}
+              href={buildInstagramUrl(channels)}
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal shadow-sm hover:shadow-lg hover:scale-110 transition-all ${link.color}`}
-              title={link.name}
+              className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white border border-ghibli-wood/20 text-ghibli-wood font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest hover:scale-105 transition-transform"
             >
-              {link.icon}
+              @visheshkalaa
             </a>
-          ))}
-          <a
-            href="mailto:visheshkalaofficial@gmail.com"
-            className="px-5 sm:px-6 py-3 bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest rounded-full shadow-lg hover:bg-[#A0704F] hover:scale-105 transition-all"
-          >
-            Order Now
-          </a>
+          </div>
+
+          <div className="flex flex-wrap gap-4 justify-center items-center">
+            {SOCIAL_LINKS.map((link) => (
+              <a
+                key={link.name}
+                href={link.getUrl ? link.getUrl(channels) : link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-full bg-white border border-ghibli-wood/10 flex items-center justify-center text-ghibli-charcoal shadow-sm hover:shadow-lg hover:scale-110 transition-all ${link.color}`}
+                title={link.name}
+              >
+                {link.icon}
+              </a>
+            ))}
+            <Link
+              to="/contact"
+              className="px-5 sm:px-6 py-3 bg-ghibli-wood text-ghibli-cream font-bold text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-widest rounded-full shadow-lg hover:bg-[#A0704F] hover:scale-105 transition-all"
+            >
+              Get in Touch
+            </Link>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <NewsletterModal isOpen={newsletterOpen} onClose={() => setNewsletterOpen(false)} />
+    </>
   );
 };
 

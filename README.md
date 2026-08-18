@@ -28,12 +28,15 @@ Visheshkala (by Vishakha Garg) is a digital gallery and admin studio for handmad
 4. **Note**: For API functionality locally, use `vercel dev`.
 
 ### Environment Variables
-Ensure the following are set in your `.env` (local) or Vercel (production):
+Copy `.env.example` to `.env` for local development. In Vercel (production), set:
+
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `JWT_SECRET`
 - `RESEND_API_KEY`
+- `CRON_SECRET` — secures `/api/keep-alive` cron
+- `VITE_GA_MEASUREMENT_ID` — optional Google Analytics 4 (e.g. `G-XXXXXXXXXX`)
 
 ---
 *Matchless offerings, from us to you.*

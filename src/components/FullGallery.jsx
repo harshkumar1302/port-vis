@@ -8,6 +8,8 @@ import { isGalleryListing, artMatchesCategory, artMatchesSubCategory } from '../
 import WhatsAppButton from './WhatsAppButton';
 import ArtworkImage from './ArtworkImage';
 import { fetchSiteSetting } from '../lib/fetchSettings';
+import useSiteSetting from '../hooks/useSiteSettings';
+import { buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
 import { useArtworksCatalog } from '../hooks/useArtworksCatalog';
 import FullGalleryPageSkeleton from './skeletons/FullGalleryPageSkeleton';
 import ScrollRevealItem from './ScrollRevealItem';
@@ -18,6 +20,7 @@ const FullGallery = () => {
     const { category } = useParams();
     const navigate = useNavigate();
     const { artworks: catalog, loading } = useArtworksCatalog();
+    const { value: channels } = useSiteSetting('contact_channels', {});
     const artworks = catalog.filter(isGalleryListing);
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [selectedArt, setSelectedArt] = useState(null);
@@ -382,8 +385,13 @@ const FullGallery = () => {
                                 )}
 
                                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-auto">
-                                    <WhatsAppButton className="px-8 py-5 bg-[#25D366]/80 text-white rounded-full font-black tracking-[0.15em] text-xs uppercase self-start shadow-[0_10px_30px_rgba(37,211,102,0.2)] text-center flex-1">
-                                        Enquire on WhatsApp
+                                    <WhatsAppButton
+                                        href={buildWhatsAppUrl(selectedArt, channels)}
+                                        disabled={!hasWhatsApp(channels)}
+                                        onClick={() => setSelectedArt(null)}
+                                        className="px-8 py-5 bg-[#25D366]/80 text-white rounded-full font-black tracking-[0.15em] text-xs uppercase self-start shadow-[0_10px_30px_rgba(37,211,102,0.2)] text-center flex-1"
+                                    >
+                                        Inquire About Piece
                                     </WhatsAppButton>
                                     <a
                                         href="/#contact"

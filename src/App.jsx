@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import SiteHeader from './components/SiteHeader';
+import SiteFooter from './components/SiteFooter';
+import Analytics from './components/Analytics';
 import PageWayfinding from './components/PageWayfinding';
 import Hero from './components/Hero';
 import ShopByCategory from './components/ShopByCategory';
@@ -28,6 +30,7 @@ const Contact = lazy(() => import('./pages/Contact'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -68,17 +71,7 @@ const Layout = ({ children }) => {
       </main>
 
       {!isAdmin && !isResetPassword && (
-        <footer className="py-10 sm:py-16 text-center text-ghibli-wood/40 font-bold tracking-[0.2em] text-[10px] relative group uppercase select-none border-t border-ghibli-wood/10">
-          <div className="page-container max-w-7xl">
-            <div className="flex items-center justify-center gap-2">
-              <span>Where devotion meets detail. Visheshkala © 2026</span>
-            </div>
-          </div>
-          <a href="/admin" aria-label="Admin login" className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-50 hover:text-ghibli-gold transition-all duration-500">
-            <span aria-hidden="true">🗝️</span>
-            <span className="sr-only">Admin login</span>
-          </a>
-        </footer>
+        <SiteFooter />
       )}
       {!isAdmin && !isResetPassword && (
         <Suspense fallback={null}>
@@ -111,6 +104,7 @@ const App = () => {
       <Router>
         <ScrollToHash />
         <RouteSEO />
+        <Analytics />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -123,6 +117,7 @@ const App = () => {
             <Route path="/wishlist" element={<Suspense fallback={<PageFallback />}><Wishlist /></Suspense>} />
             <Route path="/cart" element={<Suspense fallback={<PageFallback />}><Cart /></Suspense>} />
             <Route path="/checkout" element={<Suspense fallback={<PageFallback />}><Checkout /></Suspense>} />
+            <Route path="/privacy" element={<Suspense fallback={<PageFallback />}><PrivacyPolicy /></Suspense>} />
 
             <Route path="/products" element={<ProductsRedirect />} />
             <Route path="/product/:slug" element={<ProductSlugRedirect />} />

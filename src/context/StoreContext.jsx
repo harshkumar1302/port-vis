@@ -10,24 +10,7 @@ export const StoreProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem('visheshkala_cart');
       const parsed = saved ? JSON.parse(saved) : [];
-      if (parsed.length > 0) return parsed;
-      // DUMMY DATA FOR PREVIEW
-      return [
-        {
-          id: 'dummy-1',
-          title: 'Hand-Poured Soy Candle: Santal & Oak',
-          price: 48,
-          quantity: 1,
-          image_url: 'https://images.unsplash.com/photo-1602262973161-591b920e8b2b?auto=format&fit=crop&q=80&w=800'
-        },
-        {
-          id: 'dummy-2',
-          title: 'Linen Table Runner',
-          price: 65,
-          quantity: 2,
-          image_url: 'https://images.unsplash.com/photo-1617260517865-c725516a8b79?auto=format&fit=crop&q=80&w=800'
-        }
-      ];
+      return parsed.filter((item) => !String(item.id).startsWith('dummy-'));
     } catch {
       return [];
     }

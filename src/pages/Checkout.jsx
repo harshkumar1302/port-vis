@@ -6,7 +6,7 @@ import ArtworkImage from '../components/ArtworkImage';
 import WhatsAppButton from '../components/WhatsAppButton';
 
 const Checkout = () => {
-  const { cart } = useStore();
+  const { cart, clearCart } = useStore();
   const navigate = useNavigate();
 
   const [customer, setCustomer] = useState({
@@ -19,16 +19,22 @@ const Checkout = () => {
   const [checkoutStatus, setCheckoutStatus] = useState('idle');
   const [checkoutMsg, setCheckoutMsg] = useState('');
   const [whatsappUrl, setWhatsappUrl] = useState(null);
+  const [submittedOrder, setSubmittedOrder] = useState(null);
+
+  const displayItems = submittedOrder?.items ?? cart;
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (cart.length === 0) {
+  }, []);
+
+  useEffect(() => {
+    if (cart.length === 0 && checkoutStatus !== 'done') {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [cart, navigate, checkoutStatus]);
 
-  const calculateTotal = () =>
-    cart.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
+  const calculateTotal = (items = displayItems) =>
+    items.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
 
   const handleCheckout = async () => {
     // Basic validation
@@ -41,14 +47,14 @@ const Checkout = () => {
     setCheckoutStatus('loading');
     setCheckoutMsg('');
     try {
-      const contactInfo = `Email: ${customer.email} | Phone: ${customer.phone} | Address: ${customer.address}`;
-      
       const res = await fetch('/api/enquire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: customer.name.trim(),
-          contact_info: contactInfo,
+          email: customer.email.trim() || undefined,
+          phone: customer.phone.trim(),
+          address: customer.address.trim(),
           items: cart.map(({ id, title, price, quantity, image_url }) => ({
             id, title, price, quantity, image_url,
           })),
@@ -57,6 +63,13 @@ const Checkout = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Checkout failed');
 
+      setSubmittedOrder({
+        items: cart.map(({ id, title, price, quantity, image_url }) => ({
+          id, title, price, quantity, image_url,
+        })),
+        total: calculateTotal(cart),
+      });
+      clearCart();
       setCheckoutStatus('done');
       setCheckoutMsg(data.message);
       if (data.whatsappUrl) {
@@ -74,7 +87,7 @@ const Checkout = () => {
     setCustomer(prev => ({ ...prev, [name]: value }));
   };
 
-  if (cart.length === 0) return null; // Let the useEffect redirect
+  if (displayItems.length === 0 && checkoutStatus !== 'done') return null;
 
   return (
     <div className="min-h-screen bg-ghibli-cream pb-24 pt-24 md:pt-32">
@@ -162,7 +175,7 @@ const Checkout = () => {
               </h2>
 
               <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto pr-2 no-scrollbar">
-                {cart.map((item) => (
+                {displayItems.map((item) => (
                   <div key={item.id} className="flex gap-4 items-center">
                     <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-ghibli-paper/40 border border-ghibli-wood/10">
                        <ArtworkImage

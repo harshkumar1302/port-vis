@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import useSiteSetting from '../hooks/useSiteSettings';
+import { SITE_EMAIL } from '../constants/site';
 import { buildInstagramUrl, buildWhatsAppUrl, hasWhatsApp } from '../lib/enquire';
 
 const INQUIRY_TYPES = [
@@ -317,7 +318,7 @@ const Contact = () => {
 
           {/* Email Card */}
           <a
-            href="mailto:hello@visheshkala.com"
+            href={`mailto:${SITE_EMAIL}`}
             className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
           >
             <div>
@@ -331,7 +332,7 @@ const Contact = () => {
               </p>
             </div>
             <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-              <span>hello@visheshkala.com</span>
+              <span>{SITE_EMAIL}</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </div>
           </a>

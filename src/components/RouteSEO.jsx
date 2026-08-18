@@ -11,7 +11,7 @@ import {
 } from '../lib/seo';
 
 function isKnownRoute(pathname) {
-  const exact = ['/', '/shop', '/gallery', '/about', '/contact', '/products', '/404'];
+  const exact = ['/', '/shop', '/gallery', '/about', '/contact', '/privacy', '/products', '/404'];
   if (exact.includes(pathname)) return true;
   if (NOINDEX_PATHS.includes(pathname)) return true;
   if (/^\/shop\/[^/]+$/.test(pathname)) return true;
@@ -57,6 +57,7 @@ function resolveRouteSEO(pathname, galleryCategory, shopCategory) {
   if (pathname === '/gallery') return PAGE_SEO.gallery;
   if (pathname === '/about') return PAGE_SEO.about;
   if (pathname === '/contact') return { ...PAGE_SEO.contact, jsonLd: buildFaqJsonLd() };
+  if (pathname === '/privacy') return PAGE_SEO.privacy;
   if (pathname === '/404') return PAGE_SEO.notFound;
 
   if (!isKnownRoute(pathname)) return PAGE_SEO.notFound;

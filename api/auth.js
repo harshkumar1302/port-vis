@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { Resend } from "resend";
 import { sendWelcomeEmail } from "../lib/email.js";
 import { verifyOwner, getSupabase } from "../lib/apiUtils.js";
+import { siteEmailFrom } from "../lib/siteContact.js";
 
 const COOKIE = "owner_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0";
 const SET_COOKIE = (token) =>
@@ -113,7 +114,7 @@ async function handleChangePassword(req, res) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: "Visheshkala <studio@vishakhagarg.com>",
+          from: siteEmailFrom(),
           to: auth.email,
           subject: "Your Visheshkala Password Was Changed",
           html: `<p>Your admin password was changed from your dashboard. If this wasn't you, reset it immediately.</p>`,
@@ -157,7 +158,7 @@ async function handleRequestReset(req, res) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: "Visheshkala <studio@vishakhagarg.com>",
+          from: siteEmailFrom(),
           to: email,
           subject: "Reset Your Visheshkala Password",
           html: `<p><a href="${resetUrl}">Reset your password</a> (expires in 1 hour)</p>`,
