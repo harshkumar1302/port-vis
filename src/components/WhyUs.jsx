@@ -3,7 +3,7 @@ const WhyUs = () => {
     'reveal-card bg-white rounded-3xl p-6 lg:p-8 flex flex-col items-center text-center border border-ghibli-wood/5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)] transition-all duration-300';
 
   return (
-    <section className="defer-section py-24 relative overflow-hidden bg-ghibli-cream/20 border-y border-ghibli-wood/5">
+    <section className="defer-section py-24 relative overflow-hidden bg-ghibli-cream/20">
       <div className="page-container max-w-[1400px] relative z-10">
         <div className="text-center mb-16">
           <span className="text-[#D88A92] text-[11px] font-extrabold tracking-[0.3em] uppercase mb-4 block">

@@ -14,7 +14,7 @@ const FeaturedPicks = () => {
   })();
 
   return (
-    <section id="featured" className="relative py-20 md:py-28 scroll-mt-28 overflow-hidden bg-ghibli-cream/20 border-b border-ghibli-wood/5">
+    <section id="featured" className="relative py-20 md:py-28 scroll-mt-28 overflow-hidden bg-ghibli-cream/20">
       <div className="page-container max-w-[1400px]">
         <div className="text-center mb-12">
           <span className="text-ghibli-wood/70 text-[10px] font-bold tracking-[0.2em] uppercase mb-3 block">

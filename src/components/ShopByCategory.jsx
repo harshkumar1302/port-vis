@@ -65,7 +65,7 @@ const ShopByCategory = () => {
   }, []);
 
   return (
-    <section id="shop" className="relative py-20 md:py-28 scroll-mt-28 bg-[#f4f3f0] border-y border-ghibli-wood/5">
+    <section id="shop" className="relative py-20 md:py-28 scroll-mt-28 bg-[#FBF8EC]">
       <div className="page-container max-w-[1400px]">
         
         {/* Header */}

@@ -109,7 +109,7 @@ const FullGallery = () => {
     if (!currentCategory) return null;
 
     return (
-        <div className="min-h-screen bg-ghibli-cream text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
+        <div className="min-h-screen bg-[#FBF8EC] text-ghibli-charcoal pt-24 sm:pt-32 pb-20 sm:pb-32">
             <div className="page-container max-w-[1400px]">
                 
                 {/* Back Navigation */}

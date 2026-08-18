@@ -55,13 +55,7 @@ const Reviews = () => {
   // Use mockReviews if reviews state is somehow empty
   const displayReviews = reviews.length > 0 ? reviews : MOCK_REVIEWS;
 
-  // Duplicate once so the marquee loop is wide enough without bloating the DOM
-  const marqueeItems = [...displayReviews, ...displayReviews];
-  
-  // Split into two rows for the dual-marquee effect
-  const half = Math.ceil(marqueeItems.length / 2);
-  const row1 = marqueeItems.slice(0, half);
-  const row2 = marqueeItems.slice(half);
+
 
   const ReviewCard = ({ review }) => (
     <div 
@@ -81,7 +75,6 @@ const Reviews = () => {
                <span className="text-[13px] text-[#70757a] font-medium mt-1">{review.time_ago || '1 month ago'}</span>
             </div>
          </div>
-         <GoogleLogo />
       </div>
       
       <div className="flex items-center gap-1.5 mb-3">
@@ -97,14 +90,21 @@ const Reviews = () => {
          <p className="text-[#3c4043] leading-[1.6] text-[15px] font-[400] flex-1">
            {review.message}
          </p>
-         {review.review_image_url && (
-           <div className="shrink-0 relative mt-1">
-             <img src={review.review_image_url} alt="Review attachment" className="w-[84px] h-[84px] rounded-xl object-cover shadow-sm border border-black/5" />
-           </div>
-         )}
+         <div className="shrink-0 relative mt-1 w-[84px] h-[84px]">
+           {review.review_image_url ? (
+             <img src={review.review_image_url} alt="Review attachment" className="w-full h-full rounded-xl object-cover shadow-sm border border-black/5" />
+           ) : (
+             <div className="w-full h-full rounded-xl bg-black/5 border border-black/5"></div>
+           )}
+         </div>
       </div>
     </div>
   );
+
+  const row1 = [...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews, ...displayReviews];
+  
+  const reversedReviews = [...displayReviews].reverse();
+  const row2 = [...reversedReviews, ...reversedReviews, ...reversedReviews, ...reversedReviews, ...reversedReviews, ...reversedReviews];
 
   return (
     <section ref={sectionRef} id="reviews" className="defer-section relative py-20 sm:py-32 md:py-40 bg-white overflow-hidden isolate">
@@ -125,31 +125,33 @@ const Reviews = () => {
       </div>
 
       {/* Infinite Marquee Rows */}
-      <div className="relative w-full flex flex-col gap-6 md:gap-8 overflow-hidden py-4 mask-image-gradient contain-paint">
-        
-        {/* Row 1 - Scrolling Left */}
-        <div className="w-full flex overflow-hidden">
-          <div className="flex w-max animate-marquee gap-6 md:gap-8 px-3 md:px-4 hover:[animation-play-state:paused]">
-            {row1.map((review, i) => (
-              <ReviewCard key={`r1-${review.id}-${i}`} review={review} />
-            ))}
+      <div className="page-container max-w-7xl mx-auto relative">
+        <div className="relative w-full flex flex-col gap-6 md:gap-8 overflow-hidden py-4 mask-image-gradient contain-paint">
+          
+          {/* Row 1 - Scrolling Left */}
+          <div className="w-full flex overflow-hidden">
+            <div className="flex w-max animate-marquee gap-6 md:gap-8 px-3 md:px-4 hover:[animation-play-state:paused]">
+              {row1.map((review, i) => (
+                <ReviewCard key={`r1-${review.id}-${i}`} review={review} />
+              ))}
+            </div>
           </div>
+
+          {/* Row 2 - Scrolling Right */}
+          <div className="w-full flex overflow-hidden">
+            <div className="flex w-max animate-marquee-reverse gap-6 md:gap-8 px-3 md:px-4 hover:[animation-play-state:paused]">
+              {row2.map((review, i) => (
+                <ReviewCard key={`r2-${review.id}-${i}`} review={review} />
+              ))}
+            </div>
+          </div>
+
         </div>
 
-        {/* Row 2 - Scrolling Right */}
-        <div className="w-full flex overflow-hidden">
-          <div className="flex w-max animate-marquee-reverse gap-6 md:gap-8 px-3 md:px-4 hover:[animation-play-state:paused]">
-            {row2.map((review, i) => (
-              <ReviewCard key={`r2-${review.id}-${i}`} review={review} />
-            ))}
-          </div>
-        </div>
-
+        {/* Gradient masks for smooth edge fading */}
+        <div className="absolute top-0 left-0 w-16 md:w-32 h-full bg-gradient-to-r from-white to-transparent z-20 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-16 md:w-32 h-full bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
       </div>
-
-      {/* Gradient masks for smooth edge fading */}
-      <div className="absolute top-0 left-0 w-[15vw] h-full bg-gradient-to-r from-white to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute top-0 right-0 w-[15vw] h-full bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
 
     </section>
   );

@@ -98,78 +98,8 @@ const Contact = () => {
       </div>
 
       <div className="page-container max-w-[1200px]">
-        {/* Direct Concierge Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
-          {/* WhatsApp Card */}
-          <a
-            href={waGeneral || '#'}
-            target={waGeneral ? '_blank' : undefined}
-            rel={waGeneral ? 'noopener noreferrer' : undefined}
-            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Fastest Response</div>
-              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">WhatsApp Concierge</h3>
-              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
-                Direct chat with Vishakha for immediate pricing, WIP snapshots, and custom quotes.
-              </p>
-            </div>
-            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-              <span>Start conversation</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </div>
-          </a>
-
-          {/* Instagram Card */}
-          <a
-            href={instaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-[#E4405F]/10 text-[#E4405F] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Visual Atelier</div>
-              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Instagram Direct</h3>
-              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
-                Follow our daily studio process, reel reveals, and message us directly on DM.
-              </p>
-            </div>
-            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-              <span>Visit @visheshkala</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </div>
-          </a>
-
-          {/* Email Card */}
-          <a
-            href="mailto:hello@visheshkala.com"
-            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 rounded-2xl bg-ghibli-wood/10 text-ghibli-wood flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Formal Inquiries</div>
-              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Studio Mailbox</h3>
-              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
-                For bulk corporate gifting, gallery showcases, or detailed project briefs.
-              </p>
-            </div>
-            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
-              <span>hello@visheshkala.com</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </div>
-          </a>
-        </div>
-
         {/* Main Two-Column Section: Form & FAQ */}
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start mb-16">
           {/* Left Column: Commission & Inquiry Form */}
           <div className="w-full lg:w-[58%]">
             <div className="bg-white/80 backdrop-blur-2xl border border-ghibli-wood/10 rounded-[2.5rem] p-8 sm:p-10 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
@@ -335,6 +265,76 @@ const Contact = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Direct Concierge Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* WhatsApp Card */}
+          <a
+            href={waGeneral || '#'}
+            target={waGeneral ? '_blank' : undefined}
+            rel={waGeneral ? 'noopener noreferrer' : undefined}
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Fastest Response</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">WhatsApp Concierge</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                Direct chat with Vishakha for immediate pricing, WIP snapshots, and custom quotes.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>Start conversation</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
+
+          {/* Instagram Card */}
+          <a
+            href={instaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#E4405F]/10 text-[#E4405F] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Visual Atelier</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Instagram Direct</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                Follow our daily studio process, reel reveals, and message us directly on DM.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>Visit @visheshkala</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
+
+          {/* Email Card */}
+          <a
+            href="mailto:hello@visheshkala.com"
+            className="group relative bg-white/70 backdrop-blur-xl border border-ghibli-wood/10 rounded-3xl p-7 hover:border-ghibli-wood/30 hover:shadow-[0_12px_36px_rgba(139,94,60,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-ghibli-wood/10 text-ghibli-wood flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </div>
+              <div className="text-[10px] uppercase tracking-widest font-bold text-ghibli-wood mb-1">Formal Inquiries</div>
+              <h3 className="font-serif text-2xl text-ghibli-charcoal mb-2">Studio Mailbox</h3>
+              <p className="text-ghibli-charcoal/60 text-xs leading-relaxed">
+                For bulk corporate gifting, gallery showcases, or detailed project briefs.
+              </p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-ghibli-charcoal group-hover:text-ghibli-wood transition-colors">
+              <span>hello@visheshkala.com</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </a>
         </div>
       </div>
     </div>

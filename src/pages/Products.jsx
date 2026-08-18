@@ -130,7 +130,7 @@ const Shop = () => {
   }
 
   return (
-    <div className="pt-6 sm:pt-10 pb-20 sm:pb-24 min-h-screen bg-[#f8f7f5]">
+    <div className="pt-6 sm:pt-10 pb-20 sm:pb-24 min-h-screen bg-[#FBF8EC]">
       <div className="page-container max-w-[1400px]">
 
         <header className="mb-8 md:mb-10">
