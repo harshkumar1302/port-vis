@@ -2,7 +2,6 @@ import {
   SITE_WHATSAPP_NUMBER,
   SITE_WHATSAPP_DISPLAY,
 } from '../constants/site';
-import { formatPriceShop, getSubCategory } from './artwork';
 import { getAbsolutePieceUrl } from './pieceUrls';
 import { buildCanonical } from './seo';
 
@@ -35,12 +34,6 @@ const GENERIC_ONLY_SOURCES = new Set(['contact', 'chatbot']);
 
 const digitsOnly = (value) => (value || '').replace(/\D/g, '');
 
-const cleanLabel = (value) =>
-  (value || '')
-    .replace(/\[FEATURED\]/g, '')
-    .replace(/\[SubCategory:\s*.*?\]/g, '')
-    .trim();
-
 const isPieceEnquiry = (source) =>
   Boolean(source) &&
   !GENERIC_ONLY_SOURCES.has(source) &&
@@ -51,13 +44,6 @@ const isPieceEnquiry = (source) =>
     source === 'cart' ||
     source === 'checkout');
 
-const titleFromSlug = (slug) =>
-  (slug || '')
-    .split('-')
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
 /** Merge admin settings with site defaults so WhatsApp stays live */
 export const resolveContactChannels = (channels = {}) => {
   const merged = { ...DEFAULT_CHANNELS, ...channels };
@@ -65,65 +51,44 @@ export const resolveContactChannels = (channels = {}) => {
   return { ...merged, whatsapp_number: number };
 };
 
-/** Build a detailed WhatsApp message with piece + page context */
+const resolvePageUrl = (art, options = {}) => {
+  const { pageUrl: pageUrlOverride, slug, source = 'site' } = options;
+  if (pageUrlOverride) return pageUrlOverride;
+  const fromArt = getAbsolutePieceUrl(art);
+  if (fromArt) return fromArt;
+  if (!slug) return null;
+  const path =
+    source.includes('shop') || source === 'product'
+      ? `/shop/${slug}`
+      : `/gallery/piece/${slug}`;
+  return buildCanonical(path);
+};
+
+/** Short WhatsApp message — greeting, piece link, and ask */
 export const buildEnquireMessage = (artwork, options = {}) => {
   const art = artwork ?? {};
-  const { source = 'site', sourceLabel, pageUrl: pageUrlOverride, slug } = options;
+  const { source = 'site', sourceLabel } = options;
   const fromLabel = sourceLabel || ENQUIRE_SOURCES[source] || 'Visheshkala website';
-  const pageUrl =
-    pageUrlOverride ||
-    getAbsolutePieceUrl(art) ||
-    (slug ? buildCanonical(source.includes('shop') || source === 'product' ? `/shop/${slug}` : `/gallery/piece/${slug}`) : null);
+  const pageUrl = resolvePageUrl(art, options);
 
-  let title = cleanLabel(art.title);
-  if (!title && slug) title = titleFromSlug(slug);
-  if (!title && pageUrl) title = 'this piece';
-
-  const category = cleanLabel(art.category);
-  const subCategory = getSubCategory(art);
-  const price = formatPriceShop(art.price);
-  const listingType = art.listing_type;
-
-  const isGalleryPiece =
-    source.includes('gallery') ||
-    listingType === 'gallery' ||
-    source === 'wishlist-gallery';
-  const isShopPiece =
-    source.includes('shop') ||
-    source === 'product' ||
-    listingType === 'shop';
-
-  if (GENERIC_ONLY_SOURCES.has(source) || (!isPieceEnquiry(source) && !title)) {
+  if (GENERIC_ONLY_SOURCES.has(source)) {
     return `Hi Visheshkala!\n\nI reached out from your ${fromLabel} and would love to connect.\n\nThank you!`;
   }
 
-  const lines = [
-    'Hi Visheshkala!',
-    '',
-    "I'd love to know more about this piece:",
-    '',
-    `Piece: ${title}`,
-  ];
-
-  if (category) lines.push(`Category: ${category}`);
-  if (subCategory) lines.push(`Style: ${subCategory}`);
-
-  if (isGalleryPiece) {
-    lines.push('Section: Gallery (portfolio piece)');
-  } else if (isShopPiece) {
-    lines.push('Section: Shop');
-    if (price) lines.push(`Listed price: ${price}`);
+  if (isPieceEnquiry(source)) {
+    const lines = [
+      'Hi Visheshkala!',
+      '',
+      "I'd love to know more about this piece:",
+      '',
+    ];
+    if (pageUrl) lines.push(`Link: ${pageUrl}`);
+    lines.push('', 'Could you share price, availability, and delivery details?', '', 'Thank you!');
+    return lines.join('\n');
   }
 
-  lines.push(`Opened from: ${fromLabel}`);
-  if (pageUrl) lines.push(`Link: ${pageUrl}`);
-
-  lines.push('');
-  lines.push('Could you share price, availability, and delivery details?');
-  lines.push('');
-  lines.push('Thank you!');
-
-  return lines.join('\n');
+  const template = DEFAULT_CHANNELS.whatsapp_message_template;
+  return template.replace('{title}', art.title || 'your artwork');
 };
 
 export const buildWhatsAppUrl = (artwork, channels = {}, options = {}) => {
@@ -132,12 +97,14 @@ export const buildWhatsAppUrl = (artwork, channels = {}, options = {}) => {
   const number = digitsOnly(merged.whatsapp_number);
   if (!number) return null;
 
-  const template = merged.whatsapp_message_template || DEFAULT_CHANNELS.whatsapp_message_template;
   const message =
     options.message ||
     (options.source || isPieceEnquiry(options.source)
       ? buildEnquireMessage(artwork, options)
-      : template.replace('{title}', artwork?.title || 'your artwork'));
+      : DEFAULT_CHANNELS.whatsapp_message_template.replace(
+          '{title}',
+          artwork?.title || 'your artwork'
+        ));
 
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 };
