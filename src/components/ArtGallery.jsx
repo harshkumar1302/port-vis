@@ -249,7 +249,7 @@ const ArtGallery = () => {
                                 )}
 
                                 <WhatsAppButton
-                                    href={buildWhatsAppUrl(selectedArt, channels)}
+                                    href={buildWhatsAppUrl(selectedArt, channels, { source: 'gallery-home' })}
                                     onClick={() => setSelectedArt(null)}
                                     className="mt-auto px-8 py-4 bg-[#25D366] text-white rounded-full font-bold tracking-[0.15em] text-xs uppercase hover:bg-[#20bd5a] transition-all self-start text-center shadow-[0_8px_20px_rgba(37,211,102,0.25)]"
                                 >

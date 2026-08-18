@@ -25,7 +25,9 @@ const WishlistCard = ({ art }) => {
   const isOutOfStock = art.stock === 0;
   const slug = titleToSlug(art.title, art.id);
   const detailPath = isShop ? `/shop/${slug}` : getGalleryCategoryUrl(art.category);
-  const waUrl = buildWhatsAppUrl(art, channels);
+  const waUrl = buildWhatsAppUrl(art, channels, {
+    source: isGallery ? 'wishlist-gallery' : 'wishlist-shop',
+  });
 
   const [isRemoving, setIsRemoving] = useState(false);
 

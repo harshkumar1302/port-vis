@@ -43,7 +43,7 @@ const Contact = () => {
   }, []);
 
   const instaUrl = buildInstagramUrl(channels) || 'https://instagram.com';
-  const waGeneral = buildWhatsAppUrl({ title: 'Visheshkala Atelier' }, channels);
+  const waGeneral = buildWhatsAppUrl({ title: 'Visheshkala Atelier' }, channels, { source: 'contact' });
 
   const handleTypeSelect = (type) => {
     setSelectedType(type);

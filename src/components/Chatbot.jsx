@@ -109,7 +109,7 @@ const Chatbot = () => {
   const typingTimer = useRef(null);
 
   const ctx = { cartCount, wishlistCount, categories };
-  const waUrl = buildWhatsAppUrl({ title: 'Visheshkala' }, channels);
+  const waUrl = buildWhatsAppUrl({ title: 'Visheshkala' }, channels, { source: 'chatbot' });
 
   useEffect(() => {
     if (!isOpen) return;

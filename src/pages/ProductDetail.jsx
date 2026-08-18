@@ -24,7 +24,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(!state?.art && !state?.product);
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
   const { value: channels } = useSiteSetting('contact_channels', DEFAULT_CHANNELS);
-  const waUrl = buildWhatsAppUrl(art, channels);
+  const waUrl = buildWhatsAppUrl(art, channels, { source: 'product' });
 
   usePageSEO({
     enabled: Boolean(art),
