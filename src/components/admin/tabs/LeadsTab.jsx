@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import ConfirmDialog from '../ConfirmDialog';
 
 const SOURCES = [
   { id: 'all', label: 'All Inquiries' },
@@ -78,6 +79,8 @@ const LeadsTab = () => {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [missingTables, setMissingTables] = useState([]);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -165,8 +168,6 @@ const LeadsTab = () => {
   };
 
   const deleteInquiry = async (item) => {
-    if (!window.confirm('Delete this inquiry? This cannot be undone.')) return;
-
     const resource = item.source === 'chatbot' ? 'leads' : item.source;
     const previous = items;
 
@@ -184,6 +185,14 @@ const LeadsTab = () => {
       setItems(previous);
       alert('Failed to delete inquiry');
     }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    await deleteInquiry(pendingDelete);
+    setDeleting(false);
+    setPendingDelete(null);
   };
 
   const filtered = filter === 'all'
@@ -294,7 +303,7 @@ const LeadsTab = () => {
                         )}
                         <button
                           type="button"
-                          onClick={() => deleteInquiry(item)}
+                          onClick={() => setPendingDelete(item)}
                           className="text-[10px] font-extrabold uppercase tracking-widest text-red-500 hover:text-red-700 transition-colors text-left"
                         >
                           Delete
@@ -413,7 +422,7 @@ const LeadsTab = () => {
                 )}
                 <button
                   type="button"
-                  onClick={() => deleteInquiry(item)}
+                  onClick={() => setPendingDelete(item)}
                   className="px-5 py-2 text-[0.65rem] font-extrabold uppercase tracking-widest text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
@@ -424,6 +433,16 @@ const LeadsTab = () => {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete inquiry?"
+        message="This inquiry will be permanently removed. This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => !deleting && setPendingDelete(null)}
+        loading={deleting}
+      />
     </div>
   );
 };
